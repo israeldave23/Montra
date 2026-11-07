@@ -45,6 +45,7 @@ resources = ["src/test/resources"]
 
 [dependencies]
 implementation = ["kotlin-stdlib", "androidx.room:room-runtime:2.8.5"]
+testImplementation = ["org.junit.jupiter:junit-jupiter:6.1.3"]
 
 [android]
 namespace = "com.dga.montra"

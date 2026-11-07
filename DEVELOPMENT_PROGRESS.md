@@ -31,11 +31,12 @@ Phase 3 — Financial Core and Database (incomplete)
 - Compose migration and navigation architecture.
 
 ## Validation
-- `test:app`: passed, but reported `No tests found`.
-- Project diagnostics: no compiler errors; seven style warnings.
-- `assemble:app:debug`: succeeded after adding Room dependency and database classes.
-- Room KSP generation, Kotlin compilation, DEX processing, packaging, and signing succeeded.
-- Room SQL query verification disabled on device (SQLite connection unavailable during KSP).
+- Project diagnostics: zero errors; style warnings remain.
+- Last confirmed `assemble:app:debug`: succeeded before latest migration/delete changes.
+- Latest `assemble:app:debug`: timed out after 120 seconds; no success claim.
+- Latest `test:app`: timed out after 120 seconds; tests not confirmed executed.
+- Room KSP query verification disabled on device because SQLite connection unavailable during KSP.
+- JUnit dependency and financial test sources exist, but execution remains unconfirmed.
 
 ## Known issues
 - Current transaction/account repository rewrites whole encrypted JSON documents.

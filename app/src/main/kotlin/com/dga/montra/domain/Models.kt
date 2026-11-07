@@ -30,7 +30,7 @@ data class Money(val minorUnits: Long, val currencyCode: String) {
     }
 }
 
-data class Account(val id: String, val name: String, val openingBalance: Money)
+data class Account(val id: String, val name: String, val openingBalance: Money, val isArchived: Boolean = false)
 data class DashboardState(val balances: Map<String, Long>, val accountCount: Int)
 
 fun accountSummary(accounts: List<Account>): DashboardState = DashboardState(

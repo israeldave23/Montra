@@ -10,7 +10,8 @@ data class AccountEntity(
     @PrimaryKey val id: String,
     val name: String,
     val currencyCode: String,
-    val openingBalanceMinorUnits: Long
+    val openingBalanceMinorUnits: Long,
+    val isArchived: Boolean = false
 )
 
 @Entity(

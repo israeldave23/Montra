@@ -47,6 +47,9 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions ORDER BY timestampMillis DESC")
     suspend fun transactions(): List<TransactionEntity>
 
+    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
+    suspend fun searchTransactions(query: String): List<TransactionEntity>
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertTransaction(transaction: TransactionEntity)
 
@@ -57,7 +60,10 @@ interface FinanceDao {
     suspend fun transactionsForCategory(categoryId: String): List<TransactionEntity>
 
     @Query("DELETE FROM transactions WHERE id = :id")
-    suspend fun deleteTransaction(id: String)
+    suspend fun deleteTransaction(id: String): Int
+
+    @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
+    suspend fun setAccountArchived(id: String, archived: Boolean): Int
 
     @RoomTransaction
     suspend fun transfer(from: TransactionEntity, to: TransactionEntity) {

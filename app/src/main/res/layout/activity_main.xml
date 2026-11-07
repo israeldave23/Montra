@@ -82,6 +82,22 @@
         android:textAllCaps="false" />
 
     <Button
+        android:id="@+id/view_activity_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/view_activity"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/add_transfer_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/add_transfer"
+        android:textAllCaps="false" />
+
+    <Button
         android:id="@+id/add_transaction_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -6,6 +6,7 @@ import com.dga.montra.db.AccountEntity
 import com.dga.montra.db.FinanceDao
 import com.dga.montra.db.FinanceDatabase
 import com.dga.montra.db.TransactionEntity
+import com.dga.montra.db.MIGRATION_1_2
 import com.dga.montra.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,7 +16,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         context.applicationContext,
         FinanceDatabase::class.java,
         "lumen_finance.db"
-    ).build()
+    ).addMigrations(MIGRATION_1_2).build()
 
     private val dao: FinanceDao = db.financeDao()
 
@@ -51,9 +52,55 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         dao.insertTransaction(tx.toEntity())
     }
 
+    suspend fun transfer(fromAccountId: String, toAccountId: String, amount: Money, note: String = "") = withContext(Dispatchers.IO) {
+        migrateLegacyIfNeeded()
+        require(fromAccountId != toAccountId) { "Cannot transfer to same account" }
+        require(amount.minorUnits > 0L) { "Transfer amount must be positive" }
+        val from = dao.account(fromAccountId) ?: throw IllegalArgumentException("Source account missing")
+        val to = dao.account(toAccountId) ?: throw IllegalArgumentException("Target account missing")
+        require(from.currencyCode == to.currencyCode) { "Cross-currency transfer requires exchange rate" }
+        require(from.currencyCode == amount.currencyCode) { "Amount currency mismatch" }
+        val now = System.currentTimeMillis()
+        val outTx = TransactionEntity(
+            id = java.util.UUID.randomUUID().toString(),
+            accountId = fromAccountId,
+            minorUnits = amount.minorUnits,
+            currencyCode = amount.currencyCode,
+            type = TransactionType.TRANSFER_OUT.name,
+            categoryId = "transfer",
+            note = note,
+            timestampMillis = now
+        )
+        val inTx = TransactionEntity(
+            id = java.util.UUID.randomUUID().toString(),
+            accountId = toAccountId,
+            minorUnits = amount.minorUnits,
+            currencyCode = amount.currencyCode,
+            type = TransactionType.TRANSFER_IN.name,
+            categoryId = "transfer",
+            note = note,
+            timestampMillis = now
+        )
+        dao.transfer(outTx, inTx)
+    }
+
+    suspend fun deleteTransaction(id: String) = withContext(Dispatchers.IO) {
+        require(dao.deleteTransaction(id) == 1) { "Transaction not found" }
+    }
+
+    suspend fun archiveAccount(id: String) = withContext(Dispatchers.IO) {
+        require(dao.setAccountArchived(id, true) == 1) { "Account not found" }
+    }
+
     suspend fun allTransactions(): List<Transaction> = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()
         dao.transactions().map { it.toDomain() }
+    }
+
+    suspend fun searchTransactions(query: String): List<Transaction> = withContext(Dispatchers.IO) {
+        migrateLegacyIfNeeded()
+        if (query.isBlank()) dao.transactions().map { it.toDomain() }
+        else dao.searchTransactions(query.trim()).map { it.toDomain() }
     }
 
     suspend fun dashboard(): DashboardState = withContext(Dispatchers.IO) {
@@ -93,14 +140,16 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 private fun AccountEntity.toDomain() = Account(
     id = id,
     name = name,
-    openingBalance = Money(openingBalanceMinorUnits, currencyCode)
+    openingBalance = Money(openingBalanceMinorUnits, currencyCode),
+    isArchived = isArchived
 )
 
 private fun Account.toEntity() = AccountEntity(
     id = id,
     name = name,
     currencyCode = openingBalance.currencyCode,
-    openingBalanceMinorUnits = openingBalance.minorUnits
+    openingBalanceMinorUnits = openingBalance.minorUnits,
+    isArchived = isArchived
 )
 
 private fun TransactionEntity.toDomain() = Transaction(

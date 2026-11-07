@@ -2,7 +2,7 @@ package com.dga.montra.domain
 
 import java.util.UUID
 
-enum class TransactionType { EXPENSE, INCOME, REFUND, ADJUSTMENT }
+enum class TransactionType { EXPENSE, INCOME, REFUND, ADJUSTMENT, TRANSFER_OUT, TRANSFER_IN }
 
 data class Category(val id: String, val name: String, val isIncome: Boolean = false)
 
@@ -22,7 +22,7 @@ data class Transaction(
 }
 
 fun Transaction.signedMinorUnits(): Long = when (type) {
-    TransactionType.INCOME, TransactionType.REFUND -> amount.minorUnits
-    TransactionType.EXPENSE -> -amount.minorUnits
+    TransactionType.INCOME, TransactionType.REFUND, TransactionType.TRANSFER_IN -> amount.minorUnits
+    TransactionType.EXPENSE, TransactionType.TRANSFER_OUT -> -amount.minorUnits
     TransactionType.ADJUSTMENT -> amount.minorUnits
 }
