@@ -47,6 +47,8 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions ORDER BY timestampMillis DESC")
     suspend fun transactions(): List<TransactionEntity>
 
+<<<<<<< HEAD
+<<<<<<< HEAD
     @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
     suspend fun searchTransactions(query: String): List<TransactionEntity>
 
@@ -64,6 +66,31 @@ interface FinanceDao {
 
     @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
     suspend fun setAccountArchived(id: String, archived: Boolean): Int
+=======
+=======
+    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
+    suspend fun searchTransactions(query: String): List<TransactionEntity>
+
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertTransaction(transaction: TransactionEntity)
+
+    @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
+    suspend fun transaction(id: String): TransactionEntity?
+
+    @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY timestampMillis DESC")
+    suspend fun transactionsForCategory(categoryId: String): List<TransactionEntity>
+
+    @Query("DELETE FROM transactions WHERE id = :id")
+<<<<<<< HEAD
+    suspend fun deleteTransaction(id: String)
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
+=======
+    suspend fun deleteTransaction(id: String): Int
+
+    @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
+    suspend fun setAccountArchived(id: String, archived: Boolean): Int
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
 
     @RoomTransaction
     suspend fun transfer(from: TransactionEntity, to: TransactionEntity) {

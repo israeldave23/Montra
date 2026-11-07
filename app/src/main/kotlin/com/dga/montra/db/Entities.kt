@@ -10,8 +10,17 @@ data class AccountEntity(
     @PrimaryKey val id: String,
     val name: String,
     val currencyCode: String,
+<<<<<<< HEAD
+<<<<<<< HEAD
     val openingBalanceMinorUnits: Long,
     val isArchived: Boolean = false
+=======
+    val openingBalanceMinorUnits: Long
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
+=======
+    val openingBalanceMinorUnits: Long,
+    val isArchived: Boolean = false
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
 )
 
 @Entity(

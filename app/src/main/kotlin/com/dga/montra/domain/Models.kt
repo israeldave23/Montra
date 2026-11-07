@@ -30,7 +30,15 @@ data class Money(val minorUnits: Long, val currencyCode: String) {
     }
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 data class Account(val id: String, val name: String, val openingBalance: Money, val isArchived: Boolean = false)
+=======
+data class Account(val id: String, val name: String, val openingBalance: Money)
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
+=======
+data class Account(val id: String, val name: String, val openingBalance: Money, val isArchived: Boolean = false)
+>>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
 data class DashboardState(val balances: Map<String, Long>, val accountCount: Int)
 
 fun accountSummary(accounts: List<Account>): DashboardState = DashboardState(
