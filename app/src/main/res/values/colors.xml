@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#087F6D</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="lumen_background">#F7F9FC</color>
+    <color name="lumen_surface">#FFFFFFFF</color>
+    <color name="lumen_ink">#101828</color>
+    <color name="lumen_muted">#667085</color>
+    <color name="lumen_accent">#087F6D</color>
+    <color name="lumen_positive">#138A59</color>
+    <color name="lumen_negative">#D64C63</color>
+    <color name="ic_launcher_background">#087F6D</color>
+</resources>

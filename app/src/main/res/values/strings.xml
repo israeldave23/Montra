@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lumen Finance</string>
+    <string name="greeting">Good morning</string>
+    <string name="overview">Your financial overview</string>
+    <string name="empty_balance">Add an account to see your balance</string>
+    <string name="add_account">Add first account</string>
+    <string name="home">Home</string>
+    <string name="activity">Activity</string>
+    <string name="budget">Budget</string>
+    <string name="goals">Goals</string>
+    <string name="insights">Insights</string>
+    <string name="account_name_hint">Account name</string>
+    <string name="opening_balance_hint">Opening balance</string>
+    <string name="account_added">Account added</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="total_balance">Total available balance</string>
+    <string name="storage_error">Could not load accounts. Tap to retry.</string>
+    <string name="save_error">Could not save account. Try again.</string>
+    <string name="add_transaction">Add transaction</string>
+    <string name="transaction_amount">Amount</string>
+    <string name="transaction_note">Note (optional)</string>
+    <string name="transaction_saved">Transaction saved</string>
+    <string name="transaction_error">Could not save transaction. Try again.</string>
+    <string name="transaction_type">Type</string>
+    <string name="transaction_category">Category</string>
+    <string name="transaction_account">Account</string>
+    <plurals name="account_count">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+</resources>
