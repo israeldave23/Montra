@@ -7,14 +7,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.App">
-<<<<<<< HEAD
-<<<<<<< HEAD
         <activity android:name=".TransactionsActivity" android:exported="false" />
-=======
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
-=======
-        <activity android:name=".TransactionsActivity" android:exported="false" />
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

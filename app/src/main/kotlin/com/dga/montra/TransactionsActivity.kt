@@ -44,9 +44,18 @@ class TransactionsActivity : Activity() {
             runCatching { repository.searchTransactions(text) }
                 .onSuccess { transactions ->
                     if (version != requestVersion) return@onSuccess
-                    list.adapter = ArrayAdapter(this@TransactionsActivity, android.R.layout.simple_list_item_2,
+                    list.onItemLongClickListener = null
+                    if (transactions.isEmpty()) {
+                        list.adapter = ArrayAdapter(this@TransactionsActivity, android.R.layout.simple_list_item_1, 
+                            listOf(getString(R.string.empty_transactions)))
+                        return@onSuccess
+                    }
+                    list.adapter = ArrayAdapter(this@TransactionsActivity, R.layout.item_transaction_row,
                         android.R.id.text1,
                         transactions.map { formattedLabel(it) })
+                    list.setOnItemClickListener { _, _, position, _ ->
+                        showTransactionDetails(transactions[position])
+                    }
                     list.setOnItemLongClickListener { _, _, position, _ ->
                         confirmDelete(transactions[position])
                         true
@@ -60,6 +69,18 @@ class TransactionsActivity : Activity() {
         val sign = if (tx.type == com.dga.montra.domain.TransactionType.EXPENSE ||
             tx.type == com.dga.montra.domain.TransactionType.TRANSFER_OUT) "−" else "+"
         return "$sign${Money(tx.amount.minorUnits, tx.amount.currencyCode).format()}  ·  ${tx.categoryId}\n${tx.note.ifBlank { tx.type.name }}"
+    }
+
+    private fun showTransactionDetails(tx: Transaction) {
+        val lines = buildString {
+            append("Type: ${tx.type.name}\n")
+            append("Amount: ${tx.amount.format()}\n")
+            append("Category: ${tx.categoryId}\n")
+            if (tx.note.isNotBlank()) append("Note: ${tx.note}\n")
+            append("Account: ${tx.accountId}")
+        }
+        AlertDialog.Builder(this).setTitle(R.string.transaction_details).setMessage(lines)
+            .setPositiveButton(android.R.string.ok, null).show()
     }
 
     private fun confirmDelete(tx: Transaction) {

@@ -26,10 +26,18 @@
     <string name="transaction_type">Type</string>
     <string name="transaction_category">Category</string>
     <string name="transaction_account">Account</string>
-<<<<<<< HEAD
-<<<<<<< HEAD
     <string name="view_activity">View transaction activity</string>
     <string name="search_transactions">Search transactions</string>
+    <string name="activity_title">Activity</string>
+    <string name="activity_subtitle">Search and review your financial history</string>
+    <string name="empty_transactions">No transactions yet</string>
+    <string name="edit_account">Edit account</string>
+    <string name="archive_account">Archive account</string>
+    <string name="account_archived">Account archived</string>
+    <string name="archive_confirm">Archive account? Historical transactions will remain.</string>
+    <string name="restore_account">Restore account</string>
+    <string name="account_restored">Account restored</string>
+    <string name="transaction_details">Transaction details</string>
     <string name="add_transfer">Add transfer</string>
     <string name="transfer_from">From account</string>
     <string name="transfer_to">To account</string>
@@ -40,22 +48,6 @@
     <string name="delete_transaction_message">Are you sure you want to delete this transaction?</string>
     <string name="delete">Delete</string>
     <string name="transaction_deleted">Transaction deleted</string>
-=======
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
-=======
-    <string name="view_activity">View transaction activity</string>
-    <string name="search_transactions">Search transactions</string>
-    <string name="add_transfer">Add transfer</string>
-    <string name="transfer_from">From account</string>
-    <string name="transfer_to">To account</string>
-    <string name="transfer_amount">Amount</string>
-    <string name="transfer_note">Note (optional)</string>
-    <string name="transfer_error">Could not save transfer. Try again.</string>
-    <string name="delete_transaction_title">Delete transaction</string>
-    <string name="delete_transaction_message">Are you sure you want to delete this transaction?</string>
-    <string name="delete">Delete</string>
-    <string name="transaction_deleted">Transaction deleted</string>
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
     <plurals name="account_count">
         <item quantity="one">%d account</item>
         <item quantity="other">%d accounts</item>

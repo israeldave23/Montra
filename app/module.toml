@@ -45,20 +45,13 @@ resources = ["src/test/resources"]
 
 [dependencies]
 implementation = ["kotlin-stdlib", "androidx.room:room-runtime:2.8.5"]
-<<<<<<< HEAD
-<<<<<<< HEAD
 testImplementation = ["org.junit.jupiter:junit-jupiter:6.1.3"]
-=======
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
-=======
-testImplementation = ["org.junit.jupiter:junit-jupiter:6.1.3"]
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
 
 [android]
 namespace = "com.dga.montra"
 compileSdk = 36
 minSdk = 26
-targetSdk = 36
+targetSdk = 35
 manifest = "src/main/AndroidManifest.xml"
 versionCode = 1
 versionName = "1.0"

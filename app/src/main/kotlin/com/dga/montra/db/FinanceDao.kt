@@ -1,12 +1,12 @@
 package com.dga.montra.db
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction as RoomTransaction
 import androidx.room.Update
-import androidx.room.Delete
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -31,7 +31,7 @@ interface FinanceDao {
 
     @RoomTransaction
     suspend fun importLegacy(accounts: List<AccountEntity>, transactions: List<TransactionEntity>) {
-        insertAccounts(accounts)
+        if (accounts.isNotEmpty()) insertAccounts(accounts)
         if (transactions.isNotEmpty()) insertTransactions(transactions)
     }
 
@@ -47,10 +47,11 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions ORDER BY timestampMillis DESC")
     suspend fun transactions(): List<TransactionEntity>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
+    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' OR CAST(minorUnits AS TEXT) LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
     suspend fun searchTransactions(query: String): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY timestampMillis DESC LIMIT :limit OFFSET :offset")
+    suspend fun transactionPage(accountId: String, limit: Int, offset: Int): List<TransactionEntity>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertTransaction(transaction: TransactionEntity)
@@ -66,31 +67,6 @@ interface FinanceDao {
 
     @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
     suspend fun setAccountArchived(id: String, archived: Boolean): Int
-=======
-=======
-    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
-    suspend fun searchTransactions(query: String): List<TransactionEntity>
-
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertTransaction(transaction: TransactionEntity)
-
-    @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
-    suspend fun transaction(id: String): TransactionEntity?
-
-    @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY timestampMillis DESC")
-    suspend fun transactionsForCategory(categoryId: String): List<TransactionEntity>
-
-    @Query("DELETE FROM transactions WHERE id = :id")
-<<<<<<< HEAD
-    suspend fun deleteTransaction(id: String)
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
-=======
-    suspend fun deleteTransaction(id: String): Int
-
-    @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
-    suspend fun setAccountArchived(id: String, archived: Boolean): Int
->>>>>>> branch 'main' of https://github.com/israeldave23/Montra.git
 
     @RoomTransaction
     suspend fun transfer(from: TransactionEntity, to: TransactionEntity) {
