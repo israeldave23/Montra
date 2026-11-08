@@ -42,6 +42,12 @@
   <string name="transaction_details">Transaction details</string>
   <string name="activity_title">Transactions</string>
   <string name="activity_subtitle">Your spending and income history</string>
+  <string name="budget_subtitle">Plan spending before it happens.</string>
+  <string name="budget_body">Budgets will appear here when you set categories and monthly limits.</string>
+  <string name="goals_subtitle">Give your money somewhere to go.</string>
+  <string name="goals_body">Create savings goals to track progress toward what matters.</string>
+  <string name="insights_subtitle">See patterns in your money.</string>
+  <string name="insights_body">Insights will appear after you have enough transaction history.</string>
   <plurals name="account_count">
     <item quantity="one">%d account</item>
     <item quantity="other">%d accounts</item>

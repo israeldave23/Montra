@@ -18,6 +18,5 @@
   <Button ns0:id="@+id/add_transaction_button" ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:layout_marginTop="8dp" ns0:text="@string/add_transaction" ns0:textAllCaps="false" />
   <TextView ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:layout_marginTop="32dp" ns0:text="Recent activity" ns0:textColor="@color/lumen_ink" ns0:textSize="18sp" ns0:textStyle="bold" />
   <TextView ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:layout_marginTop="10dp" ns0:text="Transactions appear here after you add an account." ns0:textColor="@color/lumen_muted" ns0:textSize="14sp" />
-  <Space ns0:layout_width="match_parent" ns0:layout_height="0dp" ns0:layout_weight="1" />
-  <TextView ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:gravity="center" ns0:text="Home     Activity     Budget     Goals     Insights" ns0:textColor="@color/lumen_muted" ns0:textSize="12sp" />
+  <include layout="@layout/view_bottom_navigation" />
 </LinearLayout>

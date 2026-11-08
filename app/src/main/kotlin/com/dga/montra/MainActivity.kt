@@ -34,6 +34,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        bindBottomNavigation(findViewById(R.id.bottom_navigation))
         repository = RoomFinanceRepository.get(this)
         balanceView = findViewById(R.id.balance)
         summaryView = findViewById(R.id.balance_summary)

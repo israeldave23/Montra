@@ -49,4 +49,5 @@
         android:divider="@null"
         android:dividerHeight="8dp"
         android:paddingBottom="12dp" />
+    <include layout="@layout/view_bottom_navigation" />
 </LinearLayout>

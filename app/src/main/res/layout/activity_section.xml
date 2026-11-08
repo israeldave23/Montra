@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/lumen_background" android:orientation="vertical">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:gravity="center_vertical" android:orientation="vertical"
+        android:padding="24dp">
+        <TextView android:id="@+id/section_title" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:textColor="@color/lumen_ink"
+            android:textSize="30sp" android:textStyle="bold" />
+        <TextView android:id="@+id/section_subtitle" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:textColor="@color/lumen_muted" android:textSize="16sp" />
+        <TextView android:id="@+id/section_body" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="28dp"
+            android:background="@drawable/balance_card_background" android:padding="24dp"
+            android:textColor="@color/lumen_ink" android:textSize="16sp" />
+    </LinearLayout>
+    <include layout="@layout/view_bottom_navigation" />
+</LinearLayout>

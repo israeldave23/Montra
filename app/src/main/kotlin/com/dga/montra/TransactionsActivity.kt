@@ -27,6 +27,7 @@ class TransactionsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transactions)
+        bindBottomNavigation(findViewById(R.id.bottom_navigation))
         repository = RoomFinanceRepository.get(this)
         list = findViewById(R.id.transaction_list)
         query = findViewById(R.id.transaction_search)
