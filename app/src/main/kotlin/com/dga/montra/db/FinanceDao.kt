@@ -1,12 +1,12 @@
 package com.dga.montra.db
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction as RoomTransaction
 import androidx.room.Update
+import androidx.room.Delete
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -31,7 +31,7 @@ interface FinanceDao {
 
     @RoomTransaction
     suspend fun importLegacy(accounts: List<AccountEntity>, transactions: List<TransactionEntity>) {
-        if (accounts.isNotEmpty()) insertAccounts(accounts)
+        insertAccounts(accounts)
         if (transactions.isNotEmpty()) insertTransactions(transactions)
     }
 
@@ -47,11 +47,8 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions ORDER BY timestampMillis DESC")
     suspend fun transactions(): List<TransactionEntity>
 
-    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' OR CAST(minorUnits AS TEXT) LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
+    @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
     suspend fun searchTransactions(query: String): List<TransactionEntity>
-
-    @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY timestampMillis DESC LIMIT :limit OFFSET :offset")
-    suspend fun transactionPage(accountId: String, limit: Int, offset: Int): List<TransactionEntity>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertTransaction(transaction: TransactionEntity)

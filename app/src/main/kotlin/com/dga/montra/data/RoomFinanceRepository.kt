@@ -5,8 +5,8 @@ import androidx.room.Room
 import com.dga.montra.db.AccountEntity
 import com.dga.montra.db.FinanceDao
 import com.dga.montra.db.FinanceDatabase
-import com.dga.montra.db.MIGRATION_1_2
 import com.dga.montra.db.TransactionEntity
+import com.dga.montra.db.MIGRATION_1_2
 import com.dga.montra.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,11 +38,6 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     suspend fun allAccounts(): List<Account> = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()
         dao.accounts().map { it.toDomain() }
-    }
-
-    suspend fun activeAccounts(): List<Account> = withContext(Dispatchers.IO) {
-        migrateLegacyIfNeeded()
-        dao.accounts().filterNot { it.isArchived }.map { it.toDomain() }
     }
 
     suspend fun addAccount(account: Account) = withContext(Dispatchers.IO) {
@@ -90,27 +85,11 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     }
 
     suspend fun deleteTransaction(id: String) = withContext(Dispatchers.IO) {
-        val transaction = dao.transaction(id) ?: throw IllegalArgumentException("Transaction not found")
-        if (transaction.type == TransactionType.TRANSFER_OUT.name || transaction.type == TransactionType.TRANSFER_IN.name) {
-            throw IllegalArgumentException("Transfer pair cannot be deleted separately")
-        }
         require(dao.deleteTransaction(id) == 1) { "Transaction not found" }
-    }
-
-    suspend fun updateAccount(account: Account) = withContext(Dispatchers.IO) {
-        val stored = dao.account(account.id) ?: throw IllegalArgumentException("Account not found")
-        require(stored.currencyCode == account.openingBalance.currencyCode) {
-            "Account currency cannot change after creation"
-        }
-        dao.updateAccount(account.toEntity())
     }
 
     suspend fun archiveAccount(id: String) = withContext(Dispatchers.IO) {
         require(dao.setAccountArchived(id, true) == 1) { "Account not found" }
-    }
-
-    suspend fun unarchiveAccount(id: String) = withContext(Dispatchers.IO) {
-        require(dao.setAccountArchived(id, false) == 1) { "Account not found" }
     }
 
     suspend fun allTransactions(): List<Transaction> = withContext(Dispatchers.IO) {
@@ -123,15 +102,6 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         if (query.isBlank()) dao.transactions().map { it.toDomain() }
         else dao.searchTransactions(query.trim()).map { it.toDomain() }
     }
-
-    suspend fun accountTransactions(accountId: String, page: Int, pageSize: Int = 50): List<Transaction> =
-        withContext(Dispatchers.IO) {
-            require(page >= 0) { "Page must be non-negative" }
-            require(pageSize in 1..100) { "Page size must be between 1 and 100" }
-            dao.account(accountId) ?: throw IllegalArgumentException("Account not found")
-            val offset = page.toLong() * pageSize
-            dao.transactionPage(accountId, pageSize, offset.toInt()).map { it.toDomain() }
-        }
 
     suspend fun dashboard(): DashboardState = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()

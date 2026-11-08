@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -20,12 +19,12 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+
 class MainActivity : Activity() {
     private lateinit var repository: RoomFinanceRepository
     private val scope = MainScope()
     private lateinit var balanceView: TextView
     private lateinit var summaryView: TextView
-    private lateinit var accountsList: ListView
 
     override fun onDestroy() {
         scope.coroutineContext.cancel()
@@ -38,7 +37,6 @@ class MainActivity : Activity() {
         repository = RoomFinanceRepository.get(this)
         balanceView = findViewById(R.id.balance)
         summaryView = findViewById(R.id.balance_summary)
-        accountsList = findViewById(R.id.accounts_list)
         findViewById<Button>(R.id.add_account_button).setOnClickListener { showAddAccountDialog() }
         findViewById<Button>(R.id.view_activity_button).setOnClickListener {
             startActivity(android.content.Intent(this, TransactionsActivity::class.java))
@@ -83,7 +81,7 @@ class MainActivity : Activity() {
 
     private fun showTransferDialog() {
         scope.launch {
-            val accounts = runCatching { repository.activeAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
+            val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
             if (accounts.size < 2) { toast(R.string.empty_balance); return@launch }
             showTransferDialogWithAccounts(accounts)
         }
@@ -130,7 +128,7 @@ class MainActivity : Activity() {
 
     private fun showAddTransactionDialog() {
         scope.launch {
-            val accounts = runCatching { repository.activeAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
+            val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
             if (accounts.isEmpty()) { toast(R.string.empty_balance); return@launch }
             showTransactionDialogWithAccounts(accounts)
         }
@@ -177,54 +175,6 @@ class MainActivity : Activity() {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
-    private fun showAccountOptions(account: Account) {
-        AlertDialog.Builder(this)
-            .setTitle(account.name)
-            .setItems(if (account.isArchived) arrayOf(getString(R.string.edit_account), getString(R.string.restore_account))
-                else arrayOf(getString(R.string.edit_account), getString(R.string.archive_account))) { _, which ->
-                if (which == 0) showEditAccountDialog(account)
-                else if (account.isArchived) restoreAccount(account) else confirmArchive(account)
-            }.show()
-    }
-
-    private fun restoreAccount(account: Account) {
-        scope.launch {
-            runCatching { repository.unarchiveAccount(account.id) }
-                .onSuccess { toast(R.string.account_restored); render() }
-                .onFailure { toast(R.string.save_error) }
-        }
-    }
-
-    private fun confirmArchive(account: Account) {
-        AlertDialog.Builder(this).setTitle(R.string.archive_account).setMessage(R.string.archive_confirm)
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.archive_account) { _, _ ->
-                scope.launch {
-                    runCatching { repository.archiveAccount(account.id) }
-                        .onSuccess { toast(R.string.account_archived); render() }
-                        .onFailure { toast(R.string.save_error) }
-                }
-            }.show()
-    }
-
-    private fun showEditAccountDialog(account: Account) {
-        val input = EditText(this).apply { setText(account.name); hint = getString(R.string.account_name_hint) }
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.edit_account).setView(input)
-            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val name = input.text.toString().trim()
-                if (name.isEmpty()) { input.error = getString(R.string.account_name_hint); return@setOnClickListener }
-                scope.launch {
-                    runCatching { repository.updateAccount(account.copy(name = name)) }
-                        .onSuccess { dialog.dismiss(); render() }
-                        .onFailure { toast(R.string.save_error) }
-                }
-            }
-        }
-        dialog.show()
-    }
-
     private fun render() {
         scope.launch {
             runCatching { repository.dashboard() }
@@ -235,12 +185,6 @@ class MainActivity : Activity() {
                         0 -> "—"
                         1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
                         else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
-                    }
-                    val accounts = repository.allAccounts()
-                    accountsList.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_list_item_1, 
-                        accounts.map { "${it.name} ${if (it.isArchived) " (Archived)" else ""}" })
-                    accountsList.setOnItemClickListener { _, _, position, _ ->
-                        showAccountOptions(accounts[position])
                     }
                 }
                 .onFailure { toast(R.string.storage_error) }

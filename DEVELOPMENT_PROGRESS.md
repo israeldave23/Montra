@@ -1,34 +1,70 @@
 # Development Progress
 
 ## Current phase
-Phase 3 — Financial Core and Database (incomplete; build gate blocked)
+Phase 3 — Financial Core and Database (incomplete)
 
-## Completed in current branch
-- Room entities, DAO, database version 2 and migration 1→2 for archived-account flag.
-- Room repository with encrypted legacy JSON import, account create/update/archive/restore, transactions, same-currency atomic transfer, balances, search and paged account transaction query.
-- Transaction activity search, detail display and confirmed deletion; transfer pair deletion prevented to preserve ledger.
-- Account management UI: edit, archive, restore.
-- Dashboard and transaction screen visual improvements; light/dark Lumen colors.
-- Financial calculations use integer minor units and checked sums.
+## Audit findings
+- Project uses one `app` module with Kotlin stdlib only.
+- UI uses native Android Views, not Jetpack Compose.
+- No Gradle Kotlin DSL/version catalog, Hilt, Room, Navigation Compose, ViewModels, StateFlow, WorkManager, or CI configuration exists.
+- Phase 1 and Phase 2 requirements are not complete despite starter dashboard UI.
+- Persistence uses encrypted SharedPreferences JSON, not Room.
+- Accounts and basic expense/income/refund creation exist.
+- No edit/delete/search/filter/splits/transfers/tags/attachments or account management.
+- Android backup is disabled.
 
-## Validation status
-- Project compiler diagnostics: zero errors.
-- `assemble:app:debug`: repeated CodeAssist background-process timeout after 120 seconds. Latest APK is stale and cannot validate current sources.
-- `test:app`: timed out previously; no test execution confirmed.
-- Room KSP cannot verify SQL against SQLite in this environment.
-- Layout preview timed out.
+## Completed features
+- Exact money parsing using integer minor units.
+- Currency-specific fraction digits for PHP, USD, CAD, EUR, GBP, JPY.
+- Basic account creation.
+- Basic expense, income, and refund creation.
+- AES-GCM local payload encryption with Android Keystore.
+- Dashboard totals separated by currency.
+- Overflow checks in dashboard aggregation.
 
-## Important limitations and risks
-- App remains Android Views, not Compose; no MVVM/StateFlow UI collection.
-- Room database is not encrypted at rest. Legacy prefs encryption does not protect newly persisted Room data.
-- Migration not instrumented/tested; schema export disabled.
-- Whole-history dashboard calculation may be slow for large datasets.
-- Transfer pair editing/reversal not implemented; pair deletion is blocked.
-- No verified release build or production readiness.
+## Pending Phase 3
+- Room schema, DAO, repositories, migrations, schema export, and migration tests.
+- Transaction editing/deletion/details/search/filter/sort/splits/transfers/tags/attachments.
+- Account editing/archiving/reconciliation/history.
+- StateFlow/ViewModel UI integration.
+- Categories and calculation use cases.
+- Compose migration and navigation architecture.
 
-## Next resume actions
-1. Restore working CodeAssist build task and run assembleDebug + test task.
-2. Add Room migration/integration tests and schema export.
-3. Decide/implement supported at-rest Room encryption before storing real financial records.
-4. Add account transaction screen and category management.
-5. Complete Phase 3 acceptance criteria before starting Phase 4 budgets.
+## Validation
+- Project diagnostics: zero errors; style warnings remain.
+- Last confirmed `assemble:app:debug`: succeeded before latest migration/delete changes.
+- Latest `assemble:app:debug`: timed out after 120 seconds; no success claim.
+- Latest `test:app`: timed out after 120 seconds; tests not confirmed executed.
+- Room KSP query verification disabled on device because SQLite connection unavailable during KSP.
+- JUnit dependency and financial test sources exist, but execution remains unconfirmed.
+- `test:app`: passed, but reported `No tests found`.
+- Project diagnostics: no compiler errors; seven style warnings.
+- `assemble:app:debug`: succeeded after adding Room dependency and database classes.
+- Room KSP generation, Kotlin compilation, DEX processing, packaging, and signing succeeded.
+- Room SQL query verification disabled on device (SQLite connection unavailable during KSP).
+- Project diagnostics: zero errors; style warnings remain.
+- Last confirmed `assemble:app:debug`: succeeded before latest migration/delete changes.
+- Latest `assemble:app:debug`: timed out after 120 seconds; no success claim.
+- Latest `test:app`: timed out after 120 seconds; tests not confirmed executed.
+- Room KSP query verification disabled on device because SQLite connection unavailable during KSP.
+- JUnit dependency and financial test sources exist, but execution remains unconfirmed.
+
+## Known issues
+- Current transaction/account repository rewrites whole encrypted JSON documents.
+- Account and transaction writes use separate preference files; multi-record operations cannot be atomic.
+- No transfer support.
+- No executable automated test framework configured.
+- Build environment exposes `module.toml`, not requested Gradle files or version catalog.
+
+## Architectural decisions
+- Never combine currencies without explicit conversion.
+- Use `Long` minor units and checked arithmetic.
+- Keep Android automatic backup disabled until encrypted backup/restore exists.
+- Do not claim Phase 3 complete until Room, tests, and successful build exist.
+
+## Next steps
+1. Establish compatible Room and test dependencies.
+2. Replace JSON persistence with versioned Room schema and safe one-time import.
+3. Add account/transaction DAOs and financial calculation tests.
+4. Implement atomic transfers.
+5. Connect dashboard/activity UI to observable database state.
