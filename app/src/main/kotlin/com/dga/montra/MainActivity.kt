@@ -34,7 +34,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        bindBottomNavigation(findViewById(R.id.bottom_navigation))
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
+        findViewById<TextView>(R.id.avatar).setOnClickListener { startActivity(android.content.Intent(this, ProfileActivity::class.java)) }
         repository = RoomFinanceRepository.get(this)
         balanceView = findViewById(R.id.balance)
         summaryView = findViewById(R.id.balance_summary)
@@ -42,10 +43,19 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.view_activity_button).setOnClickListener {
             startActivity(android.content.Intent(this, TransactionsActivity::class.java))
         }
-        findViewById<Button>(R.id.add_transaction_button).setOnClickListener { showAddTransactionDialog() }
-        findViewById<Button>(R.id.add_transfer_button).setOnClickListener { showTransferDialog() }
+        findViewById<android.view.View>(R.id.add_transaction_button).setOnClickListener { showAddTransactionDialog() }
+        findViewById<android.view.View>(R.id.add_transfer_button).setOnClickListener { showTransferDialog() }
         summaryView.setOnClickListener { render() }
+        refreshProfileHeader()
         render()
+    }
+
+    override fun onResume() { super.onResume(); refreshProfileHeader() }
+
+    private fun refreshProfileHeader() {
+        val name = getSharedPreferences("lumen_profile", MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
+        findViewById<TextView>(R.id.avatar).text = if (name.isEmpty()) "L" else name.substring(0, name.offsetByCodePoints(0, minOf(2, name.codePointCount(0, name.length)))).uppercase()
+        findViewById<TextView>(R.id.greeting_title).text = if (name.isEmpty()) getString(R.string.overview) else name
     }
 
     private fun showAddAccountDialog() {

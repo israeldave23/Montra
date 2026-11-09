@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/bottom_navigation"
-    android:layout_width="match_parent"
-    android:layout_height="64dp"
+    android:layout_width="match_parent" android:layout_height="76dp"
     android:background="@drawable/balance_surface_background"
-    android:gravity="center"
-    android:orientation="horizontal"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
-    <TextView android:id="@+id/nav_home" style="@style/BottomNavigationItem" android:text="@string/home" />
-    <TextView android:id="@+id/nav_activity" style="@style/BottomNavigationItem" android:text="@string/activity" />
-    <TextView android:id="@+id/nav_budget" style="@style/BottomNavigationItem" android:text="@string/budget" />
-    <TextView android:id="@+id/nav_goals" style="@style/BottomNavigationItem" android:text="@string/goals" />
-    <TextView android:id="@+id/nav_insights" style="@style/BottomNavigationItem" android:text="@string/insights" />
+    android:elevation="8dp" android:gravity="center" android:orientation="horizontal"
+    android:paddingStart="12dp" android:paddingEnd="12dp">
+    <TextView android:id="@+id/nav_home" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_home_description" android:text="@string/home" />
+    <TextView android:id="@+id/nav_activity" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_activity_description" android:text="@string/activity" />
+    <TextView android:id="@+id/nav_budget" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_budget_description" android:text="@string/budget" />
+    <TextView android:id="@+id/nav_goals" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_goals_description" android:text="@string/goals" />
+    <TextView android:id="@+id/nav_insights" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_insights_description" android:text="@string/insights" />
 </LinearLayout>

@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
 import android.widget.Toast
+import android.widget.TextView
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
@@ -27,8 +28,9 @@ class TransactionsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transactions)
-        bindBottomNavigation(findViewById(R.id.bottom_navigation))
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), 1)
         repository = RoomFinanceRepository.get(this)
+        findViewById<TextView>(R.id.transactions_back).setOnClickListener { finish() }
         list = findViewById(R.id.transaction_list)
         query = findViewById(R.id.transaction_search)
         query.addTextChangedListener(object : TextWatcher {
@@ -47,13 +49,12 @@ class TransactionsActivity : Activity() {
                     if (version != requestVersion) return@onSuccess
                     list.onItemLongClickListener = null
                     if (transactions.isEmpty()) {
+                        list.onItemClickListener = null
                         list.adapter = ArrayAdapter(this@TransactionsActivity, android.R.layout.simple_list_item_1, 
                             listOf(getString(R.string.empty_transactions)))
                         return@onSuccess
                     }
-                    list.adapter = ArrayAdapter(this@TransactionsActivity, R.layout.item_transaction_row,
-                        android.R.id.text1,
-                        transactions.map { formattedLabel(it) })
+                    list.adapter = TransactionAdapter(this@TransactionsActivity, transactions)
                     list.setOnItemClickListener { _, _, position, _ ->
                         showTransactionDetails(transactions[position])
                     }

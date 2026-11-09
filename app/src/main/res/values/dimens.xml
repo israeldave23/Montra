@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="card_radius">18dp</dimen>
+    <dimen name="hero_radius">26dp</dimen>
+    <dimen name="control_radius">14dp</dimen>
+    <dimen name="screen_h_padding">20dp</dimen>
+    <dimen name="card_padding">20dp</dimen>
+    <dimen name="touch_target">48dp</dimen>
+</resources>

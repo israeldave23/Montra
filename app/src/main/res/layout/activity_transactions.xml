@@ -1,53 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/lumen_background"
-    android:orientation="vertical"
-    android:paddingStart="24dp"
-    android:paddingTop="24dp"
-    android:paddingEnd="24dp"
-    android:paddingBottom="16dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/activity_title"
-        android:textColor="@color/lumen_ink"
-        android:textSize="28sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="@string/activity_subtitle"
-        android:textColor="@color/lumen_muted"
-        android:textSize="14sp" />
-
-    <EditText
-        android:id="@+id/transaction_search"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/balance_surface_background"
-        android:hint="@string/search_transactions"
-        android:inputType="text"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:singleLine="true"
-        android:textColor="@color/lumen_ink"
-        android:textColorHint="@color/lumen_muted" />
-
-    <ListView
-        android:id="@+id/transaction_list"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:divider="@null"
-        android:dividerHeight="8dp"
-        android:paddingBottom="12dp" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lumen_background" android:orientation="vertical">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/screen_h_padding" android:paddingEnd="@dimen/screen_h_padding" android:paddingTop="20dp" android:paddingBottom="12dp">
+        <TextView android:id="@+id/transactions_back" android:layout_width="44dp" android:layout_height="44dp" android:background="@drawable/action_tile_background" android:contentDescription="@string/back" android:gravity="center" android:text="‹" android:textSize="30sp" android:textColor="@color/lumen_ink" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/activity_title" android:textColor="@color/lumen_ink" android:textSize="28sp" android:textStyle="bold" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="@string/activity_subtitle" android:textColor="@color/lumen_muted" android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/screen_h_padding" android:paddingEnd="@dimen/screen_h_padding" android:paddingBottom="14dp">
+        <EditText android:id="@+id/transaction_search" android:layout_width="match_parent" android:layout_height="54dp" android:background="@drawable/search_field_background" android:hint="@string/search_transactions" android:inputType="text" android:paddingStart="18dp" android:paddingEnd="18dp" android:singleLine="true" android:textColor="@color/lumen_ink" android:textColorHint="@color/lumen_muted" android:textSize="15sp" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:paddingStart="@dimen/screen_h_padding" android:paddingEnd="@dimen/screen_h_padding" android:paddingBottom="8dp">
+        <ListView android:id="@+id/transaction_list" android:layout_width="match_parent" android:layout_height="match_parent" android:clipToPadding="false" android:divider="@null" android:dividerHeight="8dp" android:paddingBottom="12dp" />
+    </LinearLayout>
     <include layout="@layout/view_bottom_navigation" />
 </LinearLayout>

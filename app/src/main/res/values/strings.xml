@@ -1,5 +1,34 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+  <string name="profile_title">Profile</string>
+  <string name="profile_back">Back</string>
+  <string name="profile_local_only">Local profile · This device only</string>
+  <string name="profile_display_name">Display name</string>
+  <string name="profile_name_help">Used for your profile initials.</string>
+  <string name="profile_default_name">Your profile</string>
+  <string name="profile_edit_title">Edit display name</string>
+  <string name="profile_name_required">Enter a display name.</string>
+  <string name="profile_name_too_long">Use 50 characters or fewer.</string>
+  <string name="profile_name_invalid">Use letters, numbers, and punctuation only.</string>
+  <string name="profile_save_error">Could not save name. Try again.</string>
+  <string name="edit">Edit</string>
+  <string name="back">Back</string>
+  <string name="see_all">See all</string>
+  <string name="recent_activity">Recent activity</string>
+  <string name="quick_actions">Quick actions</string>
+  <string name="home_description">Money at a glance</string>
+  <string name="nav_home_description">Open dashboard</string>
+  <string name="nav_activity_description">Open activity</string>
+  <string name="nav_budget_description">Open budget</string>
+  <string name="nav_goals_description">Open goals</string>
+  <string name="nav_insights_description">Open insights</string>
+  <string name="insight_transactions">Transactions recorded</string>
+  <string name="insight_income">Income</string>
+  <string name="insight_expenses">Expenses</string>
+  <string name="insight_empty">Add transactions to see useful patterns.</string>
+  <string name="budget_title">Budget</string>
+  <string name="goals_title">Goals</string>
+  <string name="insights_title">Insights</string>
   <string name="app_name">Lumen Finance</string>
   <string name="greeting">Good morning</string>
   <string name="overview">Your financial overview</string>
