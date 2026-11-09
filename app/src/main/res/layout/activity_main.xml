@@ -7,10 +7,10 @@
     </LinearLayout>
     <TextView ns0:layout_width="44dp" ns0:layout_height="44dp" ns0:gravity="center" ns0:text="L" ns0:textColor="@color/on_primary" ns0:textSize="18sp" ns0:textStyle="bold" ns0:background="@drawable/avatar_background" />
   </LinearLayout>
-  <LinearLayout ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:layout_marginTop="28dp" ns0:background="@drawable/balance_card_background" ns0:orientation="vertical" ns0:padding="24dp">
-    <TextView ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:text="Available balance" ns0:textColor="@color/lumen_muted" ns0:textSize="14sp" />
-    <TextView ns0:id="@+id/balance" ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:layout_marginTop="8dp" ns0:text="—" ns0:textColor="@color/lumen_ink" ns0:textSize="38sp" ns0:textStyle="bold" />
-    <TextView ns0:id="@+id/balance_summary" ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:layout_marginTop="8dp" ns0:text="@string/empty_balance" ns0:textColor="@color/lumen_muted" ns0:textSize="14sp" />
+  <LinearLayout ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:layout_marginTop="28dp" ns0:background="@drawable/balance_card_background" ns0:elevation="6dp" ns0:orientation="vertical" ns0:padding="24dp">
+    <TextView ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:text="Available balance" ns0:textColor="@color/on_primary" ns0:textSize="14sp" />
+    <TextView ns0:id="@+id/balance" ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:layout_marginTop="8dp" ns0:text="—" ns0:textColor="@color/on_primary" ns0:textSize="42sp" ns0:textStyle="bold" />
+    <TextView ns0:id="@+id/balance_summary" ns0:layout_width="wrap_content" ns0:layout_height="wrap_content" ns0:layout_marginTop="8dp" ns0:text="@string/empty_balance" ns0:textColor="@color/on_primary" ns0:textSize="14sp" />
   </LinearLayout>
   <Button ns0:id="@+id/add_account_button" ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:layout_marginTop="18dp" ns0:text="@string/add_account" ns0:textAllCaps="false" />
   <Button ns0:id="@+id/view_activity_button" ns0:layout_width="match_parent" ns0:layout_height="wrap_content" ns0:layout_marginTop="8dp" ns0:text="@string/view_activity" ns0:textAllCaps="false" />

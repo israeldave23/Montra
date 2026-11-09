@@ -13,7 +13,7 @@
             android:textColor="@color/lumen_muted" android:textSize="16sp" />
         <TextView android:id="@+id/section_body" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="28dp"
-            android:background="@drawable/balance_card_background" android:padding="24dp"
+            android:background="@drawable/balance_surface_background" android:padding="24dp"
             android:textColor="@color/lumen_ink" android:textSize="16sp" />
     </LinearLayout>
     <include layout="@layout/view_bottom_navigation" />

@@ -30,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/balance_card_background"
+        android:background="@drawable/balance_surface_background"
         android:hint="@string/search_transactions"
         android:inputType="text"
         android:paddingStart="16dp"

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#A5F3D2</color>
-    <color name="on_primary">#092019</color>
-    <color name="lumen_background">#090D14</color>
-    <color name="lumen_surface">#121925</color>
-    <color name="lumen_ink">#F8FAFC</color>
-    <color name="lumen_muted">#94A3B8</color>
-    <color name="lumen_accent">#A5F3D2</color>
-    <color name="lumen_positive">#4ADE80</color>
-    <color name="lumen_negative">#FB7185</color>
+    <color name="primary">#7DC8A8</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="lumen_background">#111A16</color>
+    <color name="lumen_surface">#1A2520</color>
+    <color name="lumen_ink">#E5EEE8</color>
+    <color name="lumen_muted">#ABB9B0</color>
+    <color name="lumen_accent">#7DC8A8</color>
+    <color name="lumen_positive">#7DC8A8</color>
+    <color name="lumen_negative">#F29289</color>
+    <color name="lumen_highlight">#D6B77D</color>
 </resources>

@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/balance_card_background"
+    android:background="@drawable/balance_surface_background"
+    android:elevation="2dp"
     android:orientation="vertical"
     android:padding="16dp">
 

@@ -69,11 +69,12 @@ class TransactionsActivity : Activity() {
     private fun formattedLabel(tx: com.dga.montra.domain.Transaction): String {
         val sign = if (tx.type == com.dga.montra.domain.TransactionType.EXPENSE ||
             tx.type == com.dga.montra.domain.TransactionType.TRANSFER_OUT) "−" else "+"
-        return "$sign${Money(tx.amount.minorUnits, tx.amount.currencyCode).format()}  ·  ${tx.categoryId}\n${tx.note.ifBlank { tx.type.name }}"
+        return "$sign${Money(tx.amount.minorUnits, tx.amount.currencyCode).format()}  ·  ${tx.categoryId}\n${tx.note.ifBlank { tx.type.name }}\n${java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(tx.timestampMillis))}"
     }
 
     private fun showTransactionDetails(tx: Transaction) {
         val lines = buildString {
+            append("Date: ${java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT).format(java.util.Date(tx.timestampMillis))}\n")
             append("Type: ${tx.type.name}\n")
             append("Amount: ${tx.amount.format()}\n")
             append("Category: ${tx.categoryId}\n")
