@@ -7,6 +7,8 @@
         <item name="android:statusBarColor">@color/lumen_background</item>
         <item name="android:navigationBarColor">@color/lumen_surface</item>
         <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowEnterAnimation">@anim/activity_fade_in</item>
+        <item name="android:windowExitAnimation">@anim/activity_fade_out</item>
     </style>
     <style name="BottomNavigationItem">
         <item name="android:layout_width">0dp</item>
