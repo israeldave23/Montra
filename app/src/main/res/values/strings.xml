@@ -54,6 +54,11 @@
   <string name="transaction_error">Could not save transaction. Try again.</string>
   <string name="transaction_type">Type</string>
   <string name="transaction_category">Category</string>
+  <string name="transaction_date">Date</string>
+  <string name="edit">Edit</string>
+  <string name="edit_transaction">Edit transaction</string>
+  <string name="transaction_updated">Transaction updated</string>
+  <string name="transaction_date_default">Today</string>
   <string name="transaction_account">Account</string>
   <string name="view_activity">View transaction activity</string>
   <string name="search_transactions">Search transactions</string>

@@ -21,6 +21,28 @@ data class Transaction(
     }
 }
 
+object TransactionCategories {
+    const val UNCATEGORIZED_EXPENSE = "uncategorized"
+    const val UNCATEGORIZED_INCOME = "income_uncategorized"
+
+    val expense = listOf(
+        Category("dining", "Dining"),
+        Category("groceries", "Groceries"),
+        Category("transport", "Transport"),
+        Category("utilities", "Utilities"),
+        Category("rent", "Rent"),
+        Category("health", "Health"),
+        Category("fun", "Fun"),
+        Category("other_expense", "Other")
+    )
+
+    val income = listOf(
+        Category("salary", "Salary"),
+        Category("freelance", "Freelance"),
+        Category("other_income", "Other")
+    )
+}
+
 fun Transaction.signedMinorUnits(): Long = when (type) {
     TransactionType.INCOME, TransactionType.REFUND, TransactionType.TRANSFER_IN -> amount.minorUnits
     TransactionType.EXPENSE, TransactionType.TRANSFER_OUT -> -amount.minorUnits

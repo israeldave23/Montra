@@ -14,7 +14,13 @@ import com.dga.montra.domain.Account
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
+import com.dga.montra.domain.TransactionCategories
+import com.dga.montra.domain.Category
+import java.util.Calendar
+import java.util.Date
 import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -149,12 +155,49 @@ class MainActivity : Activity() {
         val content = layoutInflater.inflate(R.layout.dialog_add_transaction, null)
         val account = content.findViewById<Spinner>(R.id.transaction_account)
         val type = content.findViewById<Spinner>(R.id.transaction_type)
+        val category = content.findViewById<Spinner>(R.id.transaction_category)
+        val datePickerBtn = content.findViewById<Button>(R.id.transaction_date_picker)
         val amount = content.findViewById<EditText>(R.id.transaction_amount)
         val note = content.findViewById<EditText>(R.id.transaction_note)
+
+        val fmt = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+        var selectedDate = Calendar.getInstance()
+        datePickerBtn.text = fmt.format(Date(selectedDate.timeInMillis))
+
+        // account spinner
         account.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             accounts.map { "${it.name} (${it.openingBalance.currencyCode})" })
+
+        // type spinner
         type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             arrayOf("Expense", "Income", "Refund"))
+
+        // category spinner - starts with expense categories
+        category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
+            TransactionCategories.expense.map { it.name })
+        type.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view?, position: Int, id: Long) {
+                val cats = when (position) { 1 -> TransactionCategories.income; else -> TransactionCategories.expense }
+                category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, cats.map { it.name })
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        // date picker
+        datePickerBtn.setOnClickListener {
+            android.app.DatePickerDialog(this,
+                { _, y, m, d ->
+                    selectedDate.set(Calendar.YEAR, y)
+                    selectedDate.set(Calendar.MONTH, m)
+                    selectedDate.set(Calendar.DAY_OF_MONTH, d)
+                    selectedDate.set(Calendar.HOUR_OF_DAY, 12)
+                    selectedDate.set(Calendar.MINUTE, 0)
+                    selectedDate.set(Calendar.SECOND, 0)
+                    datePickerBtn.text = fmt.format(Date(selectedDate.timeInMillis))
+                },
+                selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH), selectedDate.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
         val dialog = AlertDialog.Builder(this).setTitle(R.string.add_transaction).setView(content)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
@@ -170,11 +213,17 @@ class MainActivity : Activity() {
                     2 -> TransactionType.REFUND
                     else -> TransactionType.EXPENSE
                 }
+                val categories = when (transactionType) {
+                    TransactionType.INCOME -> TransactionCategories.income
+                    else -> TransactionCategories.expense
+                }
+                val catId = categories.getOrElse(category.selectedItemPosition) { TransactionCategories.UNCATEGORIZED_EXPENSE }.id
                 scope.launch {
                     runCatching {
                         repository.addTransaction(Transaction(accountId = selected.id, amount = parsed,
-                            type = transactionType, categoryId = if (transactionType == TransactionType.INCOME) "income_uncategorized" else "uncategorized",
-                            note = note.text.toString().trim()))
+                            type = transactionType, categoryId = catId,
+                            note = note.text.toString().trim(),
+                            timestampMillis = selectedDate.timeInMillis))
                     }.onSuccess { dialog.dismiss(); render() }.onFailure { toast(R.string.transaction_error) }
                 }
             }

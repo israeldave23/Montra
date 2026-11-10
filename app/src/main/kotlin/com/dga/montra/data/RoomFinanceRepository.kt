@@ -84,6 +84,10 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         dao.transfer(outTx, inTx)
     }
 
+    suspend fun updateTransaction(id: String, categoryId: String, note: String, type: TransactionType, ts: Long) = withContext(Dispatchers.IO) {
+        require(dao.updateTransaction(id, categoryId, note, type.name, ts) == 1) { "Transaction not found" }
+    }
+
     suspend fun deleteTransaction(id: String) = withContext(Dispatchers.IO) {
         require(dao.deleteTransaction(id) == 1) { "Transaction not found" }
     }
