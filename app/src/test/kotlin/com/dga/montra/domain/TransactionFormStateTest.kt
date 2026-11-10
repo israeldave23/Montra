@@ -8,10 +8,10 @@ class TransactionFormStateTest {
     @Test
     fun `category selection is retained until type actually changes`() {
         val state = TransactionFormState()
-        state.selectCategory("dining")
-        assertEquals("dining", state.categoryId)
+        state.selectCategory("groceries")
+        assertEquals("groceries", state.categoryId)
         assertEquals(false, state.selectType(TransactionType.EXPENSE))
-        assertEquals("dining", state.categoryId)
+        assertEquals("groceries", state.categoryId)
         assertEquals(true, state.selectType(TransactionType.INCOME))
         assertEquals("salary", state.categoryId)
     }
