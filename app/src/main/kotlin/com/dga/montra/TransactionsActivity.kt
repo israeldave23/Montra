@@ -122,7 +122,7 @@ class TransactionsActivity : Activity() {
 
     private fun showEditTransactionDialog(tx: com.dga.montra.domain.Transaction) {
         scope.launch {
-            val accounts = runCatching { repository.prepareForObservation() }.getOrElse { toast(R.string.storage_error); return@launch }
+            val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
             if (accounts.isEmpty()) { toast(R.string.empty_balance); return@launch }
             showEditTransactionDialogWithAccounts(tx, accounts)
         }
