@@ -43,7 +43,7 @@ class MainActivity : Activity() {
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<TextView>(R.id.avatar).setOnClickListener {
             startActivity(android.content.Intent(this, ProfileActivity::class.java))
-            overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
+            overridePendingTransition(R.anim.activity_enter, R.anim.activity_exit)
         }
         repository = RoomFinanceRepository.get(this)
         balanceView = findViewById(R.id.balance)

@@ -10,16 +10,16 @@
         <item name="android:windowAnimationStyle">@style/AppWindowAnimation</item>
     </style>
     <style name="AppWindowAnimation">
-        <item name="android:activityOpenEnterAnimation">@anim/activity_fade_in</item>
-        <item name="android:activityOpenExitAnimation">@anim/activity_fade_out</item>
-        <item name="android:activityCloseEnterAnimation">@anim/activity_fade_in</item>
-        <item name="android:activityCloseExitAnimation">@anim/activity_fade_out</item>
-        <item name="android:taskOpenEnterAnimation">@anim/activity_fade_in</item>
-        <item name="android:taskOpenExitAnimation">@anim/activity_fade_out</item>
-        <item name="android:taskCloseEnterAnimation">@anim/activity_fade_in</item>
-        <item name="android:taskCloseExitAnimation">@anim/activity_fade_out</item>
-        <item name="android:windowEnterAnimation">@anim/activity_fade_in</item>
-        <item name="android:windowExitAnimation">@anim/activity_fade_out</item>
+        <item name="android:activityOpenEnterAnimation">@anim/activity_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/activity_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/activity_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/activity_exit</item>
+        <item name="android:taskOpenEnterAnimation">@anim/activity_enter</item>
+        <item name="android:taskOpenExitAnimation">@anim/activity_exit</item>
+        <item name="android:taskCloseEnterAnimation">@anim/activity_enter</item>
+        <item name="android:taskCloseExitAnimation">@anim/activity_exit</item>
+        <item name="android:windowEnterAnimation">@anim/activity_enter</item>
+        <item name="android:windowExitAnimation">@anim/activity_exit</item>
     </style>
     <style name="BottomNavigationItem">
         <item name="android:layout_width">0dp</item>

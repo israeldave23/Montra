@@ -16,7 +16,7 @@ fun Activity.bindBottomNavigation(root: View, selected: Int) {
             setOnClickListener {
                 if (index != selected) {
                     startActivity(Intent(this@bindBottomNavigation, activities[index]).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                    this@bindBottomNavigation.overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
+                    this@bindBottomNavigation.overridePendingTransition(R.anim.activity_enter, R.anim.activity_exit)
                 }
             }
         }
