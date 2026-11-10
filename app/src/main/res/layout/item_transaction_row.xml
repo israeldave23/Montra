@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/action_tile_background" android:elevation="0dp" android:gravity="center_vertical" android:orientation="horizontal" android:padding="16dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/action_tile_background" android:elevation="0dp" android:gravity="center_vertical" android:orientation="horizontal" android:padding="@dimen/space_16">
     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-        <TextView android:id="@+id/transaction_category" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/lumen_ink" android:textSize="16sp" android:textStyle="bold" />
-        <TextView android:id="@+id/transaction_note" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:textColor="@color/lumen_muted" android:textSize="13sp" />
-        <TextView android:id="@+id/transaction_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:textColor="@color/lumen_muted" android:textSize="13sp" />
+        <TextView android:id="@+id/transaction_category" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_16" android:textStyle="bold" />
+        <TextView android:id="@+id/transaction_note" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_4" android:textColor="@color/lumen_muted" android:textSize="@dimen/text_12" />
+        <TextView android:id="@+id/transaction_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_4" android:textColor="@color/lumen_muted" android:textSize="@dimen/text_12" />
     </LinearLayout>
-    <TextView android:id="@+id/transaction_amount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:gravity="end" android:textColor="@color/lumen_ink" android:textSize="15sp" android:textStyle="bold" />
+    <TextView android:id="@+id/transaction_amount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/space_16" android:gravity="end" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_14" android:textStyle="bold" />
 </LinearLayout>

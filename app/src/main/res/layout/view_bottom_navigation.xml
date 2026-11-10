@@ -4,7 +4,7 @@
     android:layout_width="match_parent" android:layout_height="76dp"
     android:background="@drawable/balance_surface_background"
     android:elevation="0dp" android:gravity="center" android:orientation="horizontal"
-    android:paddingStart="12dp" android:paddingEnd="12dp">
+    android:paddingStart="@dimen/space_16" android:paddingEnd="@dimen/space_16">
     <TextView android:id="@+id/nav_home" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_home_description" android:text="@string/home" />
     <TextView android:id="@+id/nav_activity" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_activity_description" android:text="@string/activity" />
     <TextView android:id="@+id/nav_budget" style="@style/BottomNavigationItem" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_budget_description" android:text="@string/budget" />

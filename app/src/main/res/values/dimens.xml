@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="card_radius">18dp</dimen>
-    <dimen name="hero_radius">26dp</dimen>
-    <dimen name="control_radius">14dp</dimen>
-    <dimen name="screen_h_padding">20dp</dimen>
-    <dimen name="card_padding">20dp</dimen>
+    <dimen name="card_radius">16dp</dimen>
+    <dimen name="hero_radius">@dimen/card_radius</dimen>
+    <dimen name="control_radius">@dimen/card_radius</dimen>
+    <dimen name="screen_h_padding">24dp</dimen>
+    <dimen name="card_padding">24dp</dimen>
     <dimen name="touch_target">48dp</dimen>
+    <dimen name="space_4">4dp</dimen>
+    <dimen name="space_8">8dp</dimen>
+    <dimen name="space_12">12dp</dimen>
+    <dimen name="space_16">16dp</dimen>
+    <dimen name="space_24">24dp</dimen>
+    <dimen name="space_32">32dp</dimen>
+    <dimen name="space_48">48dp</dimen>
+    <dimen name="space_64">64dp</dimen>
+    <dimen name="space_96">96dp</dimen>
+    <dimen name="text_12">12sp</dimen>
+    <dimen name="text_14">14sp</dimen>
+    <dimen name="text_16">16sp</dimen>
+    <dimen name="text_18">18sp</dimen>
+    <dimen name="text_20">20sp</dimen>
+    <dimen name="text_24">24sp</dimen>
+    <dimen name="text_30">30sp</dimen>
+    <dimen name="text_36">36sp</dimen>
+    <dimen name="text_48">48sp</dimen>
 </resources>

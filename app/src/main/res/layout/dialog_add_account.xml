@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/action_tile_background" android:orientation="vertical" android:padding="24dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/action_tile_background" android:orientation="vertical" android:padding="@dimen/space_24">
     <EditText android:id="@+id/account_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/account_name_hint" android:inputType="text" android:singleLine="true" />
-    <EditText android:id="@+id/opening_balance" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/opening_balance_hint" android:inputType="numberDecimal|numberSigned" android:singleLine="true" />
-    <Spinner android:id="@+id/currency_picker" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="16dp" />
+    <EditText android:id="@+id/opening_balance" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:hint="@string/opening_balance_hint" android:inputType="numberDecimal|numberSigned" android:singleLine="true" />
+    <Spinner android:id="@+id/currency_picker" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="@dimen/space_16" />
 </LinearLayout>
