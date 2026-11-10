@@ -1,7 +1,6 @@
 package com.dga.montra
 
-import androidx.activity.ComponentActivity
-import androidx.lifecycle.ViewModelProvider
+import android.app.Activity
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
@@ -29,8 +28,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 
-class MainActivity : ComponentActivity() {
-    private lateinit var transactionFormViewModel: TransactionFormViewModel
+class MainActivity : Activity() {
+    private val transactionFormState = TransactionFormState()
     private lateinit var repository: RoomFinanceRepository
     private val scope = MainScope()
     private var dashboardJob: Job? = null
@@ -44,7 +43,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        transactionFormViewModel = ViewModelProvider(this)[TransactionFormViewModel::class.java]
         setContentView(R.layout.activity_main)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<TextView>(R.id.avatar).setOnClickListener {
@@ -223,14 +221,14 @@ class MainActivity : ComponentActivity() {
         type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             arrayOf("Expense", "Income", "Refund"))
 
-        category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, transactionFormViewModel.categories)
-        category.setSelection(transactionFormViewModel.categories.indexOfFirst { it.id == transactionFormViewModel.categoryId }.coerceAtLeast(0))
-        type.setSelection(when (transactionFormViewModel.type) { TransactionType.INCOME -> 1; TransactionType.REFUND -> 2; else -> 0 })
+        category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, transactionFormState.categories)
+        category.setSelection(transactionFormState.categories.indexOfFirst { it.id == transactionFormState.categoryId }.coerceAtLeast(0))
+        type.setSelection(when (transactionFormState.type) { TransactionType.INCOME -> 1; TransactionType.REFUND -> 2; else -> 0 })
         category.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val selectedCategory = parent?.selectedItem as? com.dga.montra.domain.Category ?: return
-                if (transactionFormViewModel.categories.any { it.id == selectedCategory.id }) {
-                    transactionFormViewModel.selectCategory(selectedCategory.id)
+                if (transactionFormState.categories.any { it.id == selectedCategory.id }) {
+                    transactionFormState.selectCategory(selectedCategory.id)
                 }
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -242,9 +240,9 @@ class MainActivity : ComponentActivity() {
                     2 -> TransactionType.REFUND
                     else -> TransactionType.EXPENSE
                 }
-                val typeChanged = transactionFormViewModel.selectType(selectedType)
+                val typeChanged = transactionFormState.selectType(selectedType)
                 if (typeChanged) {
-                    category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, transactionFormViewModel.categories)
+                    category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, transactionFormState.categories)
                 }
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -275,15 +273,15 @@ class MainActivity : ComponentActivity() {
                     amount.error = getString(R.string.transaction_amount)
                     return@setOnClickListener
                 }
-                val transactionType = transactionFormViewModel.type
-                val catId = transactionFormViewModel.categoryId
+                val transactionType = transactionFormState.type
+                val catId = transactionFormState.categoryId
                 scope.launch {
                     runCatching {
                         repository.addTransaction(Transaction(accountId = selected.id, amount = parsed,
                             type = transactionType, categoryId = catId,
                             note = note.text.toString().trim(),
                             timestampMillis = selectedDate.timeInMillis))
-                    }.onSuccess { transactionFormViewModel.reset(); dialog.dismiss() }.onFailure { toast(R.string.transaction_error) }
+                    }.onSuccess { transactionFormState.reset(); dialog.dismiss() }.onFailure { toast(R.string.transaction_error) }
                 }
             }
         }

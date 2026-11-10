@@ -1,13 +1,13 @@
 package com.dga.montra.domain
 
-import com.dga.montra.TransactionFormViewModel
+import com.dga.montra.TransactionFormState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class TransactionFormViewModelTest {
+class TransactionFormStateTest {
     @Test
     fun `category selection is retained until type actually changes`() {
-        val state = TransactionFormViewModel()
+        val state = TransactionFormState()
         state.selectCategory("dining")
         assertEquals("dining", state.categoryId)
         assertEquals(false, state.selectType(TransactionType.EXPENSE))

@@ -1,10 +1,9 @@
 package com.dga.montra
 
-import androidx.lifecycle.ViewModel
 import com.dga.montra.domain.TransactionCategories
 import com.dga.montra.domain.TransactionType
 
-class TransactionFormViewModel : ViewModel() {
+class TransactionFormState {
     var type: TransactionType = TransactionType.EXPENSE
         private set
     val categories get() = if (type == TransactionType.INCOME) TransactionCategories.income else TransactionCategories.expense
