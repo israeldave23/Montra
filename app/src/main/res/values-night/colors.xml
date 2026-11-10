@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary">#7DC8A8</color>
-    <color name="on_primary">#FFFFFF</color>
+    <color name="on_primary">#111A16</color>
+    <color name="on_balance">#FFFFFF</color>
     <color name="lumen_background">#111A16</color>
     <color name="lumen_surface">#1A2520</color>
     <color name="lumen_ink">#E5EEE8</color>
     <color name="lumen_muted">#ABB9B0</color>
     <color name="lumen_accent">#7DC8A8</color>
+    <color name="lumen_accent_deep">#0F1714</color>
     <color name="lumen_positive">#7DC8A8</color>
     <color name="lumen_negative">#F29289</color>
     <color name="lumen_highlight">#D6B77D</color>

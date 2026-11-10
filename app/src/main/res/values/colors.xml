@@ -2,11 +2,13 @@
 <resources>
     <color name="primary">#087F6D</color>
     <color name="on_primary">#FFFFFF</color>
+    <color name="on_balance">#FFFFFF</color>
     <color name="lumen_background">#F4F1EA</color>
     <color name="lumen_surface">#FFFDF8</color>
     <color name="lumen_ink">#17211D</color>
-    <color name="lumen_muted">#718078</color>
+    <color name="lumen_muted">#596B60</color>
     <color name="lumen_accent">#176B55</color>
+    <color name="lumen_accent_deep">#104E43</color>
     <color name="lumen_positive">#237A58</color>
     <color name="lumen_negative">#B94B45</color>
     <color name="lumen_highlight">#C49A5A</color>
