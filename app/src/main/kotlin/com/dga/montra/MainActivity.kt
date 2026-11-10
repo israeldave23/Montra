@@ -176,7 +176,7 @@ class MainActivity : Activity() {
         category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             TransactionCategories.expense.map { it.name })
         type.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view?, position: Int, id: Long) {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val cats = when (position) { 1 -> TransactionCategories.income; else -> TransactionCategories.expense }
                 category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, cats.map { it.name })
             }
@@ -217,7 +217,7 @@ class MainActivity : Activity() {
                     TransactionType.INCOME -> TransactionCategories.income
                     else -> TransactionCategories.expense
                 }
-                val catId = categories.getOrElse(category.selectedItemPosition) { TransactionCategories.UNCATEGORIZED_EXPENSE }.id
+                val catId = categories[category.selectedItemPosition].id
                 scope.launch {
                     runCatching {
                         repository.addTransaction(Transaction(accountId = selected.id, amount = parsed,

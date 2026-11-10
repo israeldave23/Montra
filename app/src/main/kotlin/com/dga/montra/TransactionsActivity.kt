@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
+import android.widget.Spinner
 import android.widget.Toast
 import android.widget.TextView
 import android.widget.Button
@@ -77,7 +78,7 @@ class TransactionsActivity : Activity() {
 
     private fun showTransactionDetails(tx: Transaction) {
         val catName = com.dga.montra.domain.TransactionCategories.expense.asSequence()
-            .or(com.dga.montra.domain.TransactionCategories.income.asSequence())
+            .plus(com.dga.montra.domain.TransactionCategories.income.asSequence())
             .firstOrNull { it.id == tx.categoryId }?.name ?: tx.categoryId.replaceFirstChar { it.uppercase() }
         val lines = buildString {
             append("Date: ${java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT).format(java.util.Date(tx.timestampMillis))}\n")
@@ -122,6 +123,7 @@ class TransactionsActivity : Activity() {
         account.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, accountLabels)
         val accountIdx = accounts.indexOfFirst { it.id == tx.accountId }
         if (accountIdx >= 0) account.setSelection(accountIdx)
+        account.isEnabled = false
 
         type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, arrayOf("Expense", "Income", "Refund"))
         type.setSelection(when (tx.type) {
@@ -137,15 +139,20 @@ class TransactionsActivity : Activity() {
         category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, cats.map { it.name })
         val catIdx = cats.indexOfFirst { it.id == tx.categoryId }
         if (catIdx >= 0) category.setSelection(catIdx)
+        var initialTypeSelection = true
         type.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view?, position: Int, id: Long) {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                if (initialTypeSelection) { initialTypeSelection = false; return }
                 val c = when (position) { 1 -> com.dga.montra.domain.TransactionCategories.income; else -> com.dga.montra.domain.TransactionCategories.expense }
                 category.adapter = ArrayAdapter(this@TransactionsActivity, android.R.layout.simple_spinner_dropdown_item, c.map { it.name })
                 category.setSelection(0)
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
-        amount.setText(tx.amount.format())
+        amount.setText(java.math.BigDecimal.valueOf(tx.amount.minorUnits, java.util.Currency.getInstance(tx.amount.currencyCode).defaultFractionDigits).toPlainString())
+        amount.isEnabled = false
+        amount.alpha = 0.6f
+        amount.hint = getString(R.string.transaction_amount_unchanged)
         note.setText(tx.note)
 
         datePickerBtn.setOnClickListener {
@@ -166,11 +173,6 @@ class TransactionsActivity : Activity() {
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val parsed = runCatching { com.dga.montra.domain.Money.parse(amount.text.toString(), tx.amount.currencyCode) }.getOrNull()
-                if (parsed == null || parsed.minorUnits <= 0L) {
-                    amount.error = getString(R.string.transaction_amount)
-                    return@setOnClickListener
-                }
                 val newType = when (type.selectedItemPosition) {
                     1 -> com.dga.montra.domain.TransactionType.INCOME
                     2 -> com.dga.montra.domain.TransactionType.REFUND
@@ -180,7 +182,7 @@ class TransactionsActivity : Activity() {
                     com.dga.montra.domain.TransactionType.INCOME -> com.dga.montra.domain.TransactionCategories.income
                     else -> com.dga.montra.domain.TransactionCategories.expense
                 }
-                val catId = newCats.getOrElse(category.selectedItemPosition) { com.dga.montra.domain.TransactionCategories.UNCATEGORIZED_EXPENSE }.id
+                val catId = newCats[category.selectedItemPosition].id
                 scope.launch {
                     runCatching {
                         repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)

@@ -10,7 +10,7 @@ class TransactionCategoryTest {
     fun expenseCategoriesExcludeIncome() {
         val ids = TransactionCategories.expense.map { it.id }.toSet()
         assertEquals(setOf("dining", "groceries", "transport", "utilities", "rent", "health", "fun", "other_expense"), ids)
-        assertTrue(ids.disjointWith(TransactionCategories.income.map { it.id }.toSet()))
+        assertTrue(ids.intersect(TransactionCategories.income.map { it.id }.toSet()).isEmpty())
     }
 
     @Test
