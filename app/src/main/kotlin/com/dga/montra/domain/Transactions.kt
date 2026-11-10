@@ -4,7 +4,9 @@ import java.util.UUID
 
 enum class TransactionType { EXPENSE, INCOME, REFUND, ADJUSTMENT, TRANSFER_OUT, TRANSFER_IN }
 
-data class Category(val id: String, val name: String, val isIncome: Boolean = false)
+data class Category(val id: String, val name: String, val isIncome: Boolean = false) {
+    override fun toString(): String = name
+}
 
 data class Transaction(
     val id: String = UUID.randomUUID().toString(),

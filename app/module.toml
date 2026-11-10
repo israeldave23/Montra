@@ -44,7 +44,7 @@ java = ["src/test/java", "src/test/kotlin"]
 resources = ["src/test/resources"]
 
 [dependencies]
-implementation = ["kotlin-stdlib", "androidx.room:room-runtime:2.8.5"]
+implementation = ["kotlin-stdlib", "androidx.room:room-runtime:2.8.5", "androidx.lifecycle:lifecycle-viewmodel:2.10.0", "androidx.activity:activity:1.12.0"]
 testImplementation = ["org.junit.jupiter:junit-jupiter:6.1.3"]
 
 [android]

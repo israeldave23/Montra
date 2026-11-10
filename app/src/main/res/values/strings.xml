@@ -33,7 +33,9 @@
   <string name="greeting">Good morning</string>
   <string name="overview">Your financial overview</string>
   <string name="empty_balance">Add an account to see your balance</string>
-  <string name="add_account">Add first account</string>
+  <string name="recent_activity_empty">No transactions yet. Add one to start tracking.</string>
+  <string name="add_first_account">Add first account</string>
+  <string name="add_account">Add account</string>
   <string name="home">Home</string>
   <string name="activity">Activity</string>
   <string name="budget">Budget</string>
@@ -86,4 +88,8 @@
     <item quantity="other">%d accounts</item>
   </plurals>
   <string name="transaction_amount_unchanged">Amount (read-only)</string>
+  <plurals name="transaction_count">
+    <item quantity="one">%d transaction recorded</item>
+    <item quantity="other">%d transactions recorded</item>
+  </plurals>
 </resources>

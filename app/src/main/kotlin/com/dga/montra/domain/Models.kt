@@ -31,7 +31,11 @@ data class Money(val minorUnits: Long, val currencyCode: String) {
 }
 
 data class Account(val id: String, val name: String, val openingBalance: Money, val isArchived: Boolean = false)
-data class DashboardState(val balances: Map<String, Long>, val accountCount: Int)
+data class DashboardState(
+    val balances: Map<String, Long>,
+    val accountCount: Int,
+    val recentTransactions: List<Transaction> = emptyList()
+)
 
 fun accountSummary(accounts: List<Account>): DashboardState = DashboardState(
     accounts.groupBy { it.openingBalance.currencyCode }.mapValues { (_, items) ->

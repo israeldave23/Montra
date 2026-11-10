@@ -29,7 +29,7 @@ class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insig
         scope.launch {
             runCatching { RoomFinanceRepository.get(this@InsightsActivity).allTransactions() }.onSuccess { items ->
                 val grouped = items.groupBy { it.amount.currencyCode }
-                val lines = mutableListOf("${items.size} ${getString(R.string.insight_transactions).lowercase()}")
+                val lines = mutableListOf(resources.getQuantityString(R.plurals.transaction_count, items.size, items.size))
                 grouped.forEach { (currency, txs) ->
                     val income = txs.filter { it.type == TransactionType.INCOME || it.type == TransactionType.REFUND }.fold(0L) { a, tx -> Math.addExact(a, tx.amount.minorUnits) }
                     val expenses = txs.filter { it.type == TransactionType.EXPENSE }.fold(0L) { a, tx -> Math.addExact(a, tx.amount.minorUnits) }

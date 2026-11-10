@@ -33,9 +33,8 @@
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/recent_activity" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_18" android:textStyle="bold" />
                     <Button android:id="@+id/view_activity_button" android:layout_width="wrap_content" android:layout_height="@dimen/touch_target" android:background="@android:color/transparent" android:text="@string/see_all" android:textAllCaps="false" android:textColor="@color/lumen_accent" android:textSize="@dimen/text_14" android:textStyle="bold" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:background="@drawable/action_tile_background" android:elevation="0dp" android:orientation="vertical" android:padding="@dimen/space_16">
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Transactions appear here after you add an account." android:textColor="@color/lumen_muted" android:textSize="@dimen/text_14" />
-                </LinearLayout>
+                <TextView android:id="@+id/recent_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:background="@drawable/action_tile_background" android:padding="@dimen/space_16" android:text="@string/recent_activity_empty" android:textColor="@color/lumen_muted" android:textSize="@dimen/text_14" />
+                <LinearLayout android:id="@+id/recent_transactions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:orientation="vertical" />
             </LinearLayout>
        </LinearLayout>
       </LinearLayout>

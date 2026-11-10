@@ -10,6 +10,9 @@ import com.dga.montra.db.MIGRATION_1_2
 import com.dga.montra.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 class RoomFinanceRepository private constructor(private val context: Context) {
     private val db = Room.databaseBuilder(
@@ -107,6 +110,30 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         else dao.searchTransactions(query.trim()).map { it.toDomain() }
     }
 
+    fun observeTransactions(): Flow<List<Transaction>> = dao.observeAllTransactions().map { items -> items.map { it.toDomain() } }
+
+    suspend fun prepareForObservation() = withContext(Dispatchers.IO) { migrateLegacyIfNeeded() }
+
+    fun observeDashboard(): Flow<DashboardState> = combine(
+        dao.observeAccounts(), dao.observeAllTransactions()
+    ) { accountEntities, transactionEntities ->
+        val accounts = accountEntities.map { it.toDomain() }
+        val totals = mutableMapOf<String, Long>()
+        accounts.forEach { account ->
+            val code = account.openingBalance.currencyCode
+            totals[code] = Math.addExact(totals[code] ?: 0L, account.openingBalance.minorUnits)
+        }
+        val byId = accounts.associateBy { it.id }
+        val transactions = transactionEntities.map { it.toDomain() }
+        transactions.forEach { tx ->
+            val account = byId[tx.accountId] ?: error("Transaction references missing account")
+            require(account.openingBalance.currencyCode == tx.amount.currencyCode)
+            val delta = if (tx.type in setOf(TransactionType.EXPENSE, TransactionType.TRANSFER_OUT)) -tx.amount.minorUnits else tx.amount.minorUnits
+            totals[tx.amount.currencyCode] = Math.addExact(totals[tx.amount.currencyCode] ?: 0L, delta)
+        }
+        DashboardState(totals, accounts.size, transactions.take(5))
+    }
+
     suspend fun dashboard(): DashboardState = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()
         val accounts = dao.accounts()
@@ -127,7 +154,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
             }
             totals[tx.currencyCode] = Math.addExact(totals[tx.currencyCode] ?: 0L, signed)
         }
-        DashboardState(totals, accounts.size)
+        DashboardState(totals, accounts.size, dao.transactions().take(5).map { it.toDomain() })
     }
 
     companion object {
@@ -156,7 +183,7 @@ private fun Account.toEntity() = AccountEntity(
     isArchived = isArchived
 )
 
-private fun TransactionEntity.toDomain() = Transaction(
+internal fun TransactionEntity.toDomain() = Transaction(
     id = id,
     accountId = accountId,
     amount = Money(minorUnits, currencyCode),
@@ -166,7 +193,7 @@ private fun TransactionEntity.toDomain() = Transaction(
     timestampMillis = timestampMillis
 )
 
-private fun Transaction.toEntity() = TransactionEntity(
+internal fun Transaction.toEntity() = TransactionEntity(
     id = id,
     accountId = accountId,
     minorUnits = amount.minorUnits,

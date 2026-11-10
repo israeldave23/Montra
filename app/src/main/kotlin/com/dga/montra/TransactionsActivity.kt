@@ -20,6 +20,9 @@ import android.app.AlertDialog
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.catch
 
 class TransactionsActivity : Activity() {
     private val scope = MainScope()
@@ -27,6 +30,7 @@ class TransactionsActivity : Activity() {
     private lateinit var list: ListView
     private lateinit var query: EditText
     private var requestVersion = 0
+    private var observation: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +46,26 @@ class TransactionsActivity : Activity() {
             override fun afterTextChanged(s: Editable?) = Unit
         })
         load("")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        observation = scope.launch {
+            try {
+                repository.prepareForObservation()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            repository.observeTransactions().catch { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }.collect { load(query.text.toString()) }
+        }
+    }
+
+    override fun onStop() {
+        observation?.cancel()
+        super.onStop()
     }
 
     private fun load(text: String) {
@@ -98,7 +122,7 @@ class TransactionsActivity : Activity() {
 
     private fun showEditTransactionDialog(tx: com.dga.montra.domain.Transaction) {
         scope.launch {
-            val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
+            val accounts = runCatching { repository.prepareForObservation() }.getOrElse { toast(R.string.storage_error); return@launch }
             if (accounts.isEmpty()) { toast(R.string.empty_balance); return@launch }
             showEditTransactionDialogWithAccounts(tx, accounts)
         }

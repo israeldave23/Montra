@@ -10,6 +10,7 @@ fun Activity.bindBottomNavigation(root: View, selected: Int) {
     val activities = listOf(MainActivity::class.java, TransactionsActivity::class.java, BudgetActivity::class.java, GoalsActivity::class.java, InsightsActivity::class.java)
     items.forEachIndexed { index, id ->
         root.findViewById<TextView>(id).apply {
+            isPressed = false
             isSelected = index == selected
             setTextColor(getColor(if (isSelected) R.color.on_primary else R.color.lumen_muted))
             contentDescription = getString(listOf(R.string.nav_home_description, R.string.nav_activity_description, R.string.nav_budget_description, R.string.nav_goals_description, R.string.nav_insights_description)[index])

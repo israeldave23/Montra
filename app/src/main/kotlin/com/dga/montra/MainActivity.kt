@@ -1,6 +1,10 @@
 package com.dga.montra
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.catch
 import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -14,8 +18,7 @@ import com.dga.montra.domain.Account
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
-import com.dga.montra.domain.TransactionCategories
-import com.dga.montra.domain.Category
+import com.dga.montra.domain.DashboardState
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
@@ -26,9 +29,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
+    private lateinit var transactionFormViewModel: TransactionFormViewModel
     private lateinit var repository: RoomFinanceRepository
     private val scope = MainScope()
+    private var dashboardJob: Job? = null
     private lateinit var balanceView: TextView
     private lateinit var summaryView: TextView
 
@@ -39,6 +44,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        transactionFormViewModel = ViewModelProvider(this)[TransactionFormViewModel::class.java]
         setContentView(R.layout.activity_main)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<TextView>(R.id.avatar).setOnClickListener {
@@ -54,12 +60,52 @@ class MainActivity : Activity() {
         }
         findViewById<android.view.View>(R.id.add_transaction_button).setOnClickListener { showAddTransactionDialog() }
         findViewById<android.view.View>(R.id.add_transfer_button).setOnClickListener { showTransferDialog() }
-        summaryView.setOnClickListener { render() }
+        summaryView.setOnClickListener { observeHome() }
         refreshProfileHeader()
-        render()
     }
 
-    override fun onResume() { super.onResume(); refreshProfileHeader() }
+    override fun onResume() {
+        super.onResume()
+        refreshProfileHeader()
+        observeHome()
+    }
+
+    override fun onStop() {
+        dashboardJob?.cancel()
+        super.onStop()
+    }
+
+    private fun observeHome() {
+        dashboardJob?.cancel()
+        dashboardJob = scope.launch {
+            try {
+                repository.prepareForObservation()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                toast(R.string.storage_error)
+                return@launch
+            }
+            repository.observeDashboard().catch { toast(R.string.storage_error) }.collect { render(it) }
+        }
+    }
+
+    private fun render(state: DashboardState) {
+        summaryView.text = if (state.accountCount == 0) getString(R.string.empty_balance) else resources.getQuantityString(R.plurals.account_count, state.accountCount, state.accountCount)
+        val recent = findViewById<android.widget.LinearLayout>(R.id.recent_transactions)
+        val items = state.recentTransactions
+        findViewById<TextView>(R.id.recent_empty).visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        recent.removeAllViews()
+        val adapter = TransactionAdapter(this, items)
+        items.indices.forEach { index -> recent.addView(adapter.getView(index, null, recent)) }
+        balanceView.text = when (state.balances.size) {
+            0 -> "—"
+            1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
+            else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
+        }
+        findViewById<Button>(R.id.add_account_button).setText(if (state.accountCount == 0) R.string.add_first_account else R.string.add_account)
+    }
+
 
     private fun refreshProfileHeader() {
         val name = getSharedPreferences("lumen_profile", MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
@@ -86,7 +132,7 @@ class MainActivity : Activity() {
                         try {
                             scope.launch {
                                 runCatching { repository.addAccount(Account(UUID.randomUUID().toString(), trimmedName, parsed)) }
-                                    .onSuccess { dialog.dismiss(); render() }
+                                    .onSuccess { dialog.dismiss() }
                                     .onFailure { toast(R.string.save_error) }
                             }
                         } catch (_: Exception) {
@@ -138,7 +184,7 @@ class MainActivity : Activity() {
                 }
                 scope.launch {
                     runCatching { repository.transfer(from.id, to.id, parsed, note.text.toString().trim()) }
-                        .onSuccess { dialog.dismiss(); render() }
+                        .onSuccess { dialog.dismiss() }
                         .onFailure { toast(R.string.transfer_error) }
                 }
             }
@@ -175,13 +221,29 @@ class MainActivity : Activity() {
         type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             arrayOf("Expense", "Income", "Refund"))
 
-        // category spinner - starts with expense categories
-        category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            TransactionCategories.expense.map { it.name })
+        category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, transactionFormViewModel.categories)
+        category.setSelection(transactionFormViewModel.categories.indexOfFirst { it.id == transactionFormViewModel.categoryId }.coerceAtLeast(0))
+        type.setSelection(when (transactionFormViewModel.type) { TransactionType.INCOME -> 1; TransactionType.REFUND -> 2; else -> 0 })
+        category.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                val selectedCategory = parent?.selectedItem as? com.dga.montra.domain.Category ?: return
+                if (transactionFormViewModel.categories.any { it.id == selectedCategory.id }) {
+                    transactionFormViewModel.selectCategory(selectedCategory.id)
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
         type.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                val cats = when (position) { 1 -> TransactionCategories.income; else -> TransactionCategories.expense }
-                category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, cats.map { it.name })
+                val selectedType = when (position) {
+                    1 -> TransactionType.INCOME
+                    2 -> TransactionType.REFUND
+                    else -> TransactionType.EXPENSE
+                }
+                val typeChanged = transactionFormViewModel.selectType(selectedType)
+                if (typeChanged) {
+                    category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, transactionFormViewModel.categories)
+                }
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
@@ -211,23 +273,15 @@ class MainActivity : Activity() {
                     amount.error = getString(R.string.transaction_amount)
                     return@setOnClickListener
                 }
-                val transactionType = when (type.selectedItemPosition) {
-                    1 -> TransactionType.INCOME
-                    2 -> TransactionType.REFUND
-                    else -> TransactionType.EXPENSE
-                }
-                val categories = when (transactionType) {
-                    TransactionType.INCOME -> TransactionCategories.income
-                    else -> TransactionCategories.expense
-                }
-                val catId = categories[category.selectedItemPosition].id
+                val transactionType = transactionFormViewModel.type
+                val catId = transactionFormViewModel.categoryId
                 scope.launch {
                     runCatching {
                         repository.addTransaction(Transaction(accountId = selected.id, amount = parsed,
                             type = transactionType, categoryId = catId,
                             note = note.text.toString().trim(),
                             timestampMillis = selectedDate.timeInMillis))
-                    }.onSuccess { dialog.dismiss(); render() }.onFailure { toast(R.string.transaction_error) }
+                    }.onSuccess { transactionFormViewModel.reset(); dialog.dismiss() }.onFailure { toast(R.string.transaction_error) }
                 }
             }
         }
@@ -238,19 +292,4 @@ class MainActivity : Activity() {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
-    private fun render() {
-        scope.launch {
-            runCatching { repository.dashboard() }
-                .onSuccess { state ->
-                    summaryView.text = if (state.accountCount == 0) getString(R.string.empty_balance)
-                    else resources.getQuantityString(R.plurals.account_count, state.accountCount, state.accountCount)
-                    balanceView.text = when (state.balances.size) {
-                        0 -> "—"
-                        1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
-                        else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
-                    }
-                }
-                .onFailure { toast(R.string.storage_error) }
-        }
-    }
 }

@@ -47,6 +47,9 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions ORDER BY timestampMillis DESC")
     suspend fun transactions(): List<TransactionEntity>
 
+    @Query("SELECT * FROM transactions ORDER BY timestampMillis DESC")
+    fun observeAllTransactions(): Flow<List<TransactionEntity>>
+
     @Query("SELECT * FROM transactions WHERE note LIKE '%' || :query || '%' OR categoryId LIKE '%' || :query || '%' ORDER BY timestampMillis DESC")
     suspend fun searchTransactions(query: String): List<TransactionEntity>
 
