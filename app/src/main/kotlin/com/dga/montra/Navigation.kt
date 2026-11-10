@@ -14,7 +14,10 @@ fun Activity.bindBottomNavigation(root: View, selected: Int) {
             setTextColor(getColor(if (isSelected) R.color.on_primary else R.color.lumen_muted))
             contentDescription = getString(listOf(R.string.nav_home_description, R.string.nav_activity_description, R.string.nav_budget_description, R.string.nav_goals_description, R.string.nav_insights_description)[index])
             setOnClickListener {
-                if (index != selected) startActivity(Intent(this@bindBottomNavigation, activities[index]).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                if (index != selected) {
+                    startActivity(Intent(this@bindBottomNavigation, activities[index]).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                    this@bindBottomNavigation.overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out)
+                }
             }
         }
     }

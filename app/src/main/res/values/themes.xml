@@ -7,6 +7,17 @@
         <item name="android:statusBarColor">@color/lumen_background</item>
         <item name="android:navigationBarColor">@color/lumen_surface</item>
         <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowAnimationStyle">@style/AppWindowAnimation</item>
+    </style>
+    <style name="AppWindowAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/activity_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/activity_fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/activity_fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/activity_fade_out</item>
+        <item name="android:taskOpenEnterAnimation">@anim/activity_fade_in</item>
+        <item name="android:taskOpenExitAnimation">@anim/activity_fade_out</item>
+        <item name="android:taskCloseEnterAnimation">@anim/activity_fade_in</item>
+        <item name="android:taskCloseExitAnimation">@anim/activity_fade_out</item>
         <item name="android:windowEnterAnimation">@anim/activity_fade_in</item>
         <item name="android:windowExitAnimation">@anim/activity_fade_out</item>
     </style>
