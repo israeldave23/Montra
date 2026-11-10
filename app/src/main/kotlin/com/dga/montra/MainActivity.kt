@@ -48,8 +48,10 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<TextView>(R.id.avatar).setOnClickListener {
-            startActivity(android.content.Intent(this, ProfileActivity::class.java))
-            overridePendingTransition(R.anim.activity_enter, R.anim.activity_exit)
+            startActivity(
+                android.content.Intent(this, ProfileActivity::class.java),
+                android.app.ActivityOptions.makeCustomAnimation(this, R.anim.activity_enter, R.anim.activity_exit).toBundle()
+            )
         }
         repository = RoomFinanceRepository.get(this)
         balanceView = findViewById(R.id.balance)

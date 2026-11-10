@@ -16,8 +16,9 @@ fun Activity.bindBottomNavigation(root: View, selected: Int) {
             contentDescription = getString(listOf(R.string.nav_home_description, R.string.nav_activity_description, R.string.nav_budget_description, R.string.nav_goals_description, R.string.nav_insights_description)[index])
             setOnClickListener {
                 if (index != selected) {
-                    startActivity(Intent(this@bindBottomNavigation, activities[index]).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
-                    this@bindBottomNavigation.overridePendingTransition(R.anim.activity_enter, R.anim.activity_exit)
+                    val intent = Intent(this@bindBottomNavigation, activities[index]).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    val options = android.app.ActivityOptions.makeCustomAnimation(this@bindBottomNavigation, R.anim.activity_enter, R.anim.activity_exit).toBundle()
+                    startActivity(intent, options)
                 }
             }
         }
