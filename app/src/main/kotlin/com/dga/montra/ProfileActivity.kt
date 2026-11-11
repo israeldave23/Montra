@@ -38,13 +38,6 @@ class ProfileActivity : Activity() {
     private lateinit var themeSpinner: Spinner
     private lateinit var currencySpinner: Spinner
 
-    companion object {
-        private const val REQUEST_BACKUP = 1001
-        private const val REQUEST_RESTORE = 1002
-        private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
-        private const val DATABASE_NAME = "lumen_finance.db"
-    }
-
     override fun onCreate(state: Bundle?) {
         applyTheme()
         super.onCreate(state)
@@ -256,5 +249,11 @@ class ProfileActivity : Activity() {
         return trimmed.substring(0, trimmed.offsetByCodePoints(0, count)).uppercase()
     }
 
-    companion object { private const val KEY_NAME = "display_name" }
+    companion object {
+        private const val REQUEST_BACKUP = 1001
+        private const val REQUEST_RESTORE = 1002
+        private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
+        private const val DATABASE_NAME = "lumen_finance.db"
+        private const val KEY_NAME = "display_name"
+    }
 }
