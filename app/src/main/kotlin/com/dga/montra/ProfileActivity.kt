@@ -222,7 +222,7 @@ class ProfileActivity : Activity() {
     }
 
     private fun backupToUri(uri: Uri) {
-        val dbFile = databasePath(DATABASE_NAME)
+        val dbFile = getDatabasePath(DATABASE_NAME)
         FileInputStream(dbFile).use { input ->
             contentResolver.openOutputStream(uri, "w")?.use { output ->
                 input.copyTo(output)
@@ -236,7 +236,7 @@ class ProfileActivity : Activity() {
         contentResolver.openInputStream(uri)!!.use { input ->
             FileOutputStream(temp).use { output -> input.copyTo(output) }
         }
-        temp.copyTo(databasePath(DATABASE_NAME), overwrite = true)
+        temp.copyTo(getDatabasePath(DATABASE_NAME), overwrite = true)
         runOnUiThread { toast(R.string.profile_restore_success) }
     }
 
