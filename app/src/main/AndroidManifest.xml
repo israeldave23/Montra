@@ -12,6 +12,7 @@
         <activity android:name=".BudgetActivity" android:exported="false" />
         <activity android:name=".GoalsActivity" android:exported="false" />
         <activity android:name=".InsightsActivity" android:exported="false" />
+        <activity android:name=".AccountDetailActivity" android:exported="false" />
 
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>

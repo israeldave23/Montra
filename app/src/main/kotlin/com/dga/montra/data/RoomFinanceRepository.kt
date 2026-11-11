@@ -7,6 +7,9 @@ import com.dga.montra.db.FinanceDao
 import com.dga.montra.db.FinanceDatabase
 import com.dga.montra.db.TransactionEntity
 import com.dga.montra.db.MIGRATION_1_2
+import com.dga.montra.db.MIGRATION_2_3
+import com.dga.montra.db.BudgetEntity
+import com.dga.montra.db.GoalEntity
 import com.dga.montra.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +22,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         context.applicationContext,
         FinanceDatabase::class.java,
         "lumen_finance.db"
-    ).addMigrations(MIGRATION_1_2).build()
+    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
 
     private val dao: FinanceDao = db.financeDao()
 
@@ -93,6 +96,46 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun deleteTransaction(id: String) = withContext(Dispatchers.IO) {
         require(dao.deleteTransaction(id) == 1) { "Transaction not found" }
+    }
+
+    suspend fun renameAccount(id: String, name: String) = withContext(Dispatchers.IO) {
+        require(name.isNotBlank() && name.trim().length <= 100)
+        require(dao.renameAccount(id, name.trim()) == 1)
+    }
+
+    suspend fun deleteAccount(id: String) = withContext(Dispatchers.IO) { dao.deleteAccountSafely(id) }
+
+    suspend fun createBudget(categoryId: String, limit: Money) = withContext(Dispatchers.IO) {
+        require(limit.currencyCode == "PHP" && limit.minorUnits > 0)
+        require(TransactionCategories.expense.any { it.id == categoryId })
+        dao.insertBudget(BudgetEntity(java.util.UUID.randomUUID().toString(), java.time.YearMonth.now().toString(), categoryId, limit.minorUnits, limit.currencyCode))
+    }
+
+    suspend fun budgets(): List<BudgetEntity> = withContext(Dispatchers.IO) {
+        dao.budgets(java.time.YearMonth.now().toString())
+    }
+    suspend fun spentForCategoryMonth(categoryId: String, month: String): Long = withContext(Dispatchers.IO) {
+        val ym = java.time.YearMonth.parse(month)
+        val start = ym.atDay(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val end = ym.atEndOfMonth().atTime(23,59,59).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        dao.spentForCategoryMonth(categoryId, start, end)
+    }
+
+    suspend fun goals(): List<GoalEntity> = withContext(Dispatchers.IO) { dao.goals() }
+
+    suspend fun createGoal(name: String, target: Money, saved: Money) = withContext(Dispatchers.IO) {
+        require(name.isNotBlank() && name.trim().length <= 100)
+        require(target.currencyCode == "PHP" && saved.currencyCode == "PHP")
+        require(target.minorUnits > 0 && saved.minorUnits >= 0)
+        dao.insertGoal(GoalEntity(java.util.UUID.randomUUID().toString(), name.trim(), target.minorUnits, saved.minorUnits, "PHP"))
+    }
+
+    suspend fun addGoalFunds(id: String, amount: Money) = withContext(Dispatchers.IO) {
+        require(amount.minorUnits > 0)
+        val goal = dao.goal(id) ?: error("Goal not found")
+        require(goal.currencyCode == amount.currencyCode)
+        val saved = Math.addExact(goal.savedMinorUnits, amount.minorUnits)
+        check(dao.updateGoalFunds(id, goal.savedMinorUnits, saved) == 1) { "Goal changed; try again" }
     }
 
     suspend fun archiveAccount(id: String) = withContext(Dispatchers.IO) {

@@ -111,4 +111,25 @@
   <string name="date_today">Today</string>
   <string name="date_yesterday">Yesterday</string>
   <string name="monthly_summary_hidden">This month · Amounts hidden</string>
+  <string name="accounts_title">Accounts</string>
+  <string name="account_detail_title">Account details</string>
+  <string name="rename_account">Rename account</string>
+  <string name="delete_account">Delete account</string>
+  <string name="delete_account_message">Delete this account and all its transactions? This cannot be undone. Accounts containing transfers cannot be deleted.</string>
+  <string name="delete_account_error">Could not delete account. Accounts containing transfers must be kept.</string>
+  <string name="create_budget">Create budget</string>
+  <string name="new_goal">New goal</string>
+  <string name="goal_name">Goal name</string>
+  <string name="target_amount">Target amount (PHP)</string>
+  <string name="saved_amount">Saved amount (PHP)</string>
+  <string name="budget_limit">Monthly limit (PHP)</string>
+  <string name="add_funds">Add funds</string>
+  <string name="add_funds_note">Updates goal tracking only; account balances are not changed.</string>
+  <string name="name_required">Enter a name of 100 characters or fewer.</string>
+  <string name="saved_invalid">Enter a non-negative amount.</string>
+  <string name="planning_error">Could not save. Check values and try again. Only one budget per category and month is allowed.</string>
+  <string name="progress_amount">%1$s / %2$s</string>
+  <string name="over_budget">Over budget</string>
+  <string name="planning_saved">Saved</string>
+  <string name="account_row">%1$s · %2$s</string>
 </resources>

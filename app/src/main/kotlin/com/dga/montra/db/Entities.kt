@@ -38,3 +38,21 @@ data class TransactionEntity(
     val note: String,
     val timestampMillis: Long
 )
+
+@Entity(tableName = "budgets", indices = [Index(value = ["month", "categoryId"], unique = true)])
+data class BudgetEntity(
+    @PrimaryKey val id: String,
+    val month: String,
+    val categoryId: String,
+    val limitMinorUnits: Long,
+    val currencyCode: String
+)
+
+@Entity(tableName = "goals")
+data class GoalEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val targetMinorUnits: Long,
+    val savedMinorUnits: Long,
+    val currencyCode: String
+)

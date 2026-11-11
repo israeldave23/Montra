@@ -67,6 +67,9 @@ class MainActivity : Activity() {
             settings.edit().putBoolean("balance_hidden", !settings.getBoolean("balance_hidden", false)).apply()
             latestDashboard?.let { render(it) }
         }
+        findViewById<View>(R.id.balance).setOnClickListener {
+            startActivity(Intent(this, AccountDetailActivity::class.java))
+        }
         summaryView.setOnClickListener { observeHome() }
         refreshProfileHeader()
     }

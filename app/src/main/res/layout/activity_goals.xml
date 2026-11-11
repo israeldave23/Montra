@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lumen_background"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/goal_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/screen_h_padding"
+        android:paddingEnd="@dimen/screen_h_padding"
+        android:paddingTop="@dimen/space_32"
+        android:textColor="@color/lumen_ink"
+        android:textSize="@dimen/text_24"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/goal_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/screen_h_padding"
+        android:paddingEnd="@dimen/screen_h_padding"
+        android:layout_marginTop="@dimen/space_8"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_14" />
+    <ListView
+        android:id="@+id/goals_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:padding="@dimen/space_16" />
+    <Button
+        android:id="@+id/goal_action"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/touch_target"
+        android:layout_marginStart="@dimen/screen_h_padding"
+        android:layout_marginEnd="@dimen/screen_h_padding"
+        android:layout_marginBottom="@dimen/space_16"
+        android:background="@drawable/primary_button_ripple"
+        android:text="@string/new_goal"
+        android:textColor="@color/on_primary" />
+    <include layout="@layout/view_bottom_navigation" />
+</LinearLayout>

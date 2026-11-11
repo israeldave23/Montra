@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/space_8"
+    android:paddingHorizontal="@dimen/space_16">
+    <TextView
+        android:id="@+id/budget_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/lumen_ink"
+        android:textSize="@dimen/text_16"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/budget_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_4"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_12" />
+    <ProgressBar
+        android:id="@+id/budget_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="@dimen/space_4"
+        android:max="100"
+        android:progress="0" />
+</LinearLayout>

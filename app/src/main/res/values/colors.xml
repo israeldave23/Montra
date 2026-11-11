@@ -13,4 +13,6 @@
     <color name="lumen_negative">#B94B45</color>
     <color name="lumen_highlight">#C49A5A</color>
     <color name="ic_launcher_background">#087F6D</color>
+    <color name="lumen_success">#176B55</color>
+    <color name="lumen_error">#B00020</color>
 </resources>
