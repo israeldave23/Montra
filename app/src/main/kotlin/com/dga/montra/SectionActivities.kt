@@ -296,9 +296,16 @@ class AccountDetailActivity : Activity() {
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         scope.launch {
             val accounts = repo.allAccounts()
-            val id = intent.getStringExtra("ACCOUNT_ID") ?: accounts.firstOrNull()?.id ?: return@launch
+            val id = intent.getStringExtra("ACCOUNT_ID") ?: accounts.firstOrNull()?.id
+            if (id == null) {
+                runOnUiThread { android.widget.Toast.makeText(this@AccountDetailActivity, R.string.account_not_found, android.widget.Toast.LENGTH_LONG).show() }
+                return@launch
+            }
             accountId = id
-            val account = accounts.first { it.id == id }
+            val account = accounts.firstOrNull { it.id == id } ?: run {
+                runOnUiThread { android.widget.Toast.makeText(this@AccountDetailActivity, R.string.account_not_found, android.widget.Toast.LENGTH_LONG).show() }
+                return@launch
+            }
             findViewById<TextView>(R.id.account_name).text = account.name
             findViewById<TextView>(R.id.account_balance).text = account.openingBalance.format()
             val list = findViewById<ListView>(R.id.account_transactions)

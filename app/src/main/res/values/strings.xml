@@ -148,4 +148,5 @@
   <string name="profile_restore_success">Restored. Restart the app to apply.</string>
   <string name="profile_error">Could not complete operation.</string>
   <string name="profile_export_success">Exported transactions to CSV</string>
+    <string name="account_not_found">Account not found.</string>
 </resources>
