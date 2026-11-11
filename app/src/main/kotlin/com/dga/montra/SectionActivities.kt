@@ -366,11 +366,11 @@ class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insig
             val ym = YearMonth.now()
             val start = ym.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val end = ym.atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val txs = repo.transactions().filter {
+            val txs = repo.transactions().map { it.toDomain() }.filter {
                 it.type == TransactionType.EXPENSE && it.timestampMillis in start..end
             }
             val byCategory = txs.groupBy { it.categoryId }
-            val spentByCategory = byCategory.mapValues { (_, items) -> items.sumOf { it.amount.minorUnits } }
+            val spentByCategory = byCategory.mapValues { (_, items) -> items.fold(0L) { acc, item -> acc + item.amount.minorUnits } }
             val maxSpent = spentByCategory.values.maxOrNull() ?: 0L
             insightsRow.adapter = InsightsAdapter(this@InsightsActivity, spentByCategory, maxSpent)
         }
