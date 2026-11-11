@@ -15,8 +15,10 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.dga.montra.db.BudgetEntity
+import com.dga.montra.db.TransactionEntity
 import com.dga.montra.db.GoalEntity
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.data.toDomain
 import com.dga.montra.domain.Account
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
@@ -83,7 +85,7 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
         scope.launch {
             val budgets = repo.budgets()
             val month = YearMonth.now().toString()
-            val spent = budgets.associateWith { repo.spentForCategoryMonth(it.categoryId, month) }.toMap()
+            val spent = budgets.associateBy({ it.categoryId }) { repo.spentForCategoryMonth(it.categoryId, month) }.toMap()
             budgetsRow.adapter = BudgetAdapter(this@BudgetActivity, budgets, spent)
             budgetsCreate.visibility = View.VISIBLE
             budgetsCreate.setText(R.string.create_budget)
