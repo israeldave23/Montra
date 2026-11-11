@@ -68,6 +68,10 @@
   <string name="transaction_account">Account</string>
   <string name="view_activity">View transaction activity</string>
   <string name="search_transactions">Search transactions</string>
+  <string name="filter_all">All</string>
+  <string name="filter_income">Income</string>
+  <string name="filter_expense">Expense</string>
+  <string name="filter_transfer">Transfer</string>
   <string name="add_transfer">Add transfer</string>
   <string name="transfer_from">From account</string>
   <string name="transfer_to">To account</string>
@@ -103,4 +107,8 @@
   <string name="type_income">Income</string>
   <string name="type_refund">Refund</string>
   <string name="transfer_delete_unavailable">Transfer entries must stay paired and cannot be deleted here.</string>
+  <string name="monthly_summary">This month · Income %1$s · Expenses %2$s · Net %3$s</string>
+  <string name="date_today">Today</string>
+  <string name="date_yesterday">Yesterday</string>
+  <string name="monthly_summary_hidden">This month · Amounts hidden</string>
 </resources>

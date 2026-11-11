@@ -99,6 +99,11 @@ class MainActivity : Activity() {
 
     private fun render(state: DashboardState) {
         latestDashboard = state
+        val monthlyView = findViewById<TextView>(R.id.monthly_summary)
+        val hidden = settings.getBoolean("balance_hidden", false)
+        monthlyView.text = if (hidden) getString(R.string.monthly_summary_hidden) else state.monthlyTotals.entries.joinToString("\n") { (currency, totals) ->
+            getString(R.string.monthly_summary, Money(totals.first, currency).format(), Money(totals.second, currency).format(), Money(Math.subtractExact(totals.first, totals.second), currency).format())
+        }
         summaryView.text = if (state.accountCount == 0) getString(R.string.empty_balance) else resources.getQuantityString(R.plurals.account_count, state.accountCount, state.accountCount)
         val recent = findViewById<android.widget.LinearLayout>(R.id.recent_transactions)
         val items = state.recentTransactions
@@ -112,7 +117,10 @@ class MainActivity : Activity() {
             else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
         }
         val hidden = settings.getBoolean("balance_hidden", false)
-        if (hidden) balanceView.setText(R.string.masked_balance)
+        if (hidden) {
+            balanceView.setText(R.string.masked_balance)
+            findViewById<TextView>(R.id.monthly_summary).setText(R.string.monthly_summary_hidden)
+        }
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
         findViewById<Button>(R.id.add_account_button).setText(if (state.accountCount == 0) R.string.add_first_account else R.string.add_account)

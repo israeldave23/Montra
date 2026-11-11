@@ -131,7 +131,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
             val delta = if (tx.type in setOf(TransactionType.EXPENSE, TransactionType.TRANSFER_OUT)) -tx.amount.minorUnits else tx.amount.minorUnits
             totals[tx.amount.currencyCode] = Math.addExact(totals[tx.amount.currencyCode] ?: 0L, delta)
         }
-        DashboardState(totals, accounts.size, transactions.take(5))
+        DashboardState(totals, accounts.size, transactions.take(5), FinancialCalculations.monthlySummary(transactions, java.time.YearMonth.now(), java.time.ZoneId.systemDefault()))
     }
 
     suspend fun dashboard(): DashboardState = withContext(Dispatchers.IO) {

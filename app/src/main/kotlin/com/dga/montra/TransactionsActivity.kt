@@ -35,6 +35,7 @@ class TransactionsActivity : Activity() {
     private var currentItems = listOf<Transaction>()
     private var activeTouchHelper: ItemTouchHelper? = null
     private lateinit var query: EditText
+    private var selectedFilter = com.dga.montra.domain.TransactionFilter.ALL
     private var requestVersion = 0
     private var observation: Job? = null
 
@@ -59,6 +60,15 @@ class TransactionsActivity : Activity() {
             }
         }).also { it.attachToRecyclerView(list) }
         query = findViewById(R.id.transaction_search)
+        findViewById<com.google.android.material.chip.ChipGroup>(R.id.transaction_filters).setOnCheckedStateChangeListener { _, checkedIds ->
+            selectedFilter = when (checkedIds.firstOrNull()) {
+                R.id.filter_income -> com.dga.montra.domain.TransactionFilter.INCOME
+                R.id.filter_expense -> com.dga.montra.domain.TransactionFilter.EXPENSE
+                R.id.filter_transfer -> com.dga.montra.domain.TransactionFilter.TRANSFER
+                else -> com.dga.montra.domain.TransactionFilter.ALL
+            }
+            load(query.text.toString())
+        }
         query.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { load(s.toString()) }
@@ -89,8 +99,9 @@ class TransactionsActivity : Activity() {
 
     private fun load(text: String) {
         val version = ++requestVersion
+        val filter = selectedFilter
         scope.launch {
-            runCatching { repository.searchTransactions(text) }
+            runCatching { repository.searchTransactions(text).filter { filter.matches(it.type) } }
                 .onSuccess { transactions ->
                     if (version != requestVersion) return@onSuccess
                     currentItems = transactions

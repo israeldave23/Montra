@@ -34,7 +34,8 @@ data class Account(val id: String, val name: String, val openingBalance: Money, 
 data class DashboardState(
     val balances: Map<String, Long>,
     val accountCount: Int,
-    val recentTransactions: List<Transaction> = emptyList()
+    val recentTransactions: List<Transaction> = emptyList(),
+    val monthlyTotals: Map<String, Pair<Long, Long>> = emptyMap()
 )
 
 fun accountSummary(accounts: List<Account>): DashboardState = DashboardState(
