@@ -165,7 +165,7 @@ class ProfileActivity : Activity() {
                 val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ROOT)
                 for (tx in txs) {
                     sb.append(escapeCsv(df.format(Date(tx.timestampMillis)))).append(',')
-                    sb.append(tx.type).append(',')
+                    sb.append(tx.type.name).append(',')
                     sb.append(escapeCsv(categoryName(tx))).append(',')
                     sb.append(escapeCsv(accounts[tx.accountId] ?: "")).append(',')
                     sb.append(tx.amount.minorUnits).append(',')

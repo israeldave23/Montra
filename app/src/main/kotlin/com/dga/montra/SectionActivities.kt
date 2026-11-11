@@ -1,6 +1,7 @@
 package com.dga.montra
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,10 +11,10 @@ import android.widget.ArrayAdapter
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import com.dga.montra.db.BudgetEntity
 import com.dga.montra.db.TransactionEntity
 import com.dga.montra.db.GoalEntity
@@ -41,7 +42,7 @@ abstract class SectionActivity(
 
 
 class BudgetActivity : SectionActivity(2) {
-    private val repo = RoomFinanceRepository.get(applicationContext)
+    private val repo by lazy { RoomFinanceRepository.get(this) }
     private val scope = MainScope()
     private lateinit var budgetsRow: ListView
     private lateinit var budgetsCreate: Button
@@ -128,7 +129,7 @@ class BudgetActivity : SectionActivity(2) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val b = budgets[position]
-            val row = if (convertView != null) convertView else LayoutInflater.from(activity).inflate(R.layout.item_budget_row, parent, false)
+            val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_budget_row, parent, false)
             val categoryView = row.findViewById<TextView>(R.id.budget_category)
             val amountView = row.findViewById<TextView>(R.id.budget_amount)
             val bar = row.findViewById<ProgressBar>(R.id.budget_progress)
@@ -146,7 +147,7 @@ class BudgetActivity : SectionActivity(2) {
 }
 
 class GoalsActivity : SectionActivity(3) {
-    private val repo = RoomFinanceRepository.get(applicationContext)
+    private val repo by lazy { RoomFinanceRepository.get(this) }
     private val scope = MainScope()
     private lateinit var goalsRow: ListView
     private lateinit var goalsCreate: Button
@@ -196,8 +197,8 @@ class GoalsActivity : SectionActivity(3) {
             hint = getString(R.string.saved_amount)
             inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
         }
-        val container = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             addView(nameInput)
             addView(targetInput)
             addView(savedInput)
@@ -237,7 +238,7 @@ class GoalsActivity : SectionActivity(3) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val g = goals[position]
-            val row = if (convertView != null) convertView else LayoutInflater.from(activity).inflate(R.layout.item_goal_row, parent, false)
+            val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_goal_row, parent, false)
             row.findViewById<TextView>(R.id.goal_name).text = g.name
             val target = Money(g.targetMinorUnits, g.currencyCode)
             val saved = Money(g.savedMinorUnits, g.currencyCode)
@@ -282,7 +283,7 @@ class GoalsActivity : SectionActivity(3) {
 }
 
 class AccountDetailActivity : Activity() {
-    private val repo = RoomFinanceRepository.get(applicationContext)
+    private val repo by lazy { RoomFinanceRepository.get(this) }
     private val scope = MainScope()
     private lateinit var accountId: String
 
@@ -323,7 +324,7 @@ class AccountDetailActivity : Activity() {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val t = items[position]
-            val row = if (convertView != null) convertView else LayoutInflater.from(activity).inflate(R.layout.item_transaction_row, parent, false)
+            val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_transaction_row, parent, false)
             row.findViewById<TextView>(R.id.transaction_category).text = TransactionCategories.expense.firstOrNull { it.id == t.categoryId }?.name
                 ?: TransactionCategories.income.firstOrNull { it.id == t.categoryId }?.name
                 ?: t.categoryId.replaceFirstChar { it.uppercase() }
@@ -342,7 +343,7 @@ class AccountDetailActivity : Activity() {
 }
 
 class InsightsActivity : SectionActivity(4) {
-    private val repo = RoomFinanceRepository.get(applicationContext)
+    private val repo by lazy { RoomFinanceRepository.get(this) }
     private val scope = MainScope()
     private lateinit var insightsRow: ListView
 
@@ -394,7 +395,7 @@ class InsightsActivity : SectionActivity(4) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val (categoryId, spent) = entries[position]
-            val row = if (convertView != null) convertView else LayoutInflater.from(activity).inflate(R.layout.item_insight_row, parent, false)
+            val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_insight_row, parent, false)
             row.findViewById<TextView>(R.id.insight_category).text = TransactionCategories.expense.firstOrNull { it.id == categoryId }?.name
                 ?: categoryId.replaceFirstChar { it.uppercase() }
             row.findViewById<TextView>(R.id.insight_amount).text = Money(spent, "PHP").format()
