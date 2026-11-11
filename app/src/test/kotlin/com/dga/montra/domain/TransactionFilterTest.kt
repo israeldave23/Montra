@@ -16,6 +16,18 @@ class TransactionFilterTest {
     }
 
     @Test
+    fun `monthly category spending groups currencies and sorts largest first`() {
+        val current = Instant.parse("2026-05-11T10:00:00Z").toEpochMilli()
+        val old = Instant.parse("2026-04-30T23:59:00Z").toEpochMilli()
+        val values = listOf(
+            Transaction("a", "a", Money(500, "PHP"), TransactionType.EXPENSE, "dining", timestampMillis = current),
+            Transaction("b", "a", Money(900, "PHP"), TransactionType.EXPENSE, "transport", timestampMillis = current),
+            Transaction("c", "a", Money(700, "PHP"), TransactionType.EXPENSE, "rent", timestampMillis = old)
+        )
+        assertEquals(listOf("transport", "dining"), FinancialCalculations.monthlyCategorySpending(values, YearMonth.of(2026, 5), ZoneOffset.UTC)["PHP"]?.keys?.toList())
+    }
+
+    @Test
     fun `monthly summary excludes transfers and other months`() {
         val current = Instant.parse("2026-05-11T10:00:00Z").toEpochMilli()
         val old = Instant.parse("2026-04-30T23:59:00Z").toEpochMilli()

@@ -43,6 +43,16 @@ object FinancialCalculations {
         return sum
     }
 
+    fun monthlyCategorySpending(transactions: Iterable<Transaction>, month: YearMonth, zone: ZoneId): Map<String, Map<String, Long>> {
+        val current = transactions.filter {
+            it.type == TransactionType.EXPENSE && it.amount.minorUnits > 0 &&
+                YearMonth.from(Instant.ofEpochMilli(it.timestampMillis).atZone(zone)) == month
+        }
+        return current.groupBy { it.amount.currencyCode }.mapValues { (currency, items) ->
+            categorySpending(items, currency).toList().sortedByDescending { it.second }.toMap()
+        }
+    }
+
     fun categorySpending(transactions: Iterable<Transaction>, currency: String): Map<String, Long> {
         val result = mutableMapOf<String, Long>()
         for (transaction in transactions) {

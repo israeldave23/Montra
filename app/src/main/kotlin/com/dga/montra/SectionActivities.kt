@@ -45,6 +45,23 @@ class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insig
                 }
                 findViewById<TextView>(R.id.section_body).text = if (items.isEmpty()) getString(R.string.insight_empty) else lines.joinToString("\n\n")
                 findViewById<android.widget.Button>(R.id.section_action).visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                val chart = findViewById<android.widget.LinearLayout>(R.id.insight_categories)
+                chart.removeAllViews()
+                val month = java.time.YearMonth.now()
+                val breakdown = com.dga.montra.domain.FinancialCalculations.monthlyCategorySpending(items, month, java.time.ZoneId.systemDefault())
+                chart.visibility = if (breakdown.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+                breakdown.forEach { (currency, categories) ->
+                    val max = categories.values.maxOrNull()?.coerceAtLeast(1L) ?: 1L
+                    val currencyTitle = TextView(this@InsightsActivity).apply { text = currency; setTextColor(getColor(R.color.lumen_ink)); textSize = 16f }
+                    chart.addView(currencyTitle)
+                    categories.forEach { (categoryId, amount) ->
+                        val row = android.widget.LinearLayout(this@InsightsActivity).apply { orientation = android.widget.LinearLayout.VERTICAL; setPadding(0, 12, 0, 12) }
+                        row.addView(TextView(this@InsightsActivity).apply { text = "${categoryIcon(categoryId)}  ${categoryId.replaceFirstChar { it.uppercase() }}  ·  ${Money(amount, currency).format()}"; setTextColor(getColor(R.color.lumen_ink)); textSize = 14f })
+                        val bar = android.widget.ProgressBar(this@InsightsActivity, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100; progress = ((amount.toDouble() / max) * 100).toInt().coerceIn(1, 100); progressTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.lumen_accent)) }
+                        row.addView(bar, android.widget.LinearLayout.LayoutParams(-1, 8))
+                        chart.addView(row)
+                    }
+                }
             }
         }
     }
