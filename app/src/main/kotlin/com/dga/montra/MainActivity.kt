@@ -29,6 +29,8 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : Activity() {
+    private var latestDashboard: DashboardState? = null
+    private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
     private val transactionFormState = TransactionFormState()
     private lateinit var repository: RoomFinanceRepository
     private val scope = MainScope()
@@ -60,6 +62,11 @@ class MainActivity : Activity() {
         }
         findViewById<android.view.View>(R.id.add_transaction_button).setOnClickListener { showAddTransactionDialog() }
         findViewById<android.view.View>(R.id.add_transfer_button).setOnClickListener { showTransferDialog() }
+        if (intent.getBooleanExtra("open_add_transaction", false)) showAddTransactionDialog()
+        findViewById<android.widget.ImageButton>(R.id.toggle_balance).setOnClickListener {
+            settings.edit().putBoolean("balance_hidden", !settings.getBoolean("balance_hidden", false)).apply()
+            latestDashboard?.let { render(it) }
+        }
         summaryView.setOnClickListener { observeHome() }
         refreshProfileHeader()
     }
@@ -91,6 +98,7 @@ class MainActivity : Activity() {
     }
 
     private fun render(state: DashboardState) {
+        latestDashboard = state
         summaryView.text = if (state.accountCount == 0) getString(R.string.empty_balance) else resources.getQuantityString(R.plurals.account_count, state.accountCount, state.accountCount)
         val recent = findViewById<android.widget.LinearLayout>(R.id.recent_transactions)
         val items = state.recentTransactions
@@ -103,6 +111,10 @@ class MainActivity : Activity() {
             1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
             else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
         }
+        val hidden = settings.getBoolean("balance_hidden", false)
+        if (hidden) balanceView.setText(R.string.masked_balance)
+        findViewById<android.widget.ImageButton>(R.id.toggle_balance).setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
+        findViewById<android.widget.ImageButton>(R.id.toggle_balance).contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
         findViewById<Button>(R.id.add_account_button).setText(if (state.accountCount == 0) R.string.add_first_account else R.string.add_account)
     }
 
@@ -119,6 +131,7 @@ class MainActivity : Activity() {
         val amount = content.findViewById<EditText>(R.id.opening_balance)
         val currency = content.findViewById<Spinner>(R.id.currency_picker)
         currency.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, Money.currencies)
+        settings.getString("last_currency", null)?.let { code -> currency.setSelection(Money.currencies.indexOf(code).coerceAtLeast(0)) }
         val dialog = AlertDialog.Builder(this).setTitle(R.string.add_account).setView(content)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
@@ -127,12 +140,12 @@ class MainActivity : Activity() {
                 val parsed = runCatching { Money.parse(amount.text.toString(), currency.selectedItem.toString()) }.getOrNull()
                 when {
                     trimmedName.isEmpty() -> name.error = getString(R.string.account_name_hint)
-                    parsed == null -> amount.error = getString(R.string.opening_balance_hint)
+                    parsed == null || parsed.minorUnits <= 0L -> amount.error = getString(R.string.amount_required)
                     else -> {
                         try {
                             scope.launch {
-                                runCatching { repository.addAccount(Account(UUID.randomUUID().toString(), trimmedName, parsed)) }
-                                    .onSuccess { dialog.dismiss() }
+                                runCatching { repository.addAccount(Account(UUID.randomUUID().toString(), trimmedName, parsed)).also { settings.edit().putString("last_currency", currency.selectedItem.toString()).apply() } }
+                                    .onSuccess { dialog.dismiss(); feedback(R.string.account_added) }
                                     .onFailure { toast(R.string.save_error) }
                             }
                         } catch (_: Exception) {
@@ -162,13 +175,20 @@ class MainActivity : Activity() {
         val labels = accounts.map { "${it.name} (${it.openingBalance.currencyCode})" }
         fromSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
         toSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        if (labels.size > 1) toSpinner.setSelection(1)
+        val lastTransfer = settings.getString("last_transfer_account", null)
+        fromSpinner.setSelection(accounts.indexOfFirst { it.id == lastTransfer }.coerceAtLeast(0))
+        toSpinner.setSelection((fromSpinner.selectedItemPosition + 1) % accounts.size)
         val dialog = AlertDialog.Builder(this).setTitle(R.string.add_transfer).setView(content)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val from = accounts[fromSpinner.selectedItemPosition]
-                val to = accounts[toSpinner.selectedItemPosition]
+                val from = accounts.getOrNull(fromSpinner.selectedItemPosition)
+                val to = accounts.getOrNull(toSpinner.selectedItemPosition)
+                if (from == null || to == null) {
+                    (fromSpinner.selectedView as? TextView)?.error = getString(R.string.account_required)
+                    (toSpinner.selectedView as? TextView)?.error = getString(R.string.account_required)
+                    return@setOnClickListener
+                }
                 if (from.id == to.id) {
                     toast(R.string.transfer_error)
                     return@setOnClickListener
@@ -179,12 +199,12 @@ class MainActivity : Activity() {
                 }
                 val parsed = runCatching { Money.parse(amount.text.toString(), from.openingBalance.currencyCode) }.getOrNull()
                 if (parsed == null || parsed.minorUnits <= 0L) {
-                    amount.error = getString(R.string.transfer_amount)
+                    amount.error = getString(R.string.amount_required)
                     return@setOnClickListener
                 }
                 scope.launch {
                     runCatching { repository.transfer(from.id, to.id, parsed, note.text.toString().trim()) }
-                        .onSuccess { dialog.dismiss() }
+                        .onSuccess { settings.edit().putString("last_transfer_account", from.id).apply(); dialog.dismiss(); feedback(R.string.save_feedback_transfer) }
                         .onFailure { toast(R.string.transfer_error) }
                 }
             }
@@ -217,13 +237,21 @@ class MainActivity : Activity() {
         account.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             accounts.map { "${it.name} (${it.openingBalance.currencyCode})" })
 
-        // type spinner
+        account.setSelection(accounts.indexOfFirst { it.id == settings.getString("last_account", null) }.coerceAtLeast(0))
+        val lastType = settings.getString("last_type", TransactionType.EXPENSE.name)
+        transactionFormState.selectType(when (lastType) {
+            TransactionType.INCOME.name -> TransactionType.INCOME
+            TransactionType.REFUND.name -> TransactionType.REFUND
+            else -> TransactionType.EXPENSE
+        })
+        settings.getString("last_category", null)?.let { id ->
+            if (transactionFormState.categories.any { it.id == id }) transactionFormState.selectCategory(id)
+        }
         type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            arrayOf("Expense", "Income", "Refund"))
-
+            arrayOf(getString(R.string.type_expense), getString(R.string.type_income), getString(R.string.type_refund)))
+        type.setSelection(when (transactionFormState.type) { TransactionType.INCOME -> 1; TransactionType.REFUND -> 2; else -> 0 })
         category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, transactionFormState.categories)
         category.setSelection(transactionFormState.categories.indexOfFirst { it.id == transactionFormState.categoryId }.coerceAtLeast(0))
-        type.setSelection(when (transactionFormState.type) { TransactionType.INCOME -> 1; TransactionType.REFUND -> 2; else -> 0 })
         category.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val selectedCategory = parent?.selectedItem as? com.dga.montra.domain.Category ?: return
@@ -267,10 +295,14 @@ class MainActivity : Activity() {
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val selected = accounts[account.selectedItemPosition]
+                val selected = accounts.getOrNull(account.selectedItemPosition)
+                if (selected == null) {
+                    (account.selectedView as? TextView)?.error = getString(R.string.account_required)
+                    return@setOnClickListener
+                }
                 val parsed = runCatching { Money.parse(amount.text.toString(), selected.openingBalance.currencyCode) }.getOrNull()
                 if (parsed == null || parsed.minorUnits <= 0L) {
-                    amount.error = getString(R.string.transaction_amount)
+                    amount.error = getString(R.string.amount_required)
                     return@setOnClickListener
                 }
                 val transactionType = transactionFormState.type
@@ -281,11 +313,20 @@ class MainActivity : Activity() {
                             type = transactionType, categoryId = catId,
                             note = note.text.toString().trim(),
                             timestampMillis = selectedDate.timeInMillis))
-                    }.onSuccess { transactionFormState.reset(); dialog.dismiss() }.onFailure { toast(R.string.transaction_error) }
+                    }.onSuccess {
+                        settings.edit().putString("last_account", selected.id).putString("last_category", catId).putString("last_type", transactionType.name).apply()
+                        transactionFormState.reset()
+                        dialog.dismiss()
+                        feedback(R.string.transaction_saved)
+                    }.onFailure { toast(R.string.transaction_error) }
                 }
             }
         }
         dialog.show()
+    }
+
+    private fun feedback(message: Int) {
+        com.google.android.material.snackbar.Snackbar.make(findViewById<android.view.View>(android.R.id.content), message, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
     }
 
     private fun toast(message: Int) {

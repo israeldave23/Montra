@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.App" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowBackground">@color/lumen_background</item>
+        <item name="colorPrimary">@color/lumen_accent</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSurface">@color/lumen_surface</item>
+        <item name="colorOnSurface">@color/lumen_ink</item>
         <item name="android:colorPrimary">@color/lumen_accent</item>
         <item name="android:colorAccent">@color/lumen_accent</item>
         <item name="android:statusBarColor">@color/lumen_background</item>

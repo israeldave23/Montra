@@ -10,19 +10,26 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-abstract class SectionActivity(private val title: Int, private val subtitle: Int, private val body: Int, private val tab: Int) : Activity() {
+abstract class SectionActivity(private val title: Int, private val subtitle: Int, private val body: Int, private val tab: Int, private val icon: Int) : Activity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_section)
         findViewById<TextView>(R.id.section_title).setText(title)
         findViewById<TextView>(R.id.section_subtitle).setText(subtitle)
         findViewById<TextView>(R.id.section_body).setText(body)
+        findViewById<android.widget.ImageView>(R.id.section_icon).setImageResource(icon)
+        if (tab == 4) {
+            findViewById<android.widget.Button>(R.id.section_action).apply {
+                setText(R.string.add_transaction)
+                setOnClickListener { startActivity(android.content.Intent(this@SectionActivity, MainActivity::class.java).putExtra("open_add_transaction", true)) }
+            }
+        }
         bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
     }
 }
-class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_subtitle, R.string.budget_body, 2)
-class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subtitle, R.string.goals_body, 3)
-class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insights_subtitle, R.string.insights_body, 4) {
+class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_subtitle, R.string.budget_body, 2, R.drawable.ic_nav_budget)
+class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subtitle, R.string.goals_body, 3, R.drawable.ic_nav_goals)
+class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insights_subtitle, R.string.insights_body, 4, R.drawable.ic_nav_insights) {
     private val scope = MainScope()
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -37,6 +44,7 @@ class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insig
                     lines += "$currency  ·  ${getString(R.string.insight_expenses)} ${Money(expenses, currency).format()}"
                 }
                 findViewById<TextView>(R.id.section_body).text = if (items.isEmpty()) getString(R.string.insight_empty) else lines.joinToString("\n\n")
+                findViewById<android.widget.Button>(R.id.section_action).visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
             }
         }
     }

@@ -47,6 +47,11 @@
   <string name="cancel">Cancel</string>
   <string name="save">Save</string>
   <string name="total_balance">Total available balance</string>
+  <string name="hide_balance">Hide balance</string>
+  <string name="show_balance">Show balance</string>
+  <string name="save_feedback_transfer">Transfer saved</string>
+  <string name="amount_required">Enter an amount greater than zero.</string>
+  <string name="account_required">Select an account.</string>
   <string name="storage_error">Could not load accounts. Tap to retry.</string>
   <string name="save_error">Could not save account. Try again.</string>
   <string name="add_transaction">Add transaction</string>
@@ -92,4 +97,10 @@
     <item quantity="one">%d transaction recorded</item>
     <item quantity="other">%d transactions recorded</item>
   </plurals>
+  <string name="masked_balance">₱ ••••</string>
+  <string name="undo">Undo</string>
+  <string name="type_expense">Expense</string>
+  <string name="type_income">Income</string>
+  <string name="type_refund">Refund</string>
+  <string name="transfer_delete_unavailable">Transfer entries must stay paired and cannot be deleted here.</string>
 </resources>

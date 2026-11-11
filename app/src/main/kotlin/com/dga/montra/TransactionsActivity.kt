@@ -6,7 +6,10 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.ListView
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
+import com.google.android.material.snackbar.Snackbar
 import android.widget.Spinner
 import android.widget.Toast
 import android.widget.TextView
@@ -27,7 +30,10 @@ import kotlinx.coroutines.flow.catch
 class TransactionsActivity : Activity() {
     private val scope = MainScope()
     private lateinit var repository: RoomFinanceRepository
-    private lateinit var list: ListView
+    private lateinit var list: RecyclerView
+    private lateinit var emptyView: android.widget.TextView
+    private var currentItems = listOf<Transaction>()
+    private var activeTouchHelper: ItemTouchHelper? = null
     private lateinit var query: EditText
     private var requestVersion = 0
     private var observation: Job? = null
@@ -39,6 +45,19 @@ class TransactionsActivity : Activity() {
         repository = RoomFinanceRepository.get(this)
         findViewById<TextView>(R.id.transactions_back).setOnClickListener { finish() }
         list = findViewById(R.id.transaction_list)
+        list.layoutManager = LinearLayoutManager(this)
+        emptyView = findViewById(R.id.transaction_empty)
+        activeTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+                val tx = currentItems.getOrNull(viewHolder.bindingAdapterPosition) ?: return 0
+                return if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) 0 else super.getSwipeDirs(recyclerView, viewHolder)
+            }
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.bindingAdapterPosition
+                currentItems.getOrNull(position)?.let { deleteWithUndo(it) }
+            }
+        }).also { it.attachToRecyclerView(list) }
         query = findViewById(R.id.transaction_search)
         query.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -74,21 +93,13 @@ class TransactionsActivity : Activity() {
             runCatching { repository.searchTransactions(text) }
                 .onSuccess { transactions ->
                     if (version != requestVersion) return@onSuccess
-                    list.onItemLongClickListener = null
-                    if (transactions.isEmpty()) {
-                        list.onItemClickListener = null
-                        list.adapter = ArrayAdapter(this@TransactionsActivity, android.R.layout.simple_list_item_1, 
-                            listOf(getString(R.string.empty_transactions)))
-                        return@onSuccess
-                    }
-                    list.adapter = TransactionAdapter(this@TransactionsActivity, transactions)
-                    list.setOnItemClickListener { _, _, position, _ ->
-                        showTransactionDetails(transactions[position])
-                    }
-                    list.setOnItemLongClickListener { _, _, position, _ ->
-                        confirmDelete(transactions[position])
-                        true
-                    }
+                    currentItems = transactions
+                    emptyView.visibility = if (transactions.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                    list.visibility = if (transactions.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+                    list.adapter = TransactionListAdapter(transactions, { tx ->
+                        if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) showTransactionDetails(tx)
+                        else showEditTransactionDialog(tx)
+                    }, { tx -> confirmDelete(tx) })
                 }
                 .onFailure { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }
         }
@@ -149,7 +160,7 @@ class TransactionsActivity : Activity() {
         if (accountIdx >= 0) account.setSelection(accountIdx)
         account.isEnabled = false
 
-        type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, arrayOf("Expense", "Income", "Refund"))
+        type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, arrayOf(getString(R.string.type_expense), getString(R.string.type_income), getString(R.string.type_refund)))
         type.setSelection(when (tx.type) {
             com.dga.montra.domain.TransactionType.INCOME -> 1
             com.dga.montra.domain.TransactionType.REFUND -> 2
@@ -225,17 +236,35 @@ class TransactionsActivity : Activity() {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
+    private fun deleteWithUndo(tx: Transaction) {
+        scope.launch {
+            runCatching { repository.deleteTransaction(tx.id) }
+                .onSuccess {
+                    load(query.text.toString())
+                    Snackbar.make(findViewById<android.view.View>(android.R.id.content), R.string.transaction_deleted, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.undo) {
+                            scope.launch {
+                                runCatching { repository.addTransaction(tx) }
+                                    .onSuccess { load(query.text.toString()) }
+                                    .onFailure { toast(R.string.transaction_error) }
+                            }
+                        }.show()
+                }
+                .onFailure { toast(R.string.storage_error); load(query.text.toString()) }
+        }
+    }
+
     private fun confirmDelete(tx: Transaction) {
+        if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) {
+            toast(R.string.transfer_delete_unavailable)
+            return
+        }
         AlertDialog.Builder(this)
             .setTitle(R.string.delete_transaction_title)
             .setMessage(R.string.delete_transaction_message)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete) { _, _ ->
-                scope.launch {
-                    runCatching { repository.deleteTransaction(tx.id) }
-                        .onSuccess { Toast.makeText(this@TransactionsActivity, R.string.transaction_deleted, Toast.LENGTH_SHORT).show(); load(query.text.toString()) }
-                        .onFailure { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }
-                }
+                deleteWithUndo(tx)
             }.show()
     }
 
