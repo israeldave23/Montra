@@ -1,6 +1,7 @@
 package com.dga.montra
 
 import android.app.Activity
+import android.content.Intent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
@@ -67,7 +68,7 @@ class MainActivity : Activity() {
             settings.edit().putBoolean("balance_hidden", !settings.getBoolean("balance_hidden", false)).apply()
             latestDashboard?.let { render(it) }
         }
-        findViewById<View>(R.id.balance).setOnClickListener {
+        findViewById<TextView>(R.id.balance).setOnClickListener {
             startActivity(Intent(this, AccountDetailActivity::class.java))
         }
         summaryView.setOnClickListener { observeHome() }
@@ -119,7 +120,7 @@ class MainActivity : Activity() {
             1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
             else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
         }
-        val hidden = settings.getBoolean("balance_hidden", false)
+        val balanceHidden = settings.getBoolean("balance_hidden", false)
         if (hidden) {
             balanceView.setText(R.string.masked_balance)
             findViewById<TextView>(R.id.monthly_summary).setText(R.string.monthly_summary_hidden)

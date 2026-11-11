@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lumen_background"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/insights_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/screen_h_padding"
+        android:paddingEnd="@dimen/screen_h_padding"
+        android:paddingTop="@dimen/space_32"
+        android:textColor="@color/lumen_ink"
+        android:textSize="@dimen/text_24"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/insights_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/screen_h_padding"
+        android:paddingEnd="@dimen/screen_h_padding"
+        android:layout_marginTop="@dimen/space_8"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_14" />
+    <ListView
+        android:id="@+id/insights_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:padding="@dimen/space_16" />
+    <include layout="@layout/view_bottom_navigation" />
+</LinearLayout>

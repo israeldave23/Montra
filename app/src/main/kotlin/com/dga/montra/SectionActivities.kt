@@ -1,8 +1,6 @@
 package com.dga.montra
 
 import android.app.Activity
-import android.app.Application
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,18 +17,25 @@ import androidx.appcompat.app.AlertDialog
 import com.dga.montra.db.BudgetEntity
 import com.dga.montra.db.GoalEntity
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.domain.Account
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
 import com.dga.montra.domain.TransactionType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.YearMonth
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.time.YearMonth
+import java.time.ZoneId
 
-abstract class SectionActivity(private val title: Int, private val subtitle: Int, private val body: Int, private val tab: Int, private val icon: Int) : Activity() {
+abstract class SectionActivity(
+    private val title: Int,
+    private val subtitle: Int,
+    private val body: Int,
+    val tab: Int,
+    private val icon: Int
+) : Activity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_section)
@@ -41,15 +46,17 @@ abstract class SectionActivity(private val title: Int, private val subtitle: Int
         if (tab == 4) {
             findViewById<Button>(R.id.section_action).apply {
                 setText(R.string.add_transaction)
-                setOnClickListener { startActivity(Intent(this@SectionActivity, MainActivity::class.java).putExtra("open_add_transaction", true)) }
+                setOnClickListener {
+                    startActivity(Intent(this@SectionActivity, MainActivity::class.java).putExtra("open_add_transaction", true))
+                }
             }
         }
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
     }
 }
 
 class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_subtitle, R.string.budget_body, 2, R.drawable.ic_nav_budget) {
     private val repo = RoomFinanceRepository.get(applicationContext)
+    private val scope = MainScope()
     private lateinit var budgetsRow: ListView
     private lateinit var budgetsCreate: Button
 
@@ -58,6 +65,7 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
         setContentView(R.layout.activity_budget)
         budgetsRow = findViewById(R.id.budgets_list)
         budgetsCreate = findViewById(R.id.budget_action)
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
         observe()
     }
 
@@ -66,13 +74,18 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
         observe()
     }
 
+    override fun onDestroy() {
+        scope.coroutineContext.cancel()
+        super.onDestroy()
+    }
+
     private fun observe() {
-        lifecycleScope.launch {
+        scope.launch {
             val budgets = repo.budgets()
             val month = YearMonth.now().toString()
             val spent = budgets.associateWith { repo.spentForCategoryMonth(it.categoryId, month) }.toMap()
             budgetsRow.adapter = BudgetAdapter(this@BudgetActivity, budgets, spent)
-            budgetsCreate.isVisible = true
+            budgetsCreate.visibility = View.VISIBLE
             budgetsCreate.setText(R.string.create_budget)
             budgetsCreate.setOnClickListener { showCreateBudget() }
         }
@@ -81,10 +94,13 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
     private fun showCreateBudget() {
         val categories = TransactionCategories.expense
         val names = categories.map { it.name }
+        var selectedCategory = categories.firstOrNull()?.id ?: ""
         AlertDialog.Builder(this)
             .setTitle(R.string.create_budget)
-            .setSingleChoiceItems(names.toTypedArray(), 0) { _, selected -> selectedCategory = categories[selected].id }
-            .setPositiveButton(R.string.next) { _, _ ->
+            .setSingleChoiceItems(names.toTypedArray(), 0) { _, selected ->
+                selectedCategory = categories[selected].id
+            }
+            .setPositiveButton(R.string.save) { _, _ ->
                 val input = EditText(this@BudgetActivity)
                 input.hint = getString(R.string.budget_limit)
                 input.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
@@ -93,12 +109,17 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
                     .setView(input)
                     .setPositiveButton(R.string.save) { _, _ ->
                         val value = input.text.toString().toFloatOrNullOrZero()
-                        if (value <= 0f) { input.setError(getString(R.string.amount_required)); return@setPositiveButton }
-                        lifecycleScope.launch {
+                        if (value <= 0f) {
+                            input.setError(getString(R.string.amount_required))
+                            return@setPositiveButton
+                        }
+                        scope.launch {
                             try {
                                 repo.createBudget(selectedCategory, Money((value * 100).toLong(), "PHP"))
                                 observe()
-                            } catch (e: Exception) { input.setError(getString(R.string.planning_error)) }
+                            } catch (e: Exception) {
+                                input.setError(getString(R.string.planning_error))
+                            }
                         }
                     }
                     .setNegativeButton(R.string.cancel, null)
@@ -108,9 +129,7 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
             .show()
     }
 
-    private var selectedCategory: String by lazy { TransactionCategories.expense.first().id }
-
-    private inner class BudgetAdapter(activity: Activity, val budgets: List<BudgetEntity>, val spent: Map<String,Long>) : BaseAdapter() {
+    private inner class BudgetAdapter(val activity: Activity, val budgets: List<BudgetEntity>, val spent: Map<String, Long>) : BaseAdapter() {
         override fun getCount() = budgets.size
         override fun getItem(position: Int) = budgets[position]
         override fun getItemId(position: Int) = position.toLong()
@@ -121,16 +140,14 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
             val categoryView = row.findViewById<TextView>(R.id.budget_category)
             val amountView = row.findViewById<TextView>(R.id.budget_amount)
             val bar = row.findViewById<ProgressBar>(R.id.budget_progress)
-            categoryView.text = TransactionCategories.byId(b.categoryId)?.name ?: b.categoryId.replaceFirstChar { it.uppercase() }
-            val limit = Money(b.limitMinorUnits, b.currencyCode)
-            amountView.text = activity.getString(R.string.progress_amount, Money(0L, b.currencyCode).format(), limit.format())
+            categoryView.text = TransactionCategories.expense.firstOrNull { it.id == b.categoryId }?.name ?: b.categoryId.replaceFirstChar { it.uppercase() }
+            val limitMoney = Money(b.limitMinorUnits, b.currencyCode)
+            val limitMinor = b.limitMinorUnits
+            val categorySpent = spent[b.categoryId] ?: 0L
+            amountView.text = activity.getString(R.string.progress_amount, Money(categorySpent, b.currencyCode).format(), limitMoney.format())
             bar.max = 100
-            val spent = spent[b.categoryId] ?: 0L
-            val limit = b.limitMinorUnits
-            val progress = if (limit == 0L) 0L else minOf(spent, limit) * 100 / limit
-            bar.progress = progress.coerceIn(0,100).toInt()
-            bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(if (spent > limit) R.color.lumen_error else R.color.lumen_accent))
-            row.tag = b
+            bar.progress = if (limitMinor == 0L) 0 else (minOf(categorySpent, limitMinor) * 100 / limitMinor).toInt()
+            bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(if (categorySpent > limitMinor) R.color.lumen_error else R.color.lumen_accent))
             return row
         }
     }
@@ -138,6 +155,7 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
 
 class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subtitle, R.string.goals_body, 3, R.drawable.ic_nav_goals) {
     private val repo = RoomFinanceRepository.get(applicationContext)
+    private val scope = MainScope()
     private lateinit var goalsRow: ListView
     private lateinit var goalsCreate: Button
 
@@ -146,6 +164,7 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
         setContentView(R.layout.activity_goals)
         goalsRow = findViewById(R.id.goals_list)
         goalsCreate = findViewById(R.id.goal_action)
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
         observe()
     }
 
@@ -154,11 +173,16 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
         observe()
     }
 
+    override fun onDestroy() {
+        scope.coroutineContext.cancel()
+        super.onDestroy()
+    }
+
     private fun observe() {
-        lifecycleScope.launch {
+        scope.launch {
             val goals = repo.goals()
             goalsRow.adapter = GoalAdapter(this@GoalsActivity, goals)
-            goalsCreate.isVisible = true
+            goalsCreate.visibility = View.VISIBLE
             goalsCreate.setText(R.string.new_goal)
             goalsCreate.setOnClickListener { showGoalForm() }
         }
@@ -185,22 +209,30 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
             .setView(container)
             .setPositiveButton(R.string.save) { _, _ ->
                 val name = nameInput.text.toString().trim()
-                if (name.isEmpty()) { nameInput.setError(getString(R.string.name_required)); return@setPositiveButton }
+                if (name.isEmpty()) {
+                    nameInput.setError(getString(R.string.name_required))
+                    return@setPositiveButton
+                }
                 val target = targetInput.text.toString().toFloatOrNullOrZero()
                 val saved = savedInput.text.toString().toFloatOrNullOrZero()
-                if (target <= 0f || saved < 0f) { targetInput.setError(getString(R.string.amount_required)); return@setPositiveButton }
-                lifecycleScope.launch {
+                if (target <= 0f || saved < 0f) {
+                    targetInput.setError(getString(R.string.amount_required))
+                    return@setPositiveButton
+                }
+                scope.launch {
                     try {
                         repo.createGoal(name, Money((target * 100).toLong(), "PHP"), Money((saved * 100).toLong(), "PHP"))
                         observe()
-                    } catch (e: Exception) { targetInput.setError(getString(R.string.planning_error)) }
+                    } catch (e: Exception) {
+                        targetInput.setError(getString(R.string.planning_error))
+                    }
                 }
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
-    private inner class GoalAdapter(activity: Activity, val goals: List<GoalEntity>) : BaseAdapter() {
+    private inner class GoalAdapter(val activity: Activity, val goals: List<GoalEntity>) : BaseAdapter() {
         override fun getCount() = goals.size
         override fun getItem(position: Int) = goals[position]
         override fun getItemId(position: Int) = position.toLong()
@@ -233,12 +265,17 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
             .setView(input)
             .setPositiveButton(R.string.add_funds) { _, _ ->
                 val amount = input.text.toString().toFloatOrNullOrZero()
-                if (amount <= 0f) { input.setError(getString(R.string.amount_required)); return@setPositiveButton }
-                lifecycleScope.launch {
+                if (amount <= 0f) {
+                    input.setError(getString(R.string.amount_required))
+                    return@setPositiveButton
+                }
+                scope.launch {
                     try {
                         repo.addGoalFunds(goal.id, Money((amount * 100).toLong(), "PHP"))
                         observe()
-                    } catch (e: Exception) { input.setError(getString(R.string.planning_error)) }
+                    } catch (e: Exception) {
+                        input.setError(getString(R.string.planning_error))
+                    }
                 }
             }
             .setNegativeButton(R.string.cancel, null)
@@ -248,14 +285,18 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
 
 class AccountDetailActivity : Activity() {
     private val repo = RoomFinanceRepository.get(applicationContext)
+    private val scope = MainScope()
     private lateinit var accountId: String
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_account_detail)
-        accountId = intent.getStringExtra("ACCOUNT_ID") ?: repo.allAccounts().firstOrNull()?.id ?: return
-        lifecycleScope.launch {
-            val account = repo.allAccounts().first { it.id == accountId }
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
+        scope.launch {
+            val accounts = repo.allAccounts()
+            val id = intent.getStringExtra("ACCOUNT_ID") ?: accounts.firstOrNull()?.id ?: return@launch
+            accountId = id
+            val account = accounts.first { it.id == id }
             findViewById<TextView>(R.id.account_name).text = account.name
             findViewById<TextView>(R.id.account_balance).text = account.openingBalance.format()
             val list = findViewById<ListView>(R.id.account_transactions)
@@ -265,7 +306,12 @@ class AccountDetailActivity : Activity() {
         }
     }
 
-    private inner class AccountTransactionAdapter(activity: Activity, val items: List<Transaction>) : BaseAdapter() {
+    override fun onDestroy() {
+        scope.coroutineContext.cancel()
+        super.onDestroy()
+    }
+
+    private inner class AccountTransactionAdapter(val activity: Activity, val items: List<Transaction>) : BaseAdapter() {
         override fun getCount() = items.size
         override fun getItem(position: Int) = items[position]
         override fun getItemId(position: Int) = position.toLong()
@@ -273,13 +319,78 @@ class AccountDetailActivity : Activity() {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val t = items[position]
             val row = if (convertView != null) convertView else LayoutInflater.from(activity).inflate(R.layout.item_transaction_row, parent, false)
-            row.findViewById<TextView>(R.id.transaction_category).text = TransactionCategories.byId(t.categoryId)?.name ?: t.categoryId.replaceFirstChar { it.uppercase() }
-            val date = java.time.Instant.ofEpochMilli(t.timestampMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()
+            row.findViewById<TextView>(R.id.transaction_category).text = TransactionCategories.expense.firstOrNull { it.id == t.categoryId }?.name
+                ?: TransactionCategories.income.firstOrNull { it.id == t.categoryId }?.name
+                ?: t.categoryId.replaceFirstChar { it.uppercase() }
+            val date = java.time.Instant.ofEpochMilli(t.timestampMillis).atZone(ZoneId.systemDefault()).toLocalDate().toString()
             row.findViewById<TextView>(R.id.transaction_date).text = date
             row.findViewById<TextView>(R.id.transaction_note).text = t.note.takeIf { it.isNotEmpty() } ?: date
             val amountView = row.findViewById<TextView>(R.id.transaction_amount)
-            amountView.text = when { t.type == TransactionType.INCOME || t.type == TransactionType.REFUND -> "+${t.amount.format()}"; else -> "-${t.amount.format()}" }
+            amountView.text = when {
+                t.type == TransactionType.INCOME || t.type == TransactionType.REFUND -> "+${t.amount.format()}"
+                else -> "-${t.amount.format()}"
+            }
             amountView.setTextColor(activity.getColor(if (t.type == TransactionType.INCOME || t.type == TransactionType.REFUND) R.color.lumen_success else R.color.lumen_error))
+            return row
+        }
+    }
+}
+
+class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insights_subtitle, R.string.insights_body, 4, R.drawable.ic_nav_insights) {
+    private val repo = RoomFinanceRepository.get(applicationContext)
+    private val scope = MainScope()
+    private lateinit var insightsRow: ListView
+
+    override fun onCreate(state: Bundle?) {
+        super.onCreate(state)
+        setContentView(R.layout.activity_insights)
+        insightsRow = findViewById(R.id.insights_list)
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), 4)
+        observe()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        observe()
+    }
+
+    override fun onDestroy() {
+        scope.coroutineContext.cancel()
+        super.onDestroy()
+    }
+
+    private fun observe() {
+        scope.launch {
+            val ym = YearMonth.now()
+            val start = ym.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val end = ym.atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val txs = repo.transactions().filter {
+                it.type == TransactionType.EXPENSE && it.timestampMillis in start..end
+            }
+            val byCategory = txs.groupBy { it.categoryId }
+            val spentByCategory = byCategory.mapValues { (_, items) -> items.sumOf { it.amount.minorUnits } }
+            val maxSpent = spentByCategory.values.maxOrNull() ?: 0L
+            insightsRow.adapter = InsightsAdapter(this@InsightsActivity, spentByCategory, maxSpent)
+        }
+    }
+
+    private inner class InsightsAdapter(val activity: Activity, val spentByCategory: Map<String, Long>, val maxSpent: Long) : BaseAdapter() {
+        private val entries = spentByCategory.entries.sortedByDescending { it.value }
+
+        override fun getCount() = entries.size
+        override fun getItem(position: Int) = entries[position]
+        override fun getItemId(position: Int) = position.toLong()
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val (categoryId, spent) = entries[position]
+            val row = if (convertView != null) convertView else LayoutInflater.from(activity).inflate(R.layout.item_insight_row, parent, false)
+            row.findViewById<TextView>(R.id.insight_category).text = TransactionCategories.expense.firstOrNull { it.id == categoryId }?.name
+                ?: categoryId.replaceFirstChar { it.uppercase() }
+            row.findViewById<TextView>(R.id.insight_amount).text = Money(spent, "PHP").format()
+            val bar = row.findViewById<ProgressBar>(R.id.insight_progress)
+            bar.max = 100
+            bar.progress = if (maxSpent == 0L) 0 else (spent * 100 / maxSpent).coerceIn(0, 100).toInt()
+            bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(R.color.lumen_accent))
             return row
         }
     }

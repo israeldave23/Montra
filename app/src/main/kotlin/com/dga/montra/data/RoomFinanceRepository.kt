@@ -154,6 +154,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     }
 
     fun observeTransactions(): Flow<List<Transaction>> = dao.observeAllTransactions().map { items -> items.map { it.toDomain() } }
+    fun observeAccountTransactions(accountId: String): Flow<List<TransactionEntity>> = dao.observeTransactions(accountId)
 
     suspend fun prepareForObservation() = withContext(Dispatchers.IO) { migrateLegacyIfNeeded() }
 

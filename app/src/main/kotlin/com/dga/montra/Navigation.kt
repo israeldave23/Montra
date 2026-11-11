@@ -7,7 +7,7 @@ import android.widget.TextView
 
 fun Activity.bindBottomNavigation(root: View, selected: Int) {
     val items = listOf(R.id.nav_home, R.id.nav_activity, R.id.nav_budget, R.id.nav_goals, R.id.nav_insights)
-    val activities = listOf(MainActivity::class.java, TransactionsActivity::class.java, BudgetActivity::class.java, GoalsActivity::class.java, InsightsActivity::class.java)
+    val activities = listOf<Class<*>>(MainActivity::class.java, TransactionsActivity::class.java, BudgetActivity::class.java, GoalsActivity::class.java, InsightsActivity::class.java)
     items.forEachIndexed { index, id ->
         root.findViewById<TextView>(id).apply {
             isPressed = false
