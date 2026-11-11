@@ -27,6 +27,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.io.path.copyTo
 
 class ProfileActivity : Activity() {
     private val prefs by lazy { getSharedPreferences("lumen_profile", MODE_PRIVATE) }
@@ -37,10 +38,12 @@ class ProfileActivity : Activity() {
     private lateinit var themeSpinner: Spinner
     private lateinit var currencySpinner: Spinner
 
-    private const val REQUEST_BACKUP = 1001
-    private const val REQUEST_RESTORE = 1002
-    private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
-    private const val DATABASE_NAME = "lumen_finance.db"
+    companion object {
+        private const val REQUEST_BACKUP = 1001
+        private const val REQUEST_RESTORE = 1002
+        private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
+        private const val DATABASE_NAME = "lumen_finance.db"
+    }
 
     override fun onCreate(state: Bundle?) {
         applyTheme()
@@ -68,7 +71,7 @@ class ProfileActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != Activity.RESULT_OK || data?.data == null) return@onActivityResult
-        val uri = data.data
+        val uri = data.data!!
         scope.launch {
             try {
                 when (requestCode) {
@@ -166,7 +169,7 @@ class ProfileActivity : Activity() {
                 val txs = repo.allTransactions()
                 val sb = StringBuilder()
                 sb.append("date,type,category,account,amount,currency,note\n")
-                val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getRoot())
+                val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ROOT)
                 for (tx in txs) {
                     sb.append(escapeCsv(df.format(Date(tx.timestampMillis)))).append(',')
                     sb.append(tx.type).append(',')
@@ -176,7 +179,7 @@ class ProfileActivity : Activity() {
                     sb.append(tx.amount.currencyCode).append(',')
                     sb.appendLine(escapeCsv(tx.note))
                 }
-                val file = File(cacheDir, "lumen_transactions_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.getRoot()).format(Date())}.csv")
+                val file = File(cacheDir, "lumen_transactions_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())}.csv")
                 file.writeText(sb.toString())
                 val uri = FileProvider.getUriForFile(this@ProfileActivity, FILE_PROVIDER_AUTHORITY, file)
                 val intent = Intent(Intent.ACTION_SEND).apply {
