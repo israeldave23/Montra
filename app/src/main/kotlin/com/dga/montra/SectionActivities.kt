@@ -32,31 +32,15 @@ import java.time.YearMonth
 import java.time.ZoneId
 
 abstract class SectionActivity(
-    private val title: Int,
-    private val subtitle: Int,
-    private val body: Int,
-    val tab: Int,
-    private val icon: Int
+    val tab: Int
 ) : Activity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_section)
-        findViewById<TextView>(R.id.section_title).setText(title)
-        findViewById<TextView>(R.id.section_subtitle).setText(subtitle)
-        findViewById<TextView>(R.id.section_body).setText(body)
-        findViewById<android.widget.ImageView>(R.id.section_icon).setImageResource(icon)
-        if (tab == 4) {
-            findViewById<Button>(R.id.section_action).apply {
-                setText(R.string.add_transaction)
-                setOnClickListener {
-                    startActivity(Intent(this@SectionActivity, MainActivity::class.java).putExtra("open_add_transaction", true))
-                }
-            }
-        }
     }
 }
 
-class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_subtitle, R.string.budget_body, 2, R.drawable.ic_nav_budget) {
+
+class BudgetActivity : SectionActivity(2) {
     private val repo = RoomFinanceRepository.get(applicationContext)
     private val scope = MainScope()
     private lateinit var budgetsRow: ListView
@@ -65,6 +49,8 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_budget)
+        findViewById<TextView>(R.id.budget_title).setText(R.string.budget_title)
+        findViewById<TextView>(R.id.budget_subtitle).setText(R.string.budget_subtitle)
         budgetsRow = findViewById(R.id.budgets_list)
         budgetsCreate = findViewById(R.id.budget_action)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
@@ -83,13 +69,17 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
 
     private fun observe() {
         scope.launch {
-            val budgets = repo.budgets()
-            val month = YearMonth.now().toString()
-            val spent = budgets.associateBy({ it.categoryId }) { repo.spentForCategoryMonth(it.categoryId, month) }.toMap()
-            budgetsRow.adapter = BudgetAdapter(this@BudgetActivity, budgets, spent)
-            budgetsCreate.visibility = View.VISIBLE
-            budgetsCreate.setText(R.string.create_budget)
-            budgetsCreate.setOnClickListener { showCreateBudget() }
+            try {
+                val budgets = repo.budgets()
+                val month = YearMonth.now().toString()
+                val spent = budgets.associateBy({ it.categoryId }) { repo.spentForCategoryMonth(it.categoryId, month) }.toMap()
+                budgetsRow.adapter = BudgetAdapter(this@BudgetActivity, budgets, spent)
+                budgetsCreate.visibility = View.VISIBLE
+                budgetsCreate.setText(R.string.create_budget)
+                budgetsCreate.setOnClickListener { showCreateBudget() }
+            } catch (e: Exception) {
+                runOnUiThread { android.widget.Toast.makeText(this@BudgetActivity, R.string.planning_error, android.widget.Toast.LENGTH_LONG).show() }
+            }
         }
     }
 
@@ -155,7 +145,7 @@ class BudgetActivity : SectionActivity(R.string.budget_title, R.string.budget_su
     }
 }
 
-class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subtitle, R.string.goals_body, 3, R.drawable.ic_nav_goals) {
+class GoalsActivity : SectionActivity(3) {
     private val repo = RoomFinanceRepository.get(applicationContext)
     private val scope = MainScope()
     private lateinit var goalsRow: ListView
@@ -164,6 +154,8 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_goals)
+        findViewById<TextView>(R.id.goal_title).setText(R.string.goals_title)
+        findViewById<TextView>(R.id.goal_subtitle).setText(R.string.goals_subtitle)
         goalsRow = findViewById(R.id.goals_list)
         goalsCreate = findViewById(R.id.goal_action)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
@@ -182,11 +174,15 @@ class GoalsActivity : SectionActivity(R.string.goals_title, R.string.goals_subti
 
     private fun observe() {
         scope.launch {
-            val goals = repo.goals()
-            goalsRow.adapter = GoalAdapter(this@GoalsActivity, goals)
-            goalsCreate.visibility = View.VISIBLE
-            goalsCreate.setText(R.string.new_goal)
-            goalsCreate.setOnClickListener { showGoalForm() }
+            try {
+                val goals = repo.goals()
+                goalsRow.adapter = GoalAdapter(this@GoalsActivity, goals)
+                goalsCreate.visibility = View.VISIBLE
+                goalsCreate.setText(R.string.new_goal)
+                goalsCreate.setOnClickListener { showGoalForm() }
+            } catch (e: Exception) {
+                runOnUiThread { android.widget.Toast.makeText(this@GoalsActivity, R.string.planning_error, android.widget.Toast.LENGTH_LONG).show() }
+            }
         }
     }
 
@@ -345,7 +341,7 @@ class AccountDetailActivity : Activity() {
     }
 }
 
-class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insights_subtitle, R.string.insights_body, 4, R.drawable.ic_nav_insights) {
+class InsightsActivity : SectionActivity(4) {
     private val repo = RoomFinanceRepository.get(applicationContext)
     private val scope = MainScope()
     private lateinit var insightsRow: ListView
@@ -353,8 +349,10 @@ class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insig
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_insights)
+        findViewById<TextView>(R.id.insights_title).setText(R.string.insights_title)
+        findViewById<TextView>(R.id.insights_subtitle).setText(R.string.insights_subtitle)
         insightsRow = findViewById(R.id.insights_list)
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), 4)
+        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
         observe()
     }
 
@@ -370,16 +368,20 @@ class InsightsActivity : SectionActivity(R.string.insights_title, R.string.insig
 
     private fun observe() {
         scope.launch {
-            val ym = YearMonth.now()
-            val start = ym.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val end = ym.atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val txs = repo.transactions().map { it.toDomain() }.filter {
-                it.type == TransactionType.EXPENSE && it.timestampMillis in start..end
+            try {
+                val ym = YearMonth.now()
+                val start = ym.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val end = ym.atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val txs = repo.transactions().map { it.toDomain() }.filter {
+                    it.type == TransactionType.EXPENSE && it.timestampMillis in start..end
+                }
+                val byCategory = txs.groupBy { it.categoryId }
+                val spentByCategory = byCategory.mapValues { (_, items) -> items.fold(0L) { acc, item -> acc + item.amount.minorUnits } }
+                val maxSpent = spentByCategory.values.maxOrNull() ?: 0L
+                insightsRow.adapter = InsightsAdapter(this@InsightsActivity, spentByCategory, maxSpent)
+            } catch (e: Exception) {
+                runOnUiThread { android.widget.Toast.makeText(this@InsightsActivity, R.string.planning_error, android.widget.Toast.LENGTH_LONG).show() }
             }
-            val byCategory = txs.groupBy { it.categoryId }
-            val spentByCategory = byCategory.mapValues { (_, items) -> items.fold(0L) { acc, item -> acc + item.amount.minorUnits } }
-            val maxSpent = spentByCategory.values.maxOrNull() ?: 0L
-            insightsRow.adapter = InsightsAdapter(this@InsightsActivity, spentByCategory, maxSpent)
         }
     }
 
