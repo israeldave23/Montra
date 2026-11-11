@@ -2,23 +2,132 @@ package com.dga.montra
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
+import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.FileProvider
+import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.domain.Money
+import com.dga.montra.domain.Transaction
+import com.dga.montra.domain.TransactionCategories
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ProfileActivity : Activity() {
     private val prefs by lazy { getSharedPreferences("lumen_profile", MODE_PRIVATE) }
+    private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
+    private val scope = MainScope()
     private lateinit var avatar: TextView
     private lateinit var nameView: TextView
+    private lateinit var themeSpinner: Spinner
+    private lateinit var currencySpinner: Spinner
+
+    private const val REQUEST_BACKUP = 1001
+    private const val REQUEST_RESTORE = 1002
+    private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
+    private const val DATABASE_NAME = "lumen_finance.db"
 
     override fun onCreate(state: Bundle?) {
+        applyTheme()
         super.onCreate(state)
         setContentView(R.layout.activity_profile)
         avatar = findViewById(R.id.profile_avatar)
         nameView = findViewById(R.id.profile_name)
+        themeSpinner = findViewById(R.id.profile_theme)
+        currencySpinner = findViewById(R.id.profile_currency)
         findViewById<TextView>(R.id.profile_back).setOnClickListener { finish() }
         findViewById<android.widget.Button>(R.id.profile_edit).setOnClickListener { editName() }
+        findViewById<TextView>(R.id.profile_export).setOnClickListener { exportTransactions() }
+        findViewById<TextView>(R.id.profile_backup).setOnClickListener { backupDatabase() }
+        findViewById<TextView>(R.id.profile_restore).setOnClickListener { restoreDatabase() }
+        bindThemeSpinner()
+        bindCurrencySpinner()
         render()
+    }
+
+    override fun onDestroy() {
+        scope.coroutineContext.cancel()
+        super.onDestroy()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != Activity.RESULT_OK || data?.data == null) return@onActivityResult
+        val uri = data.data
+        scope.launch {
+            try {
+                when (requestCode) {
+                    REQUEST_BACKUP -> backupToUri(uri)
+                    REQUEST_RESTORE -> restoreFromUri(uri)
+                }
+            } catch (e: Exception) {
+                runOnUiThread { toast(R.string.profile_error) }
+            }
+        }
+    }
+
+    private fun applyTheme() {
+        val mode = settings.getInt("theme_mode", 0)
+        val cur = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val target = when (mode) {
+            1 -> Configuration.UI_MODE_NIGHT_NO
+            2 -> Configuration.UI_MODE_NIGHT_YES
+            else -> cur
+        }
+        if (target != cur) {
+            val config = Configuration(resources.configuration)
+            config.uiMode = target
+            resources.updateConfiguration(config, resources.displayMetrics)
+        }
+    }
+
+    private fun bindThemeSpinner() {
+        val entries = arrayOf(R.string.profile_theme_system, R.string.profile_theme_light, R.string.profile_theme_dark)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, entries.map { getString(it) }.toTypedArray())
+        themeSpinner.adapter = adapter
+        val saved = settings.getInt("theme_mode", 0).coerceIn(0, 2)
+        themeSpinner.setSelection(saved)
+        themeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val current = settings.getInt("theme_mode", 0)
+                if (position != current) {
+                    settings.edit().putInt("theme_mode", position).apply()
+                    applyTheme()
+                    recreate()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+    private fun bindCurrencySpinner() {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, Money.currencies.toTypedArray())
+        currencySpinner.adapter = adapter
+        val savedCode = settings.getString("default_currency", "PHP")
+        val savedIndex = Money.currencies.indexOf(savedCode).coerceAtLeast(0)
+        currencySpinner.setSelection(savedIndex)
+        currencySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val code = Money.currencies[position]
+                settings.edit().putString("default_currency", code).putString("last_currency", code).apply()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
     }
 
     private fun render() {
@@ -48,6 +157,94 @@ class ProfileActivity : Activity() {
         }
         dialog.show()
     }
+
+    private fun exportTransactions() {
+        scope.launch {
+            try {
+                val repo = RoomFinanceRepository.get(applicationContext)
+                val accounts = repo.allAccounts().associateBy { it.id }.mapValues { it.value.name }
+                val txs = repo.allTransactions()
+                val sb = StringBuilder()
+                sb.append("date,type,category,account,amount,currency,note\n")
+                val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getRoot())
+                for (tx in txs) {
+                    sb.append(escapeCsv(df.format(Date(tx.timestampMillis)))).append(',')
+                    sb.append(tx.type).append(',')
+                    sb.append(escapeCsv(categoryName(tx))).append(',')
+                    sb.append(escapeCsv(accounts[tx.accountId] ?: "")).append(',')
+                    sb.append(tx.amount.minorUnits).append(',')
+                    sb.append(tx.amount.currencyCode).append(',')
+                    sb.appendLine(escapeCsv(tx.note))
+                }
+                val file = File(cacheDir, "lumen_transactions_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.getRoot()).format(Date())}.csv")
+                file.writeText(sb.toString())
+                val uri = FileProvider.getUriForFile(this@ProfileActivity, FILE_PROVIDER_AUTHORITY, file)
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/csv"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    putExtra(Intent.EXTRA_SUBJECT, getString(R.string.profile_export_csv_share))
+                }
+                runOnUiThread {
+                    startActivity(Intent.createChooser(intent, getString(R.string.profile_export_transactions)))
+                    toast(R.string.profile_export_success)
+                }
+            } catch (e: Exception) {
+                runOnUiThread { toast(R.string.profile_error) }
+            }
+        }
+    }
+
+    private fun categoryName(tx: Transaction): String {
+        return TransactionCategories.expense.firstOrNull { it.id == tx.categoryId }?.name
+            ?: TransactionCategories.income.firstOrNull { it.id == tx.categoryId }?.name
+            ?: tx.categoryId
+    }
+
+    private fun escapeCsv(value: String): String {
+        if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
+            return "\"${value.replace("\"", "\"\"")}\""
+        }
+        return value
+    }
+
+    private fun backupDatabase() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/octet-stream"
+            putExtra(Intent.EXTRA_TITLE, DATABASE_NAME)
+        }
+        startActivityForResult(intent, REQUEST_BACKUP)
+    }
+
+    private fun restoreDatabase() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        startActivityForResult(intent, REQUEST_RESTORE)
+    }
+
+    private fun backupToUri(uri: Uri) {
+        val dbFile = databasePath(DATABASE_NAME)
+        FileInputStream(dbFile).use { input ->
+            contentResolver.openOutputStream(uri, "w")?.use { output ->
+                input.copyTo(output)
+            } ?: throw IllegalStateException("Could not open backup destination")
+        }
+        runOnUiThread { toast(R.string.profile_backup_success) }
+    }
+
+    private fun restoreFromUri(uri: Uri) {
+        val temp = File(cacheDir, "lumen_restore.db")
+        contentResolver.openInputStream(uri)!!.use { input ->
+            FileOutputStream(temp).use { output -> input.copyTo(output) }
+        }
+        temp.copyTo(databasePath(DATABASE_NAME), overwrite = true)
+        runOnUiThread { toast(R.string.profile_restore_success) }
+    }
+
+    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
 
     private fun initials(name: String): String {
         val trimmed = name.trim()

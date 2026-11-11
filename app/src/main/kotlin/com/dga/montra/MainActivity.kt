@@ -12,6 +12,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
+import android.content.res.Configuration
+import android.util.DisplayMetrics
 import android.widget.Toast
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Account
@@ -46,6 +48,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyTheme()
         setContentView(R.layout.activity_main)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<TextView>(R.id.avatar).setOnClickListener {
@@ -339,6 +342,21 @@ class MainActivity : Activity() {
 
     private fun feedback(message: Int) {
         com.google.android.material.snackbar.Snackbar.make(findViewById<android.view.View>(android.R.id.content), message, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun applyTheme() {
+        val mode = settings.getInt("theme_mode", 0)
+        val cur = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val target = when (mode) {
+            1 -> Configuration.UI_MODE_NIGHT_NO
+            2 -> Configuration.UI_MODE_NIGHT_YES
+            else -> cur
+        }
+        if (target != cur) {
+            val config = Configuration(resources.configuration)
+            config.uiMode = target
+            resources.updateConfiguration(config, resources.displayMetrics)
+        }
     }
 
     private fun toast(message: Int) {

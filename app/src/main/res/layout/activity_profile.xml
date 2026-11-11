@@ -16,6 +16,20 @@
             </LinearLayout>
             <Button android:id="@+id/profile_edit" android:layout_width="wrap_content" android:layout_height="@dimen/touch_target" android:background="@drawable/primary_button_ripple" android:text="@string/edit" android:textAllCaps="false" android:textColor="@color/on_primary" android:textStyle="bold" />
         </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_24" android:text="@string/profile_settings" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_18" android:textStyle="bold" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_16" android:background="@drawable/action_tile_background" android:elevation="0dp" android:orientation="vertical" android:padding="@dimen/card_padding">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/profile_theme" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_16" android:textStyle="bold" android:layout_marginBottom="@dimen/space_8" />
+            <Spinner android:id="@+id/profile_theme" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/space_16" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/profile_default_currency" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_16" android:textStyle="bold" android:layout_marginBottom="@dimen/space_8" />
+            <Spinner android:id="@+id/profile_currency" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/space_16" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/profile_currency_applies" android:textColor="@color/lumen_muted" android:textSize="@dimen/text_12" android:layout_marginBottom="@dimen/space_16" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <TextView android:id="@+id/profile_export" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/space_8" android:gravity="center" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:padding="@dimen/space_8" android:text="@string/profile_export_transactions" android:textColor="@color/lumen_accent" android:textSize="@dimen/text_14" android:textStyle="bold" />
+                <TextView android:id="@+id/profile_backup" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/space_8" android:gravity="center" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:padding="@dimen/space_8" android:text="@string/profile_backup_database" android:textColor="@color/lumen_accent" android:textSize="@dimen/text_14" android:textStyle="bold" />
+            </LinearLayout>
+            <TextView android:id="@+id/profile_restore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_8" android:gravity="center" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:padding="@dimen/space_8" android:text="@string/profile_restore_database" android:textColor="@color/lumen_accent" android:textSize="@dimen/text_14" android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
     </ScrollView>
 </LinearLayout>
