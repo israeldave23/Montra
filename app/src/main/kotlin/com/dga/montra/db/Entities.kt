@@ -54,5 +54,6 @@ data class GoalEntity(
     val name: String,
     val targetMinorUnits: Long,
     val savedMinorUnits: Long,
-    val currencyCode: String
+    val currencyCode: String,
+    val targetDateMillis: Long? = null
 )

@@ -80,6 +80,15 @@ interface FinanceDao {
     @Query("SELECT * FROM goals ORDER BY name COLLATE NOCASE")
     suspend fun goals(): List<GoalEntity>
 
+    @Query("SELECT * FROM goals ORDER BY name COLLATE NOCASE")
+    fun observeGoals(): Flow<List<GoalEntity>>
+
+    @Query("UPDATE goals SET name = :name, targetMinorUnits = :targetMinorUnits, targetDateMillis = :targetDateMillis WHERE id = :id")
+    suspend fun updateGoal(id: String, name: String, targetMinorUnits: Long, targetDateMillis: Long?): Int
+
+    @Query("DELETE FROM goals WHERE id = :id")
+    suspend fun deleteGoal(id: String): Int
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertGoal(goal: GoalEntity)
 

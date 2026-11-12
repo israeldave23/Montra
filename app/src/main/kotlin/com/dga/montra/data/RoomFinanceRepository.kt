@@ -8,6 +8,7 @@ import com.dga.montra.db.FinanceDatabase
 import com.dga.montra.db.TransactionEntity
 import com.dga.montra.db.MIGRATION_1_2
 import com.dga.montra.db.MIGRATION_2_3
+import com.dga.montra.db.MIGRATION_3_4
 import com.dga.montra.db.BudgetEntity
 import com.dga.montra.db.GoalEntity
 import com.dga.montra.domain.*
@@ -22,7 +23,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         context.applicationContext,
         FinanceDatabase::class.java,
         "lumen_finance.db"
-    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
 
     private val dao: FinanceDao = db.financeDao()
 
@@ -121,21 +122,88 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         dao.spentForCategoryMonth(categoryId, start, end)
     }
 
-    suspend fun goals(): List<GoalEntity> = withContext(Dispatchers.IO) { dao.goals() }
+    suspend fun goals(): List<Goal> = withContext(Dispatchers.IO) {
+        dao.goals().map { it.toDomain() }
+    }
 
-    suspend fun createGoal(name: String, target: Money, saved: Money) = withContext(Dispatchers.IO) {
-        require(name.isNotBlank() && name.trim().length <= 100)
-        require(target.currencyCode == "PHP" && saved.currencyCode == "PHP")
-        require(target.minorUnits > 0 && saved.minorUnits >= 0)
-        dao.insertGoal(GoalEntity(java.util.UUID.randomUUID().toString(), name.trim(), target.minorUnits, saved.minorUnits, "PHP"))
+    /** Goals update reactively, so the screen never needs a manual refresh. */
+    fun observeGoals(): Flow<List<Goal>> = dao.observeGoals().map { entities ->
+        entities.map { it.toDomain() }
+    }
+
+    suspend fun createGoal(
+        name: String,
+        target: Money,
+        saved: Money = Money(0L, target.currencyCode),
+        targetDateMillis: Long? = null
+    ) = withContext(Dispatchers.IO) {
+        require(target.currencyCode in Money.currencies) { "Unsupported currency" }
+        require(saved.currencyCode == target.currencyCode) { "Goal amounts must share a currency" }
+        require(target.minorUnits > 0L) { "Target must be positive" }
+        require(saved.minorUnits >= 0L) { "Saved amount must be non-negative" }
+        val trimmed = validGoalName(name)
+        dao.insertGoal(
+            GoalEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                name = trimmed,
+                targetMinorUnits = target.minorUnits,
+                savedMinorUnits = saved.minorUnits,
+                currencyCode = target.currencyCode,
+                targetDateMillis = targetDateMillis
+            )
+        )
+    }
+
+    suspend fun updateGoal(id: String, name: String, target: Money, targetDateMillis: Long?) = withContext(Dispatchers.IO) {
+        val existing = dao.goal(id) ?: throw IllegalArgumentException("Goal not found")
+        require(existing.currencyCode == target.currencyCode) { "Goal currency cannot change" }
+        require(target.minorUnits > 0L) { "Target must be positive" }
+        val trimmed = validGoalName(name)
+        require(dao.updateGoal(id, trimmed, target.minorUnits, targetDateMillis) == 1) { "Goal not found" }
+    }
+
+    /** Re-inserts a deleted goal so the undo action is lossless. */
+    suspend fun restoreGoal(goal: Goal) = withContext(Dispatchers.IO) {
+        dao.insertGoal(goal.toEntity())
+    }
+
+    suspend fun deleteGoal(id: String) = withContext(Dispatchers.IO) {
+        require(dao.deleteGoal(id) == 1) { "Goal not found" }
     }
 
     suspend fun addGoalFunds(id: String, amount: Money) = withContext(Dispatchers.IO) {
-        require(amount.minorUnits > 0)
-        val goal = dao.goal(id) ?: error("Goal not found")
-        require(goal.currencyCode == amount.currencyCode)
-        val saved = Math.addExact(goal.savedMinorUnits, amount.minorUnits)
-        check(dao.updateGoalFunds(id, goal.savedMinorUnits, saved) == 1) { "Goal changed; try again" }
+        require(amount.minorUnits > 0L) { "Amount must be positive" }
+        adjustGoalFunds(id, amount, credit = true)
+    }
+
+    suspend fun withdrawGoalFunds(id: String, amount: Money) = withContext(Dispatchers.IO) {
+        require(amount.minorUnits > 0L) { "Amount must be positive" }
+        adjustGoalFunds(id, amount, credit = false)
+    }
+
+    /**
+     * Optimistic read-modify-write: the update only applies while savedMinorUnits is unchanged,
+     * and is retried when another operation wins the race.
+     */
+    private suspend fun adjustGoalFunds(id: String, amount: Money, credit: Boolean) {
+        val currency = dao.goal(id)?.currencyCode ?: throw IllegalArgumentException("Goal not found")
+        require(currency == amount.currencyCode) { "Amount currency mismatch" }
+        repeat(FUNDS_ATTEMPTS) {
+            val current = dao.goal(id) ?: throw IllegalArgumentException("Goal not found")
+            val next = Math.addExact(
+                current.savedMinorUnits,
+                if (credit) amount.minorUnits else -amount.minorUnits
+            )
+            require(next >= 0L) { "Not enough saved" }
+            if (dao.updateGoalFunds(id, current.savedMinorUnits, next) == 1) return
+        }
+        throw IllegalStateException("Goal changed; try again")
+    }
+
+    private fun validGoalName(name: String): String {
+        val trimmed = name.trim()
+        require(trimmed.isNotEmpty() && trimmed.length <= GOAL_NAME_LIMIT) { "Goal name is required" }
+        return trimmed
     }
 
     suspend fun archiveAccount(id: String) = withContext(Dispatchers.IO) {
@@ -203,6 +271,9 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     }
 
     companion object {
+        private const val FUNDS_ATTEMPTS = 3
+        private const val GOAL_NAME_LIMIT = 100
+
         @Volatile
         private var INSTANCE: RoomFinanceRepository? = null
 
@@ -247,4 +318,21 @@ internal fun Transaction.toEntity() = TransactionEntity(
     categoryId = categoryId,
     note = note,
     timestampMillis = timestampMillis
+)
+
+internal fun GoalEntity.toDomain() = Goal(
+    id = id,
+    name = name,
+    target = Money(targetMinorUnits, currencyCode),
+    saved = Money(savedMinorUnits, currencyCode),
+    targetDateMillis = targetDateMillis
+)
+
+private fun Goal.toEntity() = GoalEntity(
+    id = id,
+    name = name,
+    targetMinorUnits = target.minorUnits,
+    savedMinorUnits = saved.minorUnits,
+    currencyCode = currencyCode,
+    targetDateMillis = targetDateMillis
 )

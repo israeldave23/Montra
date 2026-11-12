@@ -2,25 +2,20 @@ package com.dga.montra
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.dga.montra.db.BudgetEntity
 import com.dga.montra.db.TransactionEntity
-import com.dga.montra.db.GoalEntity
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.data.toDomain
-import com.dga.montra.domain.Account
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
@@ -143,142 +138,6 @@ class BudgetActivity : SectionActivity(2) {
             bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(if (categorySpent > limitMinor) R.color.lumen_error else R.color.lumen_accent))
             return row
         }
-    }
-}
-
-class GoalsActivity : SectionActivity(3) {
-    private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val scope = MainScope()
-    private lateinit var goalsRow: ListView
-    private lateinit var goalsCreate: Button
-
-    override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
-        setContentView(R.layout.activity_goals)
-        findViewById<TextView>(R.id.goal_title).setText(R.string.goals_title)
-        findViewById<TextView>(R.id.goal_subtitle).setText(R.string.goals_subtitle)
-        goalsRow = findViewById(R.id.goals_list)
-        goalsCreate = findViewById(R.id.goal_action)
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
-        observe()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        observe()
-    }
-
-    override fun onDestroy() {
-        scope.coroutineContext.cancel()
-        super.onDestroy()
-    }
-
-    private fun observe() {
-        scope.launch {
-            try {
-                val goals = repo.goals()
-                goalsRow.adapter = GoalAdapter(this@GoalsActivity, goals)
-                goalsCreate.visibility = View.VISIBLE
-                goalsCreate.setText(R.string.new_goal)
-                goalsCreate.setOnClickListener { showGoalForm() }
-            } catch (e: Exception) {
-                runOnUiThread { android.widget.Toast.makeText(this@GoalsActivity, R.string.planning_error, android.widget.Toast.LENGTH_LONG).show() }
-            }
-        }
-    }
-
-    private fun showGoalForm() {
-        val nameInput = EditText(this).apply { hint = getString(R.string.goal_name) }
-        val targetInput = EditText(this).apply {
-            hint = getString(R.string.target_amount)
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        val savedInput = EditText(this).apply {
-            hint = getString(R.string.saved_amount)
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(nameInput)
-            addView(targetInput)
-            addView(savedInput)
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.new_goal)
-            .setView(container)
-            .setPositiveButton(R.string.save) { _, _ ->
-                val name = nameInput.text.toString().trim()
-                if (name.isEmpty()) {
-                    nameInput.setError(getString(R.string.name_required))
-                    return@setPositiveButton
-                }
-                val target = targetInput.text.toString().toFloatOrNullOrZero()
-                val saved = savedInput.text.toString().toFloatOrNullOrZero()
-                if (target <= 0f || saved < 0f) {
-                    targetInput.setError(getString(R.string.amount_required))
-                    return@setPositiveButton
-                }
-                scope.launch {
-                    try {
-                        repo.createGoal(name, Money((target * 100).toLong(), "PHP"), Money((saved * 100).toLong(), "PHP"))
-                        observe()
-                    } catch (e: Exception) {
-                        targetInput.setError(getString(R.string.planning_error))
-                    }
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
-    private inner class GoalAdapter(val activity: Activity, val goals: List<GoalEntity>) : BaseAdapter() {
-        override fun getCount() = goals.size
-        override fun getItem(position: Int) = goals[position]
-        override fun getItemId(position: Int) = position.toLong()
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val g = goals[position]
-            val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_goal_row, parent, false)
-            row.findViewById<TextView>(R.id.goal_name).text = g.name
-            val target = Money(g.targetMinorUnits, g.currencyCode)
-            val saved = Money(g.savedMinorUnits, g.currencyCode)
-            row.findViewById<TextView>(R.id.goal_amount).text = activity.getString(R.string.progress_amount, saved.format(), target.format())
-            val progress = if (target.minorUnits == 0L) 0L else minOf(saved.minorUnits, target.minorUnits) * 100 / target.minorUnits
-            val bar = row.findViewById<ProgressBar>(R.id.goal_progress)
-            bar.max = 100
-            bar.progress = progress.coerceIn(0, 100).toInt()
-            bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(R.color.lumen_accent))
-            row.setOnClickListener { showAddFunds(g) }
-            return row
-        }
-    }
-
-    private fun showAddFunds(goal: GoalEntity) {
-        val input = EditText(this).apply {
-            hint = getString(R.string.add_funds)
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        }
-        AlertDialog.Builder(this)
-            .setTitle(goal.name)
-            .setMessage(getString(R.string.add_funds_note))
-            .setView(input)
-            .setPositiveButton(R.string.add_funds) { _, _ ->
-                val amount = input.text.toString().toFloatOrNullOrZero()
-                if (amount <= 0f) {
-                    input.setError(getString(R.string.amount_required))
-                    return@setPositiveButton
-                }
-                scope.launch {
-                    try {
-                        repo.addGoalFunds(goal.id, Money((amount * 100).toLong(), "PHP"))
-                        observe()
-                    } catch (e: Exception) {
-                        input.setError(getString(R.string.planning_error))
-                    }
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 }
 

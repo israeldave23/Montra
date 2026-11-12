@@ -15,4 +15,5 @@
     <color name="ic_launcher_background">#087F6D</color>
     <color name="lumen_success">#176B55</color>
     <color name="lumen_error">#B00020</color>
+    <color name="lumen_on_highlight">#17211D</color>
 </resources>

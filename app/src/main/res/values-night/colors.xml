@@ -14,4 +14,5 @@
     <color name="lumen_highlight">#D6B77D</color>
     <color name="lumen_success">#7DC8A8</color>
     <color name="lumen_error">#CF6679</color>
+    <color name="lumen_on_highlight">#17211D</color>
 </resources>

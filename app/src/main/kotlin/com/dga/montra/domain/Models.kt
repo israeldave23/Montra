@@ -16,8 +16,14 @@ data class Money(val minorUnits: Long, val currencyCode: String) {
         }.format(BigDecimal.valueOf(minorUnits, curr?.defaultFractionDigits ?: 2))
     }
 
+    /** Machine-readable amount, e.g. "1234.50"; round-trips through [parse]. */
+    fun plainString(): String =
+        BigDecimal.valueOf(minorUnits, fractionDigits(currencyCode)).toPlainString()
+
     companion object {
         val currencies = listOf("PHP", "USD", "CAD", "EUR", "GBP", "JPY")
+
+        fun fractionDigits(code: String): Int = Currency.getInstance(code).defaultFractionDigits
 
         /** Input uses period decimal separator; no silent rounding. */
         fun parse(text: String, code: String): Money {
