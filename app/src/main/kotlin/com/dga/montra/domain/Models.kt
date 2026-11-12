@@ -41,7 +41,10 @@ data class DashboardState(
     val balances: Map<String, Long>,
     val accountCount: Int,
     val recentTransactions: List<Transaction> = emptyList(),
-    val monthlyTotals: Map<String, Pair<Long, Long>> = emptyMap()
+    val monthlyTotals: Map<String, Pair<Long, Long>> = emptyMap(),
+    /** Every account with its live balance, active first; archived accounts are included. */
+    val accounts: List<AccountBalance> = emptyList(),
+    val archivedCount: Int = 0
 )
 
 fun accountSummary(accounts: List<Account>): DashboardState = DashboardState(

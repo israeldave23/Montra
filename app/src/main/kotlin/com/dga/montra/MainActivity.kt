@@ -5,27 +5,15 @@ import android.content.Intent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
-import android.app.AlertDialog
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
 import android.content.res.Configuration
-import android.util.DisplayMetrics
 import android.widget.Toast
 import com.dga.montra.data.RoomFinanceRepository
-import com.dga.montra.domain.Account
 import com.dga.montra.domain.Money
-import com.dga.montra.domain.Transaction
-import com.dga.montra.domain.TransactionType
+import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.DashboardState
-import java.util.Calendar
-import java.util.Date
-import java.util.UUID
-import java.text.SimpleDateFormat
-import java.util.Locale
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -34,7 +22,6 @@ import kotlinx.coroutines.launch
 class MainActivity : Activity() {
     private var latestDashboard: DashboardState? = null
     private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
-    private val transactionFormState = TransactionFormState()
     private lateinit var repository: RoomFinanceRepository
     private val scope = MainScope()
     private var dashboardJob: Job? = null
@@ -60,21 +47,25 @@ class MainActivity : Activity() {
         repository = RoomFinanceRepository.get(this)
         balanceView = findViewById(R.id.balance)
         summaryView = findViewById(R.id.balance_summary)
-        findViewById<Button>(R.id.add_account_button).setOnClickListener { showAddAccountDialog() }
+        findViewById<Button>(R.id.add_account_button).setOnClickListener {
+            FinanceDialogs.addAccount(this, repository)
+        }
         findViewById<Button>(R.id.view_activity_button).setOnClickListener {
             startActivity(android.content.Intent(this, TransactionsActivity::class.java))
         }
-        findViewById<android.view.View>(R.id.add_transaction_button).setOnClickListener { showAddTransactionDialog() }
-        findViewById<android.view.View>(R.id.add_transfer_button).setOnClickListener { showTransferDialog() }
-        if (intent.getBooleanExtra("open_add_transaction", false)) showAddTransactionDialog()
+        findViewById<android.view.View>(R.id.add_transaction_button).setOnClickListener {
+            FinanceDialogs.addTransaction(this, repository)
+        }
+        findViewById<android.view.View>(R.id.add_transfer_button).setOnClickListener {
+            FinanceDialogs.transfer(this, repository)
+        }
+        if (intent.getBooleanExtra("open_add_transaction", false)) {
+            FinanceDialogs.addTransaction(this, repository)
+        }
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).setOnClickListener {
             settings.edit().putBoolean("balance_hidden", !settings.getBoolean("balance_hidden", false)).apply()
             latestDashboard?.let { render(it) }
         }
-        findViewById<TextView>(R.id.balance).setOnClickListener {
-            startActivity(Intent(this, AccountDetailActivity::class.java))
-        }
-        summaryView.setOnClickListener { observeHome() }
         refreshProfileHeader()
     }
 
@@ -111,7 +102,19 @@ class MainActivity : Activity() {
         monthlyView.text = if (hidden) getString(R.string.monthly_summary_hidden) else state.monthlyTotals.entries.joinToString("\n") { (currency, totals) ->
             getString(R.string.monthly_summary, Money(totals.first, currency).format(), Money(totals.second, currency).format(), Money(Math.subtractExact(totals.first, totals.second), currency).format())
         }
-        summaryView.text = if (state.accountCount == 0) getString(R.string.empty_balance) else resources.getQuantityString(R.plurals.account_count, state.accountCount, state.accountCount)
+        summaryView.text = when {
+            state.accounts.isEmpty() -> getString(R.string.empty_balance)
+            else -> {
+                val active = resources.getQuantityString(
+                    R.plurals.account_count,
+                    state.accountCount,
+                    state.accountCount
+                )
+                if (state.archivedCount == 0) active
+                else "$active  ·  ${getString(R.string.account_archived_count, state.archivedCount)}"
+            }
+        }
+        renderAccounts(state.accounts)
         val recent = findViewById<android.widget.LinearLayout>(R.id.recent_transactions)
         val items = state.recentTransactions
         findViewById<TextView>(R.id.recent_empty).visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
@@ -130,7 +133,7 @@ class MainActivity : Activity() {
         }
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
-        findViewById<Button>(R.id.add_account_button).setText(if (state.accountCount == 0) R.string.add_first_account else R.string.add_account)
+        findViewById<Button>(R.id.add_account_button).setText(if (state.accounts.isEmpty()) R.string.add_first_account else R.string.add_account)
     }
 
 
@@ -140,208 +143,68 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.greeting_title).text = if (name.isEmpty()) getString(R.string.overview) else name
     }
 
-    private fun showAddAccountDialog() {
-        val content = layoutInflater.inflate(R.layout.dialog_add_account, null)
-        val name = content.findViewById<EditText>(R.id.account_name)
-        val amount = content.findViewById<EditText>(R.id.opening_balance)
-        val currency = content.findViewById<Spinner>(R.id.currency_picker)
-        currency.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, Money.currencies)
-        settings.getString("last_currency", null)?.let { code -> currency.setSelection(Money.currencies.indexOf(code).coerceAtLeast(0)) }
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.add_account).setView(content)
-            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val trimmedName = name.text.toString().trim()
-                val parsed = runCatching { Money.parse(amount.text.toString(), currency.selectedItem.toString()) }.getOrNull()
-                when {
-                    trimmedName.isEmpty() -> name.error = getString(R.string.account_name_hint)
-                    parsed == null || parsed.minorUnits <= 0L -> amount.error = getString(R.string.amount_required)
-                    else -> {
-                        try {
-                            scope.launch {
-                                runCatching { repository.addAccount(Account(UUID.randomUUID().toString(), trimmedName, parsed)).also { settings.edit().putString("last_currency", currency.selectedItem.toString()).apply() } }
-                                    .onSuccess { dialog.dismiss(); feedback(R.string.account_added) }
-                                    .onFailure { toast(R.string.save_error) }
-                            }
-                        } catch (_: Exception) {
-                            toast(R.string.save_error)
-                        }
-                    }
-                }
-            }
-        }
-        dialog.show()
+    /**
+     * The home screen's account list. Each row is the account's real current balance, and tapping it
+     * opens that account — never an arbitrary first account.
+     */
+    private fun renderAccounts(accounts: List<AccountBalance>) {
+        val section = findViewById<android.view.View>(R.id.home_accounts_section)
+        val empty = findViewById<android.view.View>(R.id.home_accounts_empty)
+        val container = findViewById<android.widget.LinearLayout>(R.id.home_accounts)
+        val count = findViewById<TextView>(R.id.home_accounts_count)
+
+        container.removeAllViews()
+        section.visibility = if (accounts.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        empty.visibility = if (accounts.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        if (accounts.isEmpty()) return
+
+        count.text = resources.getQuantityString(R.plurals.account_count, accounts.size, accounts.size)
+        accounts.forEach { item -> container.addView(accountRow(item, container)) }
     }
 
-    private fun showTransferDialog() {
-        scope.launch {
-            val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
-            if (accounts.size < 2) { toast(R.string.empty_balance); return@launch }
-            showTransferDialogWithAccounts(accounts)
+    private fun accountRow(item: AccountBalance, parent: android.view.ViewGroup): android.view.View {
+        val row = layoutInflater.inflate(R.layout.item_account_row, parent, false)
+        val hidden = settings.getBoolean("balance_hidden", false)
+        val name = item.account.name
+        val balanceText = if (hidden) {
+            getString(R.string.account_masked_amount)
+        } else {
+            item.currentBalance.format()
         }
+        val meta = if (item.hasActivity) {
+            getString(R.string.account_row_activity, item.transactionCount)
+        } else {
+            getString(R.string.account_row_no_activity)
+        }
+        val status = if (item.isArchived) getString(R.string.account_archived) else meta
+
+        row.findViewById<TextView>(R.id.account_row_initial).text = avatarInitials(name)
+        row.findViewById<TextView>(R.id.account_row_name).text = name
+        row.findViewById<TextView>(R.id.account_row_meta).text =
+            "${item.currencyCode}  ·  $meta"
+        row.findViewById<TextView>(R.id.account_row_balance).text = balanceText
+        row.findViewById<TextView>(R.id.account_row_badge).visibility =
+            if (item.isArchived) android.view.View.VISIBLE else android.view.View.GONE
+        row.contentDescription = getString(
+            R.string.account_row_description,
+            name,
+            balanceText,
+            status
+        )
+        row.setOnClickListener {
+            startActivity(
+                Intent(this, AccountDetailActivity::class.java)
+                    .putExtra(AccountDetailActivity.EXTRA_ACCOUNT_ID, item.account.id)
+            )
+        }
+        return row
     }
 
-    private fun showTransferDialogWithAccounts(accounts: List<Account>) {
-        val content = layoutInflater.inflate(R.layout.dialog_add_transfer, null)
-        val fromSpinner = content.findViewById<Spinner>(R.id.transfer_from_account)
-        val toSpinner = content.findViewById<Spinner>(R.id.transfer_to_account)
-        val amount = content.findViewById<EditText>(R.id.transfer_amount)
-        val note = content.findViewById<EditText>(R.id.transfer_note)
-        val labels = accounts.map { "${it.name} (${it.openingBalance.currencyCode})" }
-        fromSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        toSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        val lastTransfer = settings.getString("last_transfer_account", null)
-        fromSpinner.setSelection(accounts.indexOfFirst { it.id == lastTransfer }.coerceAtLeast(0))
-        toSpinner.setSelection((fromSpinner.selectedItemPosition + 1) % accounts.size)
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.add_transfer).setView(content)
-            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val from = accounts.getOrNull(fromSpinner.selectedItemPosition)
-                val to = accounts.getOrNull(toSpinner.selectedItemPosition)
-                if (from == null || to == null) {
-                    (fromSpinner.selectedView as? TextView)?.error = getString(R.string.account_required)
-                    (toSpinner.selectedView as? TextView)?.error = getString(R.string.account_required)
-                    return@setOnClickListener
-                }
-                if (from.id == to.id) {
-                    toast(R.string.transfer_error)
-                    return@setOnClickListener
-                }
-                if (from.openingBalance.currencyCode != to.openingBalance.currencyCode) {
-                    toast(R.string.transfer_error)
-                    return@setOnClickListener
-                }
-                val parsed = runCatching { Money.parse(amount.text.toString(), from.openingBalance.currencyCode) }.getOrNull()
-                if (parsed == null || parsed.minorUnits <= 0L) {
-                    amount.error = getString(R.string.amount_required)
-                    return@setOnClickListener
-                }
-                scope.launch {
-                    runCatching { repository.transfer(from.id, to.id, parsed, note.text.toString().trim()) }
-                        .onSuccess { settings.edit().putString("last_transfer_account", from.id).apply(); dialog.dismiss(); feedback(R.string.save_feedback_transfer) }
-                        .onFailure { toast(R.string.transfer_error) }
-                }
-            }
-        }
-        dialog.show()
-    }
-
-    private fun showAddTransactionDialog() {
-        scope.launch {
-            val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
-            if (accounts.isEmpty()) { toast(R.string.empty_balance); return@launch }
-            showTransactionDialogWithAccounts(accounts)
-        }
-    }
-
-    private fun showTransactionDialogWithAccounts(accounts: List<Account>) {
-        val content = layoutInflater.inflate(R.layout.dialog_add_transaction, null)
-        val account = content.findViewById<Spinner>(R.id.transaction_account)
-        val type = content.findViewById<Spinner>(R.id.transaction_type)
-        val category = content.findViewById<Spinner>(R.id.transaction_category)
-        val datePickerBtn = content.findViewById<Button>(R.id.transaction_date_picker)
-        val amount = content.findViewById<EditText>(R.id.transaction_amount)
-        val note = content.findViewById<EditText>(R.id.transaction_note)
-
-        val fmt = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-        var selectedDate = Calendar.getInstance()
-        datePickerBtn.text = fmt.format(Date(selectedDate.timeInMillis))
-
-        // account spinner
-        account.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            accounts.map { "${it.name} (${it.openingBalance.currencyCode})" })
-
-        account.setSelection(accounts.indexOfFirst { it.id == settings.getString("last_account", null) }.coerceAtLeast(0))
-        val lastType = settings.getString("last_type", TransactionType.EXPENSE.name)
-        transactionFormState.selectType(when (lastType) {
-            TransactionType.INCOME.name -> TransactionType.INCOME
-            TransactionType.REFUND.name -> TransactionType.REFUND
-            else -> TransactionType.EXPENSE
-        })
-        settings.getString("last_category", null)?.let { id ->
-            if (transactionFormState.categories.any { it.id == id }) transactionFormState.selectCategory(id)
-        }
-        type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            arrayOf(getString(R.string.type_expense), getString(R.string.type_income), getString(R.string.type_refund)))
-        type.setSelection(when (transactionFormState.type) { TransactionType.INCOME -> 1; TransactionType.REFUND -> 2; else -> 0 })
-        category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, transactionFormState.categories)
-        category.setSelection(transactionFormState.categories.indexOfFirst { it.id == transactionFormState.categoryId }.coerceAtLeast(0))
-        category.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                val selectedCategory = parent?.selectedItem as? com.dga.montra.domain.Category ?: return
-                if (transactionFormState.categories.any { it.id == selectedCategory.id }) {
-                    transactionFormState.selectCategory(selectedCategory.id)
-                }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        }
-        type.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                val selectedType = when (position) {
-                    1 -> TransactionType.INCOME
-                    2 -> TransactionType.REFUND
-                    else -> TransactionType.EXPENSE
-                }
-                val typeChanged = transactionFormState.selectType(selectedType)
-                if (typeChanged) {
-                    category.adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, transactionFormState.categories)
-                }
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        }
-
-        // date picker
-        datePickerBtn.setOnClickListener {
-            android.app.DatePickerDialog(this,
-                { _, y, m, d ->
-                    selectedDate.set(Calendar.YEAR, y)
-                    selectedDate.set(Calendar.MONTH, m)
-                    selectedDate.set(Calendar.DAY_OF_MONTH, d)
-                    selectedDate.set(Calendar.HOUR_OF_DAY, 12)
-                    selectedDate.set(Calendar.MINUTE, 0)
-                    selectedDate.set(Calendar.SECOND, 0)
-                    datePickerBtn.text = fmt.format(Date(selectedDate.timeInMillis))
-                },
-                selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH), selectedDate.get(Calendar.DAY_OF_MONTH)).show()
-        }
-
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.add_transaction).setView(content)
-            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val selected = accounts.getOrNull(account.selectedItemPosition)
-                if (selected == null) {
-                    (account.selectedView as? TextView)?.error = getString(R.string.account_required)
-                    return@setOnClickListener
-                }
-                val parsed = runCatching { Money.parse(amount.text.toString(), selected.openingBalance.currencyCode) }.getOrNull()
-                if (parsed == null || parsed.minorUnits <= 0L) {
-                    amount.error = getString(R.string.amount_required)
-                    return@setOnClickListener
-                }
-                val transactionType = transactionFormState.type
-                val catId = transactionFormState.categoryId
-                scope.launch {
-                    runCatching {
-                        repository.addTransaction(Transaction(accountId = selected.id, amount = parsed,
-                            type = transactionType, categoryId = catId,
-                            note = note.text.toString().trim(),
-                            timestampMillis = selectedDate.timeInMillis))
-                    }.onSuccess {
-                        settings.edit().putString("last_account", selected.id).putString("last_category", catId).putString("last_type", transactionType.name).apply()
-                        transactionFormState.reset()
-                        dialog.dismiss()
-                        feedback(R.string.transaction_saved)
-                    }.onFailure { toast(R.string.transaction_error) }
-                }
-            }
-        }
-        dialog.show()
-    }
-
-    private fun feedback(message: Int) {
-        com.google.android.material.snackbar.Snackbar.make(findViewById<android.view.View>(android.R.id.content), message, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+    private fun avatarInitials(name: String): String {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return "•"
+        val count = minOf(2, trimmed.codePointCount(0, trimmed.length))
+        return trimmed.substring(0, trimmed.offsetByCodePoints(0, count)).uppercase()
     }
 
     private fun applyTheme() {

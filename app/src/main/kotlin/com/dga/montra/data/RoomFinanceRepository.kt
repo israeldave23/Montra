@@ -281,6 +281,11 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         require(dao.setAccountArchived(id, true) == 1) { "Account not found" }
     }
 
+    /** Archiving is the reversible action, so every archive can be undone. */
+    suspend fun unarchiveAccount(id: String) = withContext(Dispatchers.IO) {
+        require(dao.setAccountArchived(id, false) == 1) { "Account not found" }
+    }
+
     suspend fun allTransactions(): List<Transaction> = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()
         dao.transactions().map { it.toDomain() }
@@ -293,52 +298,63 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     }
 
     fun observeTransactions(): Flow<List<Transaction>> = dao.observeAllTransactions().map { items -> items.map { it.toDomain() } }
-    fun observeAccountTransactions(accountId: String): Flow<List<TransactionEntity>> = dao.observeTransactions(accountId)
+
+    /** One account's transactions, newest first, ready to render. */
+    fun observeAccountTransactions(accountId: String): Flow<List<Transaction>> =
+        dao.observeTransactions(accountId).map { items -> items.map { it.toDomain() } }
+
+    /** Every account with its live balance, so a list row and the dashboard can never disagree. */
+    fun observeAccountBalances(): Flow<List<AccountBalance>> = combine(
+        dao.observeAccounts(), dao.observeAllTransactions()
+    ) { accountEntities, transactionEntities ->
+        AccountOrdering.sorted(
+            accountBalances(
+                accountEntities.map { it.toDomain() },
+                transactionEntities.map { it.toDomain() }
+            )
+        )
+    }
+
+    fun observeAccount(accountId: String): Flow<AccountBalance?> =
+        observeAccountBalances().map { items -> items.firstOrNull { it.account.id == accountId } }
     suspend fun transactions(): List<TransactionEntity> = withContext(Dispatchers.IO) { dao.transactions() }
 
     suspend fun prepareForObservation() = withContext(Dispatchers.IO) { migrateLegacyIfNeeded() }
 
+    /**
+     * Everything the dashboard draws, from one pass over accounts and transactions. Archived
+     * accounts stay in [DashboardState.accounts] but are excluded from the totals and the count.
+     */
     fun observeDashboard(): Flow<DashboardState> = combine(
         dao.observeAccounts(), dao.observeAllTransactions()
     ) { accountEntities, transactionEntities ->
         val accounts = accountEntities.map { it.toDomain() }
-        val totals = mutableMapOf<String, Long>()
-        accounts.forEach { account ->
-            val code = account.openingBalance.currencyCode
-            totals[code] = Math.addExact(totals[code] ?: 0L, account.openingBalance.minorUnits)
-        }
-        val byId = accounts.associateBy { it.id }
         val transactions = transactionEntities.map { it.toDomain() }
-        transactions.forEach { tx ->
-            val account = byId[tx.accountId] ?: error("Transaction references missing account")
-            require(account.openingBalance.currencyCode == tx.amount.currencyCode)
-            val delta = if (tx.type in setOf(TransactionType.EXPENSE, TransactionType.TRANSFER_OUT)) -tx.amount.minorUnits else tx.amount.minorUnits
-            totals[tx.amount.currencyCode] = Math.addExact(totals[tx.amount.currencyCode] ?: 0L, delta)
-        }
-        DashboardState(totals, accounts.size, transactions.take(5), FinancialCalculations.monthlySummary(transactions, java.time.YearMonth.now(), java.time.ZoneId.systemDefault()))
+        dashboardState(accounts, transactions)
+    }
+
+    private fun dashboardState(accounts: List<Account>, transactions: List<Transaction>): DashboardState {
+        val balances = accountBalances(accounts, transactions)
+        val summary = AccountSummary.of(balances)
+        return DashboardState(
+            balances = summary.totalsByCurrency,
+            accountCount = summary.activeCount,
+            recentTransactions = transactions.take(5),
+            monthlyTotals = FinancialCalculations.monthlySummary(
+                transactions,
+                YearMonth.now(),
+                ZoneId.systemDefault()
+            ),
+            accounts = AccountOrdering.sorted(balances),
+            archivedCount = summary.archivedCount
+        )
     }
 
     suspend fun dashboard(): DashboardState = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()
-        val accounts = dao.accounts()
-        val totals = mutableMapOf<String, Long>()
-        accounts.forEach { account ->
-            val code = account.currencyCode
-            totals[code] = Math.addExact(totals[code] ?: 0L, account.openingBalanceMinorUnits)
-        }
-        val accountById = accounts.associateBy { it.id }
-        dao.transactions().forEach { tx ->
-            val account = accountById[tx.accountId]
-                ?: throw IllegalStateException("Transaction references missing account")
-            require(account.currencyCode == tx.currencyCode) { "Transaction currency mismatch" }
-            val signed = when (tx.type) {
-                "INCOME", "REFUND", "TRANSFER_IN" -> tx.minorUnits
-                "EXPENSE", "TRANSFER_OUT" -> -tx.minorUnits
-                else -> tx.minorUnits
-            }
-            totals[tx.currencyCode] = Math.addExact(totals[tx.currencyCode] ?: 0L, signed)
-        }
-        DashboardState(totals, accounts.size, dao.transactions().take(5).map { it.toDomain() })
+        val accounts = dao.accounts().map { it.toDomain() }
+        val transactions = dao.transactions().map { it.toDomain() }
+        dashboardState(accounts, transactions)
     }
 
     companion object {

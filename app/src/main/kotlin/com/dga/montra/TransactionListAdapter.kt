@@ -15,8 +15,8 @@ import com.dga.montra.domain.Transaction
 
 class TransactionListAdapter(
     val transactions: List<Transaction>,
-    private val onClick: (Transaction) -> Unit,
-    private val onDelete: (Transaction) -> Unit
+    private val onClick: ((Transaction) -> Unit)? = null,
+    private val onDelete: ((Transaction) -> Unit)? = null
 ) : RecyclerView.Adapter<TransactionListAdapter.Holder>() {
     class Holder(view: View) : RecyclerView.ViewHolder(view)
     override fun getItemCount() = transactions.size
@@ -57,7 +57,10 @@ class TransactionListAdapter(
             text = (if (expense) "−" else "+") + Money(tx.amount.minorUnits, tx.amount.currencyCode).format()
             setTextColor(context.getColor(if (expense) R.color.lumen_negative else R.color.lumen_positive))
         }
-        holder.itemView.setOnClickListener { onClick(tx) }
-        holder.itemView.setOnLongClickListener { onDelete(tx); true }
+        holder.itemView.setOnClickListener { onClick?.invoke(tx) }
+        holder.itemView.setOnLongClickListener {
+            onDelete?.invoke(tx)
+            onDelete != null
+        }
     }
 }
