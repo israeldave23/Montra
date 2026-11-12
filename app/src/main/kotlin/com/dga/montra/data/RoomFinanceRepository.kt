@@ -17,6 +17,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 
 class RoomFinanceRepository private constructor(private val context: Context) {
     private val db = Room.databaseBuilder(
@@ -106,21 +109,89 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun deleteAccount(id: String) = withContext(Dispatchers.IO) { dao.deleteAccountSafely(id) }
 
-    suspend fun createBudget(categoryId: String, limit: Money) = withContext(Dispatchers.IO) {
-        require(limit.currencyCode == "PHP" && limit.minorUnits > 0)
-        require(TransactionCategories.expense.any { it.id == categoryId })
-        dao.insertBudget(BudgetEntity(java.util.UUID.randomUUID().toString(), java.time.YearMonth.now().toString(), categoryId, limit.minorUnits, limit.currencyCode))
+    /**
+     * Budgets for one month, each paired with the spending actually recorded in its category and
+     * currency. Spend comes from a single transaction range query, not one query per budget, and
+     * currencies are never combined.
+     */
+    fun observeBudgets(
+        month: YearMonth = YearMonth.now(),
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Flow<List<BudgetProgress>> {
+        val start = monthStartMillis(month, zone)
+        val end = monthStartMillis(month.plusMonths(1), zone)
+        return combine(
+            dao.observeBudgets(month.toString()),
+            dao.observeTransactionsBetween(start, end)
+        ) { budgetEntities, transactions ->
+            val spent = mutableMapOf<Pair<String, String>, Long>()
+            transactions.forEach { entity ->
+                if (entity.type != TransactionType.EXPENSE.name) return@forEach
+                val key = entity.categoryId to entity.currencyCode
+                spent[key] = Math.addExact(spent[key] ?: 0L, entity.minorUnits)
+            }
+            budgetEntities.map { it.toDomain() }.map { budget ->
+                BudgetProgress(budget, spent[budget.categoryId to budget.currencyCode] ?: 0L)
+            }
+        }
     }
 
-    suspend fun budgets(): List<BudgetEntity> = withContext(Dispatchers.IO) {
-        dao.budgets(java.time.YearMonth.now().toString())
+    suspend fun createBudget(month: YearMonth, categoryId: String, limit: Money) = withContext(Dispatchers.IO) {
+        requireBudgetInput(categoryId, limit)
+        if (dao.budgets(month.toString()).any { it.categoryId == categoryId }) {
+            throw IllegalStateException("A budget for this category already exists this month")
+        }
+        dao.insertBudget(
+            BudgetEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                month = month.toString(),
+                categoryId = categoryId,
+                limitMinorUnits = limit.minorUnits,
+                currencyCode = limit.currencyCode
+            )
+        )
     }
-    suspend fun spentForCategoryMonth(categoryId: String, month: String): Long = withContext(Dispatchers.IO) {
-        val ym = java.time.YearMonth.parse(month)
-        val start = ym.atDay(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val end = ym.atEndOfMonth().atTime(23,59,59).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-        dao.spentForCategoryMonth(categoryId, start, end)
+
+    suspend fun updateBudget(id: String, limit: Money) = withContext(Dispatchers.IO) {
+        require(limit.currencyCode in Money.currencies) { "Unsupported currency" }
+        require(limit.minorUnits > 0L) { "Budget limit must be positive" }
+        require(dao.updateBudget(id, limit.minorUnits, limit.currencyCode) == 1) { "Budget not found" }
     }
+
+    suspend fun deleteBudget(id: String) = withContext(Dispatchers.IO) {
+        require(dao.deleteBudget(id) == 1) { "Budget not found" }
+    }
+
+    /** Re-inserts a deleted budget so the undo action is lossless. */
+    suspend fun restoreBudget(budget: Budget) = withContext(Dispatchers.IO) {
+        dao.insertBudget(budget.toEntity())
+    }
+
+    private fun requireBudgetInput(categoryId: String, limit: Money) {
+        require(limit.currencyCode in Money.currencies) { "Unsupported currency" }
+        require(limit.minorUnits > 0L) { "Budget limit must be positive" }
+        require(TransactionCategories.expense.any { it.id == categoryId }) { "Unknown category" }
+    }
+
+    /** Reactive monthly insight; includes the previous month so the comparison is live too. */
+    fun observeInsight(
+        month: YearMonth = YearMonth.now(),
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Flow<MonthlyInsight> {
+        val start = monthStartMillis(month.minusMonths(1), zone)
+        val end = monthStartMillis(month.plusMonths(1), zone)
+        return dao.observeTransactionsBetween(start, end).map { entities ->
+            InsightCalculator.compute(
+                month = month,
+                zone = zone,
+                transactions = entities.map { it.toDomain() },
+                today = LocalDate.now(zone)
+            )
+        }
+    }
+
+    private fun monthStartMillis(month: YearMonth, zone: ZoneId): Long =
+        month.atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
 
     suspend fun goals(): List<Goal> = withContext(Dispatchers.IO) {
         dao.goals().map { it.toDomain() }
@@ -318,6 +389,22 @@ internal fun Transaction.toEntity() = TransactionEntity(
     categoryId = categoryId,
     note = note,
     timestampMillis = timestampMillis
+)
+
+internal fun BudgetEntity.toDomain() = Budget(
+    id = id,
+    month = runCatching { YearMonth.parse(month) }
+        .getOrElse { throw IllegalStateException("Invalid budget month: $month") },
+    categoryId = categoryId,
+    limit = Money(limitMinorUnits, currencyCode)
+)
+
+private fun Budget.toEntity() = BudgetEntity(
+    id = id,
+    month = month.toString(),
+    categoryId = categoryId,
+    limitMinorUnits = limit.minorUnits,
+    currencyCode = limit.currencyCode
 )
 
 internal fun GoalEntity.toDomain() = Goal(

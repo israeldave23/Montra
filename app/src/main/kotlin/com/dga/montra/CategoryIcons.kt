@@ -1,5 +1,7 @@
 package com.dga.montra
 
+import com.dga.montra.domain.TransactionCategories
+
 internal fun categoryIcon(id: String): String = when (id) {
     "dining" -> "🍴"
     "groceries" -> "🛒"
@@ -13,3 +15,9 @@ internal fun categoryIcon(id: String): String = when (id) {
     "transfer" -> "↔"
     else -> "•"
 }
+
+/** Human label for a category id, falling back to the raw id so unknown data still renders. */
+internal fun categoryLabel(id: String): String =
+    TransactionCategories.expense.firstOrNull { it.id == id }?.name
+        ?: TransactionCategories.income.firstOrNull { it.id == id }?.name
+        ?: id.replaceFirstChar { it.uppercase() }

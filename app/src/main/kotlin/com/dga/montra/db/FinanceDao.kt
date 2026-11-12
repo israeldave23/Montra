@@ -71,11 +71,26 @@ interface FinanceDao {
     @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
     suspend fun setAccountArchived(id: String, archived: Boolean): Int
 
+    @Query("SELECT * FROM transactions WHERE timestampMillis >= :startMillis AND timestampMillis < :endMillis ORDER BY timestampMillis DESC")
+    fun observeTransactionsBetween(startMillis: Long, endMillis: Long): Flow<List<TransactionEntity>>
+
     @Query("SELECT * FROM budgets WHERE month = :month ORDER BY categoryId")
     suspend fun budgets(month: String): List<BudgetEntity>
 
+    @Query("SELECT * FROM budgets WHERE month = :month ORDER BY categoryId")
+    fun observeBudgets(month: String): Flow<List<BudgetEntity>>
+
+    @Query("SELECT * FROM budgets WHERE id = :id LIMIT 1")
+    suspend fun budget(id: String): BudgetEntity?
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertBudget(budget: BudgetEntity)
+
+    @Query("UPDATE budgets SET limitMinorUnits = :limitMinorUnits, currencyCode = :currencyCode WHERE id = :id")
+    suspend fun updateBudget(id: String, limitMinorUnits: Long, currencyCode: String): Int
+
+    @Query("DELETE FROM budgets WHERE id = :id")
+    suspend fun deleteBudget(id: String): Int
 
     @Query("SELECT * FROM goals ORDER BY name COLLATE NOCASE")
     suspend fun goals(): List<GoalEntity>
@@ -100,9 +115,6 @@ interface FinanceDao {
 
     @Query("UPDATE accounts SET name = :name WHERE id = :id")
     suspend fun renameAccount(id: String, name: String): Int
-
-    @Query("SELECT COALESCE(SUM(minorUnits),0) FROM transactions WHERE categoryId = :categoryId AND timestampMillis >= :startMillis AND timestampMillis <= :endMillis AND type = 'EXPENSE'")
-    suspend fun spentForCategoryMonth(categoryId: String, startMillis: Long, endMillis: Long): Long
 
     @Query("SELECT COUNT(*) FROM transactions WHERE accountId = :id AND type IN ('TRANSFER_IN', 'TRANSFER_OUT')")
     suspend fun transferCount(id: String): Int

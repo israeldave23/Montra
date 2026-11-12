@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/space_12"
+    android:background="@drawable/balance_surface_background"
+    android:orientation="vertical"
+    android:padding="@dimen/space_16">
+
+    <TextView
+        android:id="@+id/insight_summary_currency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_12"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_8"
+        android:text="@string/insights_expenses_label"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_12" />
+
+    <TextView
+        android:id="@+id/insight_summary_expense"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_4"
+        android:textColor="@color/lumen_ink"
+        android:textSize="@dimen/text_24"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/insight_summary_flow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_4"
+        android:textColor="@color/lumen_ink"
+        android:textSize="@dimen/text_14" />
+
+    <TextView
+        android:id="@+id/insight_summary_change"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_8"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_12" />
+
+    <TextView
+        android:id="@+id/insight_summary_average"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_4"
+        android:textColor="@color/lumen_muted"
+        android:textSize="@dimen/text_12" />
+
+    <TextView
+        android:id="@+id/insight_summary_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_4"
+        android:textColor="@color/lumen_accent"
+        android:textSize="@dimen/text_12"
+        android:textStyle="bold" />
+</LinearLayout>

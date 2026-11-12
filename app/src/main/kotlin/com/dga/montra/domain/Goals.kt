@@ -1,7 +1,5 @@
 package com.dga.montra.domain
 
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -32,15 +30,7 @@ data class Goal(
     val remainingMinorUnits: Long get() = (target.minorUnits - saved.minorUnits).coerceAtLeast(0L)
 
     /** Whole percent, floored, capped at 100 so progress is never overstated. */
-    fun progressPercent(): Int {
-        if (target.minorUnits <= 0L) return 0
-        val capped = saved.minorUnits.coerceAtMost(target.minorUnits)
-        return BigDecimal.valueOf(capped)
-            .multiply(BigDecimal.valueOf(100L))
-            .divide(BigDecimal.valueOf(target.minorUnits), 0, RoundingMode.DOWN)
-            .toInt()
-            .coerceIn(0, 100)
-    }
+    fun progressPercent(): Int = percentOf(saved.minorUnits, target.minorUnits)
 
     fun dueDate(zone: ZoneId): LocalDate? = targetDateMillis?.let {
         Instant.ofEpochMilli(it).atZone(zone).toLocalDate()
