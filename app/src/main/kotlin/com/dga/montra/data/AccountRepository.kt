@@ -13,8 +13,9 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 class AccountRepository(context: Context) {
-    private val preferences = context.getSharedPreferences("lumen_accounts", Context.MODE_PRIVATE)
-    private val txPreferences = context.getSharedPreferences("lumen_tx", Context.MODE_PRIVATE)
+    private val preferences = context.getSharedPreferences(Storage.PREFS_ACCOUNTS, Context.MODE_PRIVATE)
+    private val txPreferences = context.getSharedPreferences(Storage.PREFS_TRANSACTIONS, Context.MODE_PRIVATE)
+    // KeyStore alias: renaming it would orphan ciphertext written by earlier builds.
     private val keyAlias = "lumen_accounts_key"
 
     fun all(): List<Account> {

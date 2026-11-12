@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import com.dga.montra.data.Storage
 
 /**
  * One account: its real current balance (opening balance plus every transaction), its own activity,
@@ -32,7 +33,7 @@ import kotlinx.coroutines.launch
  */
 class AccountDetailActivity : Activity() {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
+    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private val scope = MainScope()
 
     private lateinit var list: RecyclerView

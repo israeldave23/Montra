@@ -81,7 +81,7 @@ class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             top.text = row.top
             top.visibility = if (row.top.isBlank()) View.GONE else View.VISIBLE
             itemView.contentDescription = row.description
-            expense.setTextColor(context.getColor(R.color.lumen_ink))
+            expense.setTextColor(context.getColor(R.color.m3_on_surface))
         }
     }
 
@@ -100,7 +100,7 @@ class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             amount.text = row.amount
             share.text = row.share
             progress.progressTintList =
-                ColorStateList.valueOf(context.getColor(R.color.lumen_accent))
+                ColorStateList.valueOf(context.getColor(R.color.m3_primary))
             progress.max = 100
             progress.progress = row.percent
             progress.contentDescription = row.description

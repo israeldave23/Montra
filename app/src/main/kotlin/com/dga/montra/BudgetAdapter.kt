@@ -111,13 +111,13 @@ internal fun BudgetState.labelRes(): Int = when (this) {
 }
 
 internal fun BudgetState.colorRes(): Int = when (this) {
-    BudgetState.OVER -> R.color.lumen_error
-    BudgetState.AT_LIMIT, BudgetState.NEAR_LIMIT -> R.color.lumen_highlight
-    BudgetState.ON_TRACK -> R.color.lumen_accent
+    BudgetState.OVER -> R.color.m3_negative
+    BudgetState.AT_LIMIT, BudgetState.NEAR_LIMIT -> R.color.m3_highlight
+    BudgetState.ON_TRACK -> R.color.m3_primary
 }
 
 /** Highlights are light in both themes, so they need dark text rather than on_primary. */
 internal fun BudgetState.textColorRes(): Int = when (this) {
-    BudgetState.AT_LIMIT, BudgetState.NEAR_LIMIT -> R.color.lumen_on_highlight
-    else -> R.color.on_primary
+    BudgetState.AT_LIMIT, BudgetState.NEAR_LIMIT -> R.color.m3_on_highlight
+    else -> R.color.m3_on_primary
 }

@@ -31,10 +31,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.io.path.copyTo
+import com.dga.montra.data.Storage
 
 class ProfileActivity : Activity() {
-    private val prefs by lazy { getSharedPreferences("lumen_profile", MODE_PRIVATE) }
-    private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
+    private val prefs by lazy { getSharedPreferences(Storage.PREFS_PROFILE, MODE_PRIVATE) }
+    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private val scope = MainScope()
     private lateinit var avatar: TextView
     private lateinit var avatarImage: ImageView
@@ -227,7 +228,7 @@ class ProfileActivity : Activity() {
                     sb.append(tx.amount.currencyCode).append(',')
                     sb.appendLine(escapeCsv(tx.note))
                 }
-                val file = File(cacheDir, "lumen_transactions_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())}.csv")
+                val file = File(cacheDir, "${Storage.EXPORT_PREFIX}_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())}.csv")
                 file.writeText(sb.toString())
                 val uri = FileProvider.getUriForFile(this@ProfileActivity, FILE_PROVIDER_AUTHORITY, file)
                 val intent = Intent(Intent.ACTION_SEND).apply {
@@ -287,7 +288,7 @@ class ProfileActivity : Activity() {
     }
 
     private fun restoreFromUri(uri: Uri) {
-        val temp = File(cacheDir, "lumen_restore.db")
+        val temp = File(cacheDir, Storage.TEMP_RESTORE)
         contentResolver.openInputStream(uri)!!.use { input ->
             FileOutputStream(temp).use { output -> input.copyTo(output) }
         }
@@ -305,7 +306,7 @@ class ProfileActivity : Activity() {
         private const val REQUEST_RESTORE = 1002
         private const val REQUEST_AVATAR = 1003
         private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
-        private const val DATABASE_NAME = "lumen_finance.db"
+        private const val DATABASE_NAME = Storage.DATABASE
         private const val KEY_NAME = "display_name"
     }
 }

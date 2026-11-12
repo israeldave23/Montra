@@ -35,6 +35,7 @@
     <color name="m3_inverse_surface">#E4E8F0</color>
     <color name="m3_inverse_on_surface">#151B23</color>
 
+    <color name="m3_on_hero">#FFFFFF</color>
     <color name="m3_hero_start">#0A2440</color>
     <color name="m3_hero_end">#17527F</color>
 

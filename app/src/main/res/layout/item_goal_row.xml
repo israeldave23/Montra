@@ -23,7 +23,7 @@
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_16"
             android:textStyle="bold" />
 
@@ -46,7 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
-        android:textColor="@color/lumen_ink"
+        android:textColor="@color/m3_on_surface"
         android:textSize="@dimen/text_14" />
 
     <ProgressBar
@@ -70,7 +70,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
 
         <TextView
@@ -83,7 +83,7 @@
             android:focusable="true"
             android:gravity="center"
             android:text="⋮"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_20" />
     </LinearLayout>
 </LinearLayout>

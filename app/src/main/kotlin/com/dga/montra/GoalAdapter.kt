@@ -110,15 +110,15 @@ internal fun GoalStatus.labelRes(): Int = when (this) {
 }
 
 internal fun GoalStatus.colorRes(): Int = when (this) {
-    GoalStatus.COMPLETED -> R.color.lumen_success
-    GoalStatus.OVERDUE -> R.color.lumen_error
-    GoalStatus.DUE_SOON -> R.color.lumen_highlight
-    GoalStatus.TRACKING -> R.color.lumen_accent
-    GoalStatus.OPEN_ENDED -> R.color.lumen_muted
+    GoalStatus.COMPLETED -> R.color.m3_positive
+    GoalStatus.OVERDUE -> R.color.m3_negative
+    GoalStatus.DUE_SOON -> R.color.m3_highlight
+    GoalStatus.TRACKING -> R.color.m3_primary
+    GoalStatus.OPEN_ENDED -> R.color.m3_on_surface_variant
 }
 
 /** Highlights are light in both themes, so they need dark text rather than on_primary. */
 internal fun GoalStatus.textColorRes(): Int = when (this) {
-    GoalStatus.DUE_SOON -> R.color.lumen_on_highlight
-    else -> R.color.on_primary
+    GoalStatus.DUE_SOON -> R.color.m3_on_highlight
+    else -> R.color.m3_on_primary
 }

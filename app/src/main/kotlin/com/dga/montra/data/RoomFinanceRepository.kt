@@ -26,13 +26,13 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     private val db = Room.databaseBuilder(
         context.applicationContext,
         FinanceDatabase::class.java,
-        "lumen_finance.db"
+        Storage.DATABASE
     ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
 
     private val dao: FinanceDao = db.financeDao()
 
     private suspend fun migrateLegacyIfNeeded() {
-        if (context.getSharedPreferences("lumen_migration", Context.MODE_PRIVATE)
+        if (context.getSharedPreferences(Storage.PREFS_MIGRATION, Context.MODE_PRIVATE)
                 .getBoolean("room_v1_done", false)) return
         if (dao.accounts().isEmpty()) {
             val legacy = AccountRepository(context)
@@ -42,7 +42,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
             require(legacyTxs.all { it.accountId in accountIds }) { "Legacy transaction references missing account" }
             dao.importLegacy(legacyAccounts.map { it.toEntity() }, legacyTxs.map { it.toEntity() })
         }
-        check(context.getSharedPreferences("lumen_migration", Context.MODE_PRIVATE)
+        check(context.getSharedPreferences(Storage.PREFS_MIGRATION, Context.MODE_PRIVATE)
             .edit().putBoolean("room_v1_done", true).commit()) { "Could not persist migration marker" }
     }
 

@@ -17,11 +17,12 @@ import com.dga.montra.domain.DashboardState
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import com.dga.montra.data.Storage
 
 
 class MainActivity : Activity() {
     private var latestDashboard: DashboardState? = null
-    private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
+    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private lateinit var repository: RoomFinanceRepository
     private val scope = MainScope()
     private var dashboardJob: Job? = null
@@ -135,7 +136,7 @@ class MainActivity : Activity() {
 
 
     private fun refreshProfileHeader() {
-        val name = getSharedPreferences("lumen_profile", MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
+        val name = getSharedPreferences(Storage.PREFS_PROFILE, MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
         val initials = findViewById<TextView>(R.id.avatar)
         initials.text = ProfileAvatar.initialsFor(name, defaultInitial())
         // A chosen profile photo replaces the initials circle until it is removed.

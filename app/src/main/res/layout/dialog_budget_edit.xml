@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/budget_edit_hint"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
 
         <TextView
@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_16"
             android:text="@string/budget_category_label"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
 
         <Spinner
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_12"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
     </LinearLayout>
 </ScrollView>

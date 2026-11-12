@@ -24,7 +24,7 @@ class TransactionAdapter(context: Context, private val data: List<Transaction>) 
         row.findViewById<TextView>(R.id.transaction_date).text = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(tx.timestampMillis))
         row.findViewById<TextView>(R.id.transaction_amount).apply {
             text = (if (expense) "−" else "+") + Money(tx.amount.minorUnits, tx.amount.currencyCode).format()
-            setTextColor(context.getColor(if (expense) R.color.lumen_negative else R.color.lumen_positive))
+            setTextColor(context.getColor(if (expense) R.color.m3_negative else R.color.m3_positive))
             setTypeface(typeface, Typeface.BOLD)
         }
         return row

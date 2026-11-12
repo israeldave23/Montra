@@ -18,7 +18,7 @@
         android:layout_marginEnd="@dimen/space_12"
         android:background="@drawable/avatar_background"
         android:gravity="center"
-        android:textColor="@color/on_primary"
+        android:textColor="@color/m3_on_primary"
         android:textSize="@dimen/text_16"
         android:textStyle="bold" />
 
@@ -41,7 +41,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/lumen_ink"
+                android:textColor="@color/m3_on_surface"
                 android:textSize="@dimen/text_16"
                 android:textStyle="bold" />
 
@@ -51,13 +51,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_8"
                 android:background="@drawable/goal_pill_background"
-                android:backgroundTint="@color/lumen_muted"
+                android:backgroundTint="@color/m3_on_surface_variant"
                 android:paddingStart="@dimen/space_8"
                 android:paddingTop="@dimen/space_4"
                 android:paddingEnd="@dimen/space_8"
                 android:paddingBottom="@dimen/space_4"
                 android:text="@string/account_archived"
-                android:textColor="@color/on_primary"
+                android:textColor="@color/m3_on_primary"
                 android:textSize="@dimen/text_12"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -70,7 +70,7 @@
             android:layout_marginTop="@dimen/space_4"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
     </LinearLayout>
 
@@ -80,7 +80,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_12"
         android:gravity="end"
-        android:textColor="@color/lumen_ink"
+        android:textColor="@color/m3_on_surface"
         android:textSize="@dimen/text_16"
         android:textStyle="bold" />
 </LinearLayout>

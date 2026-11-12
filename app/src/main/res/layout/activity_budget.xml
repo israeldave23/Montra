@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lumen_background"
+    android:background="@color/m3_background"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -18,7 +18,7 @@
             android:id="@+id/budget_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_24"
             android:textStyle="bold" />
 
@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_14" />
 
         <TextView
@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/lumen_accent"
+            android:textColor="@color/m3_primary"
             android:textSize="@dimen/text_12"
             android:textStyle="bold" />
     </LinearLayout>
@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/budget_summary_label"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
 
         <TextView
@@ -63,7 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_4"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_24"
             android:textStyle="bold" />
 
@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_4"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
     </LinearLayout>
 
@@ -108,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="@string/budget_body"
-                android:textColor="@color/lumen_muted"
+                android:textColor="@color/m3_on_surface_variant"
                 android:textSize="@dimen/text_14" />
 
             <TextView
@@ -117,7 +117,7 @@
                 android:layout_marginTop="@dimen/space_8"
                 android:gravity="center"
                 android:text="@string/budget_empty_hint"
-                android:textColor="@color/lumen_muted"
+                android:textColor="@color/m3_on_surface_variant"
                 android:textSize="@dimen/text_12" />
         </LinearLayout>
     </FrameLayout>
@@ -133,7 +133,7 @@
         android:background="@drawable/primary_button_ripple"
         android:text="@string/budget_new_action"
         android:textAllCaps="false"
-        android:textColor="@color/on_primary"
+        android:textColor="@color/m3_on_primary"
         android:textSize="@dimen/text_14"
         android:textStyle="bold" />
 

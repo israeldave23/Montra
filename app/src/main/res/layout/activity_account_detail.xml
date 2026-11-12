@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lumen_background"
+    android:background="@color/m3_background"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -25,7 +25,7 @@
             android:focusable="true"
             android:gravity="center"
             android:text="‹"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_24" />
 
         <View
@@ -43,7 +43,7 @@
             android:focusable="true"
             android:gravity="center"
             android:text="⋮"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_20" />
     </LinearLayout>
 
@@ -68,7 +68,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="@color/lumen_ink"
+                android:textColor="@color/m3_on_surface"
                 android:textSize="@dimen/text_24"
                 android:textStyle="bold" />
 
@@ -78,13 +78,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/space_8"
                 android:background="@drawable/goal_pill_background"
-                android:backgroundTint="@color/lumen_muted"
+                android:backgroundTint="@color/m3_on_surface_variant"
                 android:paddingStart="@dimen/space_8"
                 android:paddingTop="@dimen/space_4"
                 android:paddingEnd="@dimen/space_8"
                 android:paddingBottom="@dimen/space_4"
                 android:text="@string/account_archived"
-                android:textColor="@color/on_primary"
+                android:textColor="@color/m3_on_primary"
                 android:textSize="@dimen/text_12"
                 android:textStyle="bold"
                 android:visibility="gone" />
@@ -96,7 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
             android:text="@string/account_archived_hint"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12"
             android:visibility="gone" />
     </LinearLayout>
@@ -116,7 +116,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/account_balance_label"
-            android:textColor="@color/on_balance"
+            android:textColor="@color/m3_on_hero"
             android:textSize="@dimen/text_12" />
 
         <TextView
@@ -124,7 +124,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/on_balance"
+            android:textColor="@color/m3_on_hero"
             android:textSize="@dimen/text_36"
             android:textStyle="bold" />
 
@@ -133,7 +133,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/on_balance"
+            android:textColor="@color/m3_on_hero"
             android:textSize="@dimen/text_12" />
     </LinearLayout>
 
@@ -153,7 +153,7 @@
             android:background="@drawable/primary_button_ripple"
             android:text="@string/account_add_transaction"
             android:textAllCaps="false"
-            android:textColor="@color/on_primary"
+            android:textColor="@color/m3_on_primary"
             android:textSize="@dimen/text_14"
             android:textStyle="bold" />
 
@@ -166,7 +166,7 @@
             android:background="@drawable/action_tile_ripple"
             android:text="@string/account_transfer"
             android:textAllCaps="false"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_14"
             android:textStyle="bold" />
     </LinearLayout>
@@ -185,7 +185,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/account_activity_title"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_18"
             android:textStyle="bold" />
 
@@ -193,7 +193,7 @@
             android:id="@+id/account_activity_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
     </LinearLayout>
 
@@ -221,7 +221,7 @@
             android:paddingStart="@dimen/screen_h_padding"
             android:paddingEnd="@dimen/screen_h_padding"
             android:text="@string/account_activity_empty"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_14"
             android:visibility="gone" />
     </FrameLayout>

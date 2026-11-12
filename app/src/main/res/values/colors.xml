@@ -38,6 +38,7 @@
     <color name="m3_inverse_on_surface">#F1F3F8</color>
 
     <!-- Balance hero: a deep blue gradient keeps white type legible. -->
+    <color name="m3_on_hero">#FFFFFF</color>
     <color name="m3_hero_start">#0A3A6E</color>
     <color name="m3_hero_end">#14508C</color>
 
@@ -51,28 +52,4 @@
     <color name="m3_on_hero_outline">#66FFFFFF</color>
     <color name="m3_ripple">#2614508C</color>
     <color name="m3_scrim">#000000</color>
-
-    <!--
-      Legacy aliases. The whole app is written against these names; pointing them at the Material 3
-      roles means the palette changes in one place and every existing screen follows.
-    -->
-    <color name="primary">@color/m3_primary</color>
-    <color name="on_primary">@color/m3_on_primary</color>
-    <color name="on_balance">#FFFFFF</color>
-    <color name="lumen_background">@color/m3_background</color>
-    <color name="lumen_surface">@color/m3_surface</color>
-    <color name="lumen_ink">@color/m3_on_surface</color>
-    <color name="lumen_muted">@color/m3_on_surface_variant</color>
-    <color name="lumen_accent">@color/m3_primary</color>
-    <color name="lumen_accent_deep">@color/m3_hero_start</color>
-    <color name="lumen_positive">@color/m3_positive</color>
-    <color name="lumen_negative">@color/m3_negative</color>
-    <color name="lumen_highlight">@color/m3_highlight</color>
-    <color name="lumen_icon_accent">@color/m3_icon_accent</color>
-    <color name="lumen_outline">@color/m3_outline_variant</color>
-    <color name="lumen_ripple">@color/m3_ripple</color>
-    <color name="lumen_success">@color/m3_positive</color>
-    <color name="lumen_error">@color/m3_negative</color>
-    <color name="lumen_on_highlight">@color/m3_on_highlight</color>
-    <color name="ic_launcher_background">@color/m3_primary</color>
 </resources>

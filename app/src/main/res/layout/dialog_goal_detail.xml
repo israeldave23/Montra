@@ -17,7 +17,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/lumen_ink"
+            android:textColor="@color/m3_on_surface"
             android:textSize="@dimen/text_20"
             android:textStyle="bold" />
 
@@ -40,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
-        android:textColor="@color/lumen_ink"
+        android:textColor="@color/m3_on_surface"
         android:textSize="@dimen/text_16" />
 
     <ProgressBar
@@ -57,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
-        android:textColor="@color/lumen_muted"
+        android:textColor="@color/m3_on_surface_variant"
         android:textSize="@dimen/text_12" />
 
     <TextView
@@ -65,7 +65,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_4"
-        android:textColor="@color/lumen_muted"
+        android:textColor="@color/m3_on_surface_variant"
         android:textSize="@dimen/text_12"
         android:visibility="gone" />
 
@@ -77,7 +77,7 @@
         android:background="@drawable/primary_button_ripple"
         android:text="@string/add_funds"
         android:textAllCaps="false"
-        android:textColor="@color/on_primary"
+        android:textColor="@color/m3_on_primary"
         android:textSize="@dimen/text_14"
         android:textStyle="bold" />
 
@@ -97,7 +97,7 @@
             android:focusable="true"
             android:gravity="center"
             android:text="@string/goal_withdraw"
-            android:textColor="@color/lumen_accent"
+            android:textColor="@color/m3_primary"
             android:textSize="@dimen/text_14" />
 
         <TextView
@@ -110,7 +110,7 @@
             android:focusable="true"
             android:gravity="center"
             android:text="@string/edit"
-            android:textColor="@color/lumen_accent"
+            android:textColor="@color/m3_primary"
             android:textSize="@dimen/text_14" />
 
         <TextView
@@ -123,7 +123,7 @@
             android:focusable="true"
             android:gravity="center"
             android:text="@string/delete"
-            android:textColor="@color/lumen_error"
+            android:textColor="@color/m3_negative"
             android:textSize="@dimen/text_14" />
     </LinearLayout>
 </LinearLayout>

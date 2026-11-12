@@ -1,9 +1,9 @@
 # Montra theming: Material 3 palette and icons
 
-The UI now runs on a Material 3 colour system instead of ad-hoc "lumen" constants. Every colour is a
-role in `values/colors.xml`, mirrored for `values-night/colors.xml`, and every screen reads a role
-(or a legacy alias that points at one). `tools/check_ui_tokens.py` stays green: no hex in layouts and
-no raw dp/sp in screens.
+The UI runs on a Material 3 colour system instead of ad-hoc constants. Every colour is a role in
+`values/colors.xml`, mirrored for `values-night/colors.xml`, and every screen reads a role directly —
+there are no aliases left, so a colour name means exactly one thing. `tools/check_ui_tokens.py` stays
+green: no hex in layouts and no raw dp/sp in screens.
 
 ## The palette
 
@@ -35,6 +35,7 @@ because it is only used for emphasis (attention, "due soon", the transfer tile).
 | `m3_on_surface_variant` | `#4B5568` | `#AAB4C4` | secondary text, unselected nav |
 | `m3_outline` | `#8A93A6` | `#6E788A` | strong separators |
 | `m3_outline_variant` | `#D7DEEA` | `#2C3543` | card hairlines |
+| `m3_on_hero` | `#FFFFFF` | `#FFFFFF` | text and icons on the hero gradient |
 | `m3_hero_start` / `m3_hero_end` | `#0A3A6E` → `#14508C` | `#0A2440` → `#17527F` | balance hero gradient |
 | `m3_ripple` | `#2614508C` | `#33A8C8FF` | state layer on tiles and nav |
 | `m3_scrim` | `#000000` | `#000000` | dim behind dialogs |
@@ -110,8 +111,7 @@ Measured with the WCAG formula; every pairing used for text or an icon is ≥ 4.
 
 1. Add a colour role, not a hex. If a screen needs something new, add `m3_<role>` to **both**
    `values/colors.xml` and `values-night/colors.xml` (the night file must override every `m3_*` key).
-2. Reference roles (`@color/m3_*`, `?attr/colorOnSurfaceVariant`) from layouts; keep the legacy aliases
-   (`lumen_ink`, `lumen_muted`, `lumen_accent`, …) only for code that already exists — new code should
-   use the role name.
+2. Reference roles (`@color/m3_*`, `?attr/colorOnSurfaceVariant`) from layouts and code — never a
+   second name for the same colour.
 3. Use `@dimen/*` for every size and `@dimen/text_*` for every font size so the token linter passes.
 4. Tint an icon instead of adding a coloured copy, and keep the amber accent for emphasis alone.

@@ -13,11 +13,11 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.data.Storage
 import com.dga.montra.domain.Account
 import com.dga.montra.domain.Category
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
-
 import com.dga.montra.domain.TransactionType
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +40,7 @@ internal object FinanceDialogs {
 
     private fun scope() = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private fun settings(activity: Activity) =
-        activity.getSharedPreferences("lumen_settings", Context.MODE_PRIVATE)
+        activity.getSharedPreferences(Storage.PREFS_SETTINGS, Context.MODE_PRIVATE)
 
     private fun toast(activity: Activity, message: Int) =
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()

@@ -26,7 +26,7 @@ class TransactionListAdapter(
             layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
         val header = TextView(parent.context).apply {
-            setTextColor(context.getColor(R.color.lumen_muted))
+            setTextColor(context.getColor(R.color.m3_on_surface_variant))
             setPadding(0, context.resources.getDimensionPixelSize(R.dimen.space_16), 0, context.resources.getDimensionPixelSize(R.dimen.space_8))
             setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, context.resources.getDimension(R.dimen.text_14))
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
@@ -55,7 +55,7 @@ class TransactionListAdapter(
         holder.itemView.findViewById<TextView>(R.id.transaction_date).visibility = View.GONE
         holder.itemView.findViewById<TextView>(R.id.transaction_amount).apply {
             text = (if (expense) "−" else "+") + Money(tx.amount.minorUnits, tx.amount.currencyCode).format()
-            setTextColor(context.getColor(if (expense) R.color.lumen_negative else R.color.lumen_positive))
+            setTextColor(context.getColor(if (expense) R.color.m3_negative else R.color.m3_positive))
         }
         holder.itemView.setOnClickListener { onClick?.invoke(tx) }
         holder.itemView.setOnLongClickListener {

@@ -30,6 +30,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import com.dga.montra.data.Storage
 
 /**
  * Monthly spending plan: one limit per category, with the money actually spent counted from
@@ -39,7 +40,7 @@ import java.util.Locale
  */
 class BudgetActivity : SectionActivity(2) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
+    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private val scope = MainScope()
 
     private lateinit var list: RecyclerView

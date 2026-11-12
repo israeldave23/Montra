@@ -52,7 +52,7 @@ Every Activity creates `MainScope()` (`MainActivity:24`, `GoalsActivity:41`, …
 → `lifecycleScope.launch { repeatOnLifecycle(STARTED) { repo.observeDashboard().retryWhen { … }.collect(::render) } }`, with an explicit `Error` state in the UI instead of a Toast that disappears.
 
 ### 9. SharedPreferences as a global stringly-typed API
-`"lumen_settings"` appears in 6 files, `"display_name"`/`"theme_mode"`/`"balance_hidden"` are raw string keys, 12 `getSharedPreferences` calls.
+Preference file names were duplicated in 6 files (now centralised in `Storage`), but `"display_name"`, `"theme_mode"` and `"balance_hidden"` are still raw string keys at 12 `getSharedPreferences` call sites.
 → A `Settings` facade with typed accessors and one key catalogue (`object Prefs { val themeMode = intPreferencesKey(...) }`), on DataStore so writes are transactional and observable.
 
 ### 10. Lists are rebuilt, not diffed
@@ -67,9 +67,13 @@ The app's most-used surface — every add/edit flow — is `android.app.AlertDia
 `MainActivity:196` builds `"${item.currencyCode}  ·  $meta"`; `MainActivity:112` concatenates a quantity string with a separator and another string. Both are untranslatable and break in RTL.
 → Format strings in `strings.xml` (`account_row_meta`, `accounts_summary_separator`) with positional args.
 
-### 13. Branding is stale
-`app_name` is **"Lumen Finance"**, the database is `lumen_finance.db`, preferences are `lumen_settings`, temp restore file `lumen_restore.db`, and every colour alias is `lumen_*` — but the package, the repo and the UI copy are Montra. The launcher label is wrong for the product you are shipping.
-→ One rename commit: `app_name`, DB name (needs a careful migration or a "rename file on first open" step), pref file, and the alias retirement in P2.15. Decide the product name once and make it a constant.
+### 13. Branding was stale — done
+`app_name` read **"Lumen Finance"** while the package, repo and copy were Montra; the database was
+`lumen_finance.db`, preferences `lumen_*`, and every colour had a `lumen_*` alias. All of it is now
+Montra, with old files renamed on first launch (`data/Storage.kt`): the DB (plus its `-wal`/`-shm`
+sidecars) and five preference files are migrated before anything opens them, and every colour alias is
+gone. The only surviving "lumen" strings are deliberate: the legacy file names in `Storage`, and the
+KeyStore alias, which cannot be renamed without orphaning existing ciphertext.
 
 ---
 
@@ -83,9 +87,11 @@ I replaced nav, category and quick-action glyphs, but these are still text: `‹
 `values/themes.xml` and `values-night/themes.xml` both redeclare every role. A style defined in two configurations does not merge, so the only safe edit is "change both" — and that is exactly the kind of parity I had to hand-check today.
 → `Base.Theme.App` holds the shared M3 role map; `Theme.App` in `values/` and `values-night/` only carries the four or five items that actually differ (`windowLightStatusBar`, navbar, hero). Drift becomes impossible rather than detectable.
 
-### 16. Legacy aliases double every name
-`lumen_ink`, `lumen_muted`, `lumen_accent`, `primary`, `on_primary`, `on_balance`, `lumen_*` all still exist alongside `m3_*`. It made the palette migration a one-commit change, but it is now the cheapest possible way to reintroduce inconsistency: 16 layout references still say `lumen_accent` while the role is `primary`.
-→ One mechanical rename to `m3_*`, delete the alias block, then extend `tools/check_ui_tokens.py` to fail on `lumen_` and on hex literals in `drawable/`.
+### 16. Legacy aliases — done
+`lumen_*`, `primary`, `on_primary` and `on_balance` were 90+ references across 30 files pointing at the
+same roles as `m3_*`. All of them now use the role name, the alias block is deleted, and the hero text
+colour became `m3_on_hero` rather than raw white. Remaining hardening: teach `tools/check_ui_tokens.py`
+to reject hex literals inside `drawable/`.
 
 ### 17. Icon tint footgun
 Every vector is `#FF000000` with alpha and relies on the call site for tint. Forget `android:tint` once and the icon is black in dark mode.
@@ -127,7 +133,7 @@ Verified with the same static sweep as before: XML parse, `R.*` / `@ref` resolut
 | 3 | `BaseActivity` with edge-to-edge insets + `ThemeController` | targetSdk 35 already ships broken system bars | 0.5 day |
 | 4 | ViewBinding + `ListAdapter`/`DiffUtil` + home feed as RecyclerView | Every future screen gets cheaper | 1 day |
 | 5 | Material dialogs (`MaterialAlertDialogBuilder`, `MaterialDatePicker`) | The M3 pass currently stops at the dialog boundary | 1 day |
-| 6 | Finish icons (P2.14), `Base.Theme.App` split, alias retirement, linter rules | Small, mechanical, prevents regression | 0.5 day |
+| 6 | Finish icons (P2.14), `Base.Theme.App` split, linter rules | Small, mechanical, prevents regression | 0.5 day |
 
 ## What I would *not* change
 
@@ -135,7 +141,7 @@ The domain modelling (`Money`, `BudgetProgress`, `InsightCalculator`, `AccountSu
 
 ## Decisions I need from you
 
-1. **Product name.** "Lumen Finance" (`app_name`) or Montra? This decides the P0-adjacent rename and the default avatar initial.
+1. ~~**Product name.**~~ **Decided: Montra.** Done — label, storage names, export filenames and colour aliases renamed, with old files migrated on first launch.
 2. **Android-only, or a Play release?** If Play: edge-to-edge, backup rules, targetSdk cadence and CI are contractual, not nice-to-haves.
 3. **Localisation target.** If PH-only, PHP-first defaults are fine; if wider, the currency list and `Money.parse` need the locale work in P2.19.
 4. **AppCompat + Views, or Compose for new screens?** The M3 pass would be far cheaper in Compose (`MaterialTheme`, `NavigationBar`, `Card`, dynamic colour). Migrating screen by screen is realistic; a big-bang rewrite is not.

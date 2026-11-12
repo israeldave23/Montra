@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/goal_tracking_note"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
 
         <EditText
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_16"
             android:text="@string/goal_target_date"
-            android:textColor="@color/lumen_muted"
+            android:textColor="@color/m3_on_surface_variant"
             android:textSize="@dimen/text_12" />
 
         <LinearLayout
@@ -75,7 +75,7 @@
                 android:paddingStart="@dimen/space_16"
                 android:paddingEnd="@dimen/space_16"
                 android:textAllCaps="false"
-                android:textColor="@color/lumen_ink"
+                android:textColor="@color/m3_on_surface"
                 android:textSize="@dimen/text_14" />
 
             <TextView
@@ -89,7 +89,7 @@
                 android:paddingStart="@dimen/space_12"
                 android:paddingEnd="@dimen/space_12"
                 android:text="@string/goal_clear_date"
-                android:textColor="@color/lumen_accent"
+                android:textColor="@color/m3_primary"
                 android:textSize="@dimen/text_14"
                 android:visibility="invisible" />
         </LinearLayout>
