@@ -48,4 +48,5 @@
     <color name="m3_on_hero_outline">#66FFFFFF</color>
     <color name="m3_ripple">#33A8C8FF</color>
     <color name="m3_scrim">#000000</color>
+    <color name="ic_launcher_background">#087F6D</color>
 </resources>
