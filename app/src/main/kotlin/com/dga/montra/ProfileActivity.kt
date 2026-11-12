@@ -297,12 +297,8 @@ class ProfileActivity : Activity() {
 
     private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
 
-    private fun initials(name: String): String {
-        val trimmed = name.trim()
-        if (trimmed.isEmpty()) return "L"
-        val count = minOf(2, trimmed.codePointCount(0, trimmed.length))
-        return trimmed.substring(0, trimmed.offsetByCodePoints(0, count)).uppercase()
-    }
+    private fun initials(name: String): String =
+        ProfileAvatar.initialsFor(name, getString(R.string.app_name).take(1).uppercase())
 
     companion object {
         private const val REQUEST_BACKUP = 1001

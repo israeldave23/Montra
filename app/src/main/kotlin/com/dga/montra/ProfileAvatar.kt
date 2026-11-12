@@ -29,6 +29,17 @@ internal object ProfileAvatar {
     const val MAX_DIMENSION = 512
     private const val QUALITY = 88
 
+    /**
+     * Up to two leading code points of [displayName], or [fallback] when the name is blank.
+     * Code-point aware so emoji and non-Latin names are not split mid-character.
+     */
+    fun initialsFor(displayName: String, fallback: String): String {
+        val trimmed = displayName.trim()
+        if (trimmed.isEmpty()) return fallback
+        val count = minOf(2, trimmed.codePointCount(0, trimmed.length))
+        return trimmed.substring(0, trimmed.offsetByCodePoints(0, count)).uppercase()
+    }
+
     fun file(context: Context): File = File(context.filesDir, FILE_NAME)
 
     fun exists(context: Context): Boolean = file(context).let { it.isFile && it.length() > 0L }

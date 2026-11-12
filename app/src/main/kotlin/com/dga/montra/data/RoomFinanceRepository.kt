@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -133,7 +134,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
             budgetEntities.map { it.toDomain() }.map { budget ->
                 BudgetProgress(budget, spent[budget.categoryId to budget.currencyCode] ?: 0L)
             }
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     suspend fun createBudget(month: YearMonth, categoryId: String, limit: Money) = withContext(Dispatchers.IO) {
@@ -187,7 +188,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
                 transactions = entities.map { it.toDomain() },
                 today = LocalDate.now(zone)
             )
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     private fun monthStartMillis(month: YearMonth, zone: ZoneId): Long =
@@ -200,7 +201,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     /** Goals update reactively, so the screen never needs a manual refresh. */
     fun observeGoals(): Flow<List<Goal>> = dao.observeGoals().map { entities ->
         entities.map { it.toDomain() }
-    }
+    }.flowOn(Dispatchers.Default)
 
     suspend fun createGoal(
         name: String,
@@ -297,11 +298,13 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         else dao.searchTransactions(query.trim()).map { it.toDomain() }
     }
 
-    fun observeTransactions(): Flow<List<Transaction>> = dao.observeAllTransactions().map { items -> items.map { it.toDomain() } }
+    fun observeTransactions(): Flow<List<Transaction>> =
+        dao.observeAllTransactions().map { items -> items.map { it.toDomain() } }.flowOn(Dispatchers.Default)
 
     /** One account's transactions, newest first, ready to render. */
     fun observeAccountTransactions(accountId: String): Flow<List<Transaction>> =
         dao.observeTransactions(accountId).map { items -> items.map { it.toDomain() } }
+            .flowOn(Dispatchers.Default)
 
     /** Every account with its live balance, so a list row and the dashboard can never disagree. */
     fun observeAccountBalances(): Flow<List<AccountBalance>> = combine(
@@ -313,7 +316,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
                 transactionEntities.map { it.toDomain() }
             )
         )
-    }
+    }.flowOn(Dispatchers.Default)
 
     fun observeAccount(accountId: String): Flow<AccountBalance?> =
         observeAccountBalances().map { items -> items.firstOrNull { it.account.id == accountId } }
@@ -331,7 +334,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         val accounts = accountEntities.map { it.toDomain() }
         val transactions = transactionEntities.map { it.toDomain() }
         dashboardState(accounts, transactions)
-    }
+    }.flowOn(Dispatchers.Default)
 
     private fun dashboardState(accounts: List<Account>, transactions: List<Transaction>): DashboardState {
         val balances = accountBalances(accounts, transactions)

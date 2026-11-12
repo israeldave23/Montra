@@ -121,15 +121,12 @@ class MainActivity : Activity() {
         recent.removeAllViews()
         val adapter = TransactionAdapter(this, items)
         items.indices.forEach { index -> recent.addView(adapter.getView(index, null, recent)) }
-        balanceView.text = when (state.balances.size) {
-            0 -> "—"
-            1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
+        // Hidden balances are masked before formatting, so the exact amount never reaches a view.
+        balanceView.text = when {
+            hidden -> getString(R.string.masked_balance)
+            state.balances.isEmpty() -> getString(R.string.balance_placeholder)
+            state.balances.size == 1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
             else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
-        }
-        val balanceHidden = settings.getBoolean("balance_hidden", false)
-        if (hidden) {
-            balanceView.setText(R.string.masked_balance)
-            findViewById<TextView>(R.id.monthly_summary).setText(R.string.monthly_summary_hidden)
         }
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
@@ -140,7 +137,7 @@ class MainActivity : Activity() {
     private fun refreshProfileHeader() {
         val name = getSharedPreferences("lumen_profile", MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
         val initials = findViewById<TextView>(R.id.avatar)
-        initials.text = if (name.isEmpty()) "L" else name.substring(0, name.offsetByCodePoints(0, minOf(2, name.codePointCount(0, name.length)))).uppercase()
+        initials.text = ProfileAvatar.initialsFor(name, defaultInitial())
         // A chosen profile photo replaces the initials circle until it is removed.
         ProfileAvatar.bind(
             this,
@@ -208,12 +205,11 @@ class MainActivity : Activity() {
         return row
     }
 
-    private fun avatarInitials(name: String): String {
-        val trimmed = name.trim()
-        if (trimmed.isEmpty()) return "•"
-        val count = minOf(2, trimmed.codePointCount(0, trimmed.length))
-        return trimmed.substring(0, trimmed.offsetByCodePoints(0, count)).uppercase()
-    }
+    private fun avatarInitials(name: String): String = ProfileAvatar.initialsFor(name, defaultInitial())
+
+    /** The app's own initial, so a nameless profile is never branded with a stale letter. */
+    private fun defaultInitial(): String =
+        getString(R.string.app_name).take(1).uppercase()
 
     private fun applyTheme() {
         val mode = settings.getInt("theme_mode", 0)

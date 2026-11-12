@@ -24,6 +24,7 @@
   <string name="budget_title">Budgets</string>
   <string name="goals_title">Goals</string>
   <string name="insights_title">Insights</string>
+  <string name="balance_placeholder" translatable="false">—</string>
   <string name="app_name">Lumen Finance</string>
   <string name="greeting">Good morning</string>
   <string name="overview">Your financial overview</string>
