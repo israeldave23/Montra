@@ -123,6 +123,7 @@ class InsightsActivity : SectionActivity(4) {
                 val name = categoryLabel(spend.categoryId)
                 val amount = Money(spend.minorUnits, currency.currencyCode).format()
                 rows += InsightCategoryRow(
+                    categoryId = spend.categoryId,
                     name = name,
                     amount = amount,
                     share = getString(R.string.insights_share_of_spending, spend.sharePercent),

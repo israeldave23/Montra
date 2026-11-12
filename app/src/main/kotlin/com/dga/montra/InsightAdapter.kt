@@ -21,6 +21,7 @@ internal data class InsightSummaryRow(
 
 /** Display-ready content for one category bar. */
 internal data class InsightCategoryRow(
+    val categoryId: String,
     val name: String,
     val amount: String,
     val share: String,
@@ -85,6 +86,7 @@ class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     private class CategoryHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val icon: android.widget.ImageView = view.findViewById(R.id.insight_row_icon)
         private val name: TextView = view.findViewById(R.id.insight_category)
         private val amount: TextView = view.findViewById(R.id.insight_amount)
         private val share: TextView = view.findViewById(R.id.insight_share)
@@ -92,6 +94,8 @@ class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         fun bind(row: InsightCategoryRow) {
             val context = itemView.context
+            icon.setImageResource(categoryIconRes(row.categoryId))
+            icon.contentDescription = row.name
             name.text = row.name
             amount.text = row.amount
             share.text = row.share

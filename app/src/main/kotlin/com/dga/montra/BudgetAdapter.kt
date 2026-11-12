@@ -21,6 +21,7 @@ class BudgetAdapter(
 ) : RecyclerView.Adapter<BudgetAdapter.Holder>() {
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: android.widget.ImageView = view.findViewById(R.id.budget_row_icon)
         val category: TextView = view.findViewById(R.id.budget_row_category)
         val state: TextView = view.findViewById(R.id.budget_row_state)
         val amount: TextView = view.findViewById(R.id.budget_row_amount)
@@ -50,6 +51,8 @@ class BudgetAdapter(
         val limit = item.limit.format()
         val percent = item.usedPercent()
 
+        holder.icon.setImageResource(categoryIconRes(item.budget.categoryId))
+        holder.icon.contentDescription = categoryLabel(item.budget.categoryId)
         holder.category.text = categoryLabel(item.budget.categoryId)
         holder.state.text = stateLabel
         holder.state.backgroundTintList = ColorStateList.valueOf(context.getColor(state.colorRes()))

@@ -1,18 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#7DC8A8</color>
-    <color name="on_primary">#111A16</color>
-    <color name="on_balance">#FFFFFF</color>
-    <color name="lumen_background">#111A16</color>
-    <color name="lumen_surface">#1A2520</color>
-    <color name="lumen_ink">#E5EEE8</color>
-    <color name="lumen_muted">#ABB9B0</color>
-    <color name="lumen_accent">#7DC8A8</color>
-    <color name="lumen_accent_deep">#0F1714</color>
-    <color name="lumen_positive">#7DC8A8</color>
-    <color name="lumen_negative">#F29289</color>
-    <color name="lumen_highlight">#D6B77D</color>
-    <color name="lumen_success">#7DC8A8</color>
-    <color name="lumen_error">#CF6679</color>
-    <color name="lumen_on_highlight">#17211D</color>
+    <!--
+      Material 3 colour roles, dark scheme. Every m3_* role from values/colors.xml is overridden here;
+      the legacy aliases live only in values/colors.xml and follow these values automatically.
+    -->
+    <color name="m3_primary">#A8C8FF</color>
+    <color name="m3_on_primary">#002F63</color>
+    <color name="m3_primary_container">#17427A</color>
+    <color name="m3_on_primary_container">#D6E4FF</color>
+
+    <color name="m3_secondary">#7FD8AF</color>
+    <color name="m3_on_secondary">#003822</color>
+    <color name="m3_secondary_container">#0F5138</color>
+    <color name="m3_on_secondary_container">#BCEBD5</color>
+
+    <color name="m3_tertiary">#F0C36A</color>
+    <color name="m3_on_tertiary">#3F2A00</color>
+    <color name="m3_tertiary_container">#5C3D00</color>
+    <color name="m3_on_tertiary_container">#FFDFA0</color>
+
+    <color name="m3_error">#FFB4AB</color>
+    <color name="m3_on_error">#690005</color>
+    <color name="m3_error_container">#8C1D18</color>
+    <color name="m3_on_error_container">#F9DEDC</color>
+
+    <color name="m3_background">#0E1218</color>
+    <color name="m3_on_background">#E4E8F0</color>
+    <color name="m3_surface">#151B23</color>
+    <color name="m3_on_surface">#E4E8F0</color>
+    <color name="m3_surface_variant">#232B36</color>
+    <color name="m3_on_surface_variant">#AAB4C4</color>
+    <color name="m3_outline">#6E788A</color>
+    <color name="m3_outline_variant">#2C3543</color>
+    <color name="m3_inverse_surface">#E4E8F0</color>
+    <color name="m3_inverse_on_surface">#151B23</color>
+
+    <color name="m3_hero_start">#0A2440</color>
+    <color name="m3_hero_end">#17527F</color>
+
+    <color name="m3_positive">#7FD8AF</color>
+    <color name="m3_negative">#FFB4AB</color>
+    <color name="m3_highlight">#F0C36A</color>
+    <color name="m3_on_highlight">#2A1E00</color>
+    <color name="m3_icon_accent">#F0C36A</color>
+    <color name="m3_on_hero_raised">#2EFFFFFF</color>
+    <color name="m3_on_hero_outline">#66FFFFFF</color>
+    <color name="m3_ripple">#33A8C8FF</color>
+    <color name="m3_scrim">#000000</color>
 </resources>

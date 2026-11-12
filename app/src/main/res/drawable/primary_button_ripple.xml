@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@android:color/white">
-    <item android:id="@android:id/mask"><shape><solid android:color="@android:color/white" /><corners android:radius="@dimen/control_radius" /></shape></item>
-    <item><shape><solid android:color="@color/lumen_accent" /><corners android:radius="@dimen/control_radius" /></shape></item>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/m3_on_primary">
+    <item android:id="@android:id/mask">
+        <shape>
+            <solid android:color="@color/m3_on_primary" />
+            <corners android:radius="@dimen/control_radius" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="@color/m3_primary" />
+            <corners android:radius="@dimen/control_radius" />
+        </shape>
+    </item>
 </ripple>

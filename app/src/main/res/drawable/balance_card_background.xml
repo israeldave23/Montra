@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/lumen_accent_deep" />
+    <gradient
+        android:angle="315"
+        android:endColor="@color/m3_hero_end"
+        android:startColor="@color/m3_hero_start"
+        android:type="linear" />
     <corners android:radius="@dimen/hero_radius" />
 </shape>

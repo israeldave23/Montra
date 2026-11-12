@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="@color/lumen_accent" android:pathData="M3,20h18v-2H3zM5,16h3V9H5zM10.5,16h3V4h-3zM16,16h3v-5h-3z" />
+<!-- Tinted at the call site; the alpha tone gives the icon depth. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:pathData="M3.6,13 H7.2 V20.4 H3.6 Z M10.2,8.6 H13.8 V20.4 H10.2 Z M16.8,4.2 H20.4 V20.4 H16.8 Z"
+        android:fillColor="#FF000000" />
+    <path android:pathData="M3.2,10 L9,6.6 L14.2,8.6 L20.8,3.4"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>

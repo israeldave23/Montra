@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tinted at the call site; the alpha tone gives the icon depth. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:pathData="M7.2,2.6 H8.8 V9 H7.2 Z M9.6,2.6 H11.2 V9 H9.6 Z"
+        android:fillColor="#FF000000" />
+    <path android:pathData="M7.2,9 H11.2 V21.4 H7.2 Z"
+        android:fillColor="#FF000000"
+        android:fillAlpha="0.55" />
+    <path android:pathData="M15.4,2.6 L18.2,6 V21.4 H15.4 Z"
+        android:fillColor="#FF000000" />
+</vector>

@@ -19,7 +19,7 @@ class TransactionAdapter(context: Context, private val data: List<Transaction>) 
         val tx = data[position]
         val expense = tx.type == TransactionType.EXPENSE || tx.type == TransactionType.TRANSFER_OUT
         row.findViewById<TextView>(R.id.transaction_category).text = tx.categoryId.replaceFirstChar { it.uppercase() }
-        row.findViewById<TextView>(R.id.transaction_category_icon).text = categoryIcon(tx.categoryId)
+        row.findViewById<android.widget.ImageView>(R.id.transaction_category_icon).setImageResource(categoryIconRes(tx.categoryId))
         row.findViewById<TextView>(R.id.transaction_note).text = tx.note.ifBlank { tx.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() } }
         row.findViewById<TextView>(R.id.transaction_date).text = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(tx.timestampMillis))
         row.findViewById<TextView>(R.id.transaction_amount).apply {

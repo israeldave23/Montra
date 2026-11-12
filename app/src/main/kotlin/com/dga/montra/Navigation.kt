@@ -12,7 +12,7 @@ fun Activity.bindBottomNavigation(root: View, selected: Int) {
         root.findViewById<TextView>(id).apply {
             isPressed = false
             isSelected = index == selected
-            setTextColor(getColor(if (isSelected) R.color.on_primary else R.color.lumen_muted))
+            setTextColor(getColor(if (isSelected) R.color.m3_on_primary_container else R.color.lumen_muted))
             compoundDrawableTintList = android.content.res.ColorStateList.valueOf(currentTextColor)
             contentDescription = getString(listOf(R.string.nav_home_description, R.string.nav_activity_description, R.string.nav_budget_description, R.string.nav_goals_description, R.string.nav_insights_description)[index])
             setOnClickListener {

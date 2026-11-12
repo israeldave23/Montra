@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="@color/lumen_accent" android:pathData="M12,2a10,10 0,1 0,0 20a10,10 0,1 0,0 -20M12,6a6,6 0,1 0,0 12a6,6 0,1 0,0 -12M12,10a2,2 0,1 0,0 4a2,2 0,1 0,0 -4" />
+<!-- Tinted at the call site; the alpha tone gives the icon depth. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:pathData="M2.6,12 C2.6,6.80852 6.80852,2.6 12,2.6 C17.1915,2.6 21.4,6.80852 21.4,12 C21.4,17.1915 17.1915,21.4 12,21.4 C6.80852,21.4 2.6,17.1915 2.6,12 Z"
+        android:fillColor="#FF000000" />
+    <path android:pathData="M7.2,12 C7.2,9.34903 9.34903,7.2 12,7.2 C14.651,7.2 16.8,9.34903 16.8,12 C16.8,14.651 14.651,16.8 12,16.8 C9.34903,16.8 7.2,14.651 7.2,12 Z"
+        android:fillColor="#FF000000"
+        android:fillAlpha="0.5" />
+    <path android:pathData="M10.1,12 C10.1,10.9507 10.9507,10.1 12,10.1 C13.0493,10.1 13.9,10.9507 13.9,12 C13.9,13.0493 13.0493,13.9 12,13.9 C10.9507,13.9 10.1,13.0493 10.1,12 Z"
+        android:fillColor="#FF000000" />
 </vector>

@@ -2,7 +2,9 @@
 <resources>
     <dimen name="card_radius">16dp</dimen>
     <dimen name="hero_radius">@dimen/card_radius</dimen>
-    <dimen name="control_radius">@dimen/card_radius</dimen>
+    <dimen name="control_radius">28dp</dimen>
+    <dimen name="icon_badge">48dp</dimen>
+    <dimen name="icon_size">24dp</dimen>
     <dimen name="screen_h_padding">24dp</dimen>
     <dimen name="card_padding">24dp</dimen>
     <dimen name="touch_target">48dp</dimen>
