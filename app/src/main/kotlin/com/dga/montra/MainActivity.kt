@@ -38,7 +38,7 @@ class MainActivity : Activity() {
         applyTheme()
         setContentView(R.layout.activity_main)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
-        findViewById<TextView>(R.id.avatar).setOnClickListener {
+        findViewById<android.view.View>(R.id.avatar_container).setOnClickListener {
             startActivity(
                 android.content.Intent(this, ProfileActivity::class.java),
                 android.app.ActivityOptions.makeCustomAnimation(this, R.anim.activity_enter, R.anim.activity_exit).toBundle()
@@ -139,7 +139,15 @@ class MainActivity : Activity() {
 
     private fun refreshProfileHeader() {
         val name = getSharedPreferences("lumen_profile", MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
-        findViewById<TextView>(R.id.avatar).text = if (name.isEmpty()) "L" else name.substring(0, name.offsetByCodePoints(0, minOf(2, name.codePointCount(0, name.length)))).uppercase()
+        val initials = findViewById<TextView>(R.id.avatar)
+        initials.text = if (name.isEmpty()) "L" else name.substring(0, name.offsetByCodePoints(0, minOf(2, name.codePointCount(0, name.length)))).uppercase()
+        // A chosen profile photo replaces the initials circle until it is removed.
+        ProfileAvatar.bind(
+            this,
+            findViewById(R.id.avatar_image),
+            initials,
+            resources.getDimensionPixelSize(R.dimen.space_48)
+        )
         findViewById<TextView>(R.id.greeting_title).text = if (name.isEmpty()) getString(R.string.overview) else name
     }
 

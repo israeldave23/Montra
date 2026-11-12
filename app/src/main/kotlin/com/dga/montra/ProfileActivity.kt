@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -21,6 +22,8 @@ import com.dga.montra.domain.TransactionCategories
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -34,6 +37,9 @@ class ProfileActivity : Activity() {
     private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
     private val scope = MainScope()
     private lateinit var avatar: TextView
+    private lateinit var avatarImage: ImageView
+    private lateinit var photoChange: TextView
+    private lateinit var photoRemove: TextView
     private lateinit var nameView: TextView
     private lateinit var themeSpinner: Spinner
     private lateinit var currencySpinner: Spinner
@@ -43,7 +49,13 @@ class ProfileActivity : Activity() {
         super.onCreate(state)
         setContentView(R.layout.activity_profile)
         avatar = findViewById(R.id.profile_avatar)
+        avatarImage = findViewById(R.id.profile_avatar_image)
+        photoChange = findViewById(R.id.profile_photo_change)
+        photoRemove = findViewById(R.id.profile_photo_remove)
         nameView = findViewById(R.id.profile_name)
+        findViewById<View>(R.id.profile_avatar_container).setOnClickListener { pickPhoto() }
+        photoChange.setOnClickListener { pickPhoto() }
+        photoRemove.setOnClickListener { confirmRemovePhoto() }
         themeSpinner = findViewById(R.id.profile_theme)
         currencySpinner = findViewById(R.id.profile_currency)
         findViewById<TextView>(R.id.profile_back).setOnClickListener { finish() }
@@ -70,6 +82,7 @@ class ProfileActivity : Activity() {
                 when (requestCode) {
                     REQUEST_BACKUP -> backupToUri(uri)
                     REQUEST_RESTORE -> restoreFromUri(uri)
+                    REQUEST_AVATAR -> importPhoto(uri)
                 }
             } catch (e: Exception) {
                 runOnUiThread { toast(R.string.profile_error) }
@@ -130,6 +143,48 @@ class ProfileActivity : Activity() {
         val name = prefs.getString(KEY_NAME, "")?.trim().orEmpty()
         nameView.text = if (name.isEmpty()) getString(R.string.profile_default_name) else name
         avatar.text = initials(name)
+        ProfileAvatar.bind(
+            this,
+            avatarImage,
+            avatar,
+            resources.getDimensionPixelSize(R.dimen.space_96)
+        )
+        val hasPhoto = ProfileAvatar.exists(this)
+        photoChange.setText(if (hasPhoto) R.string.profile_photo_change else R.string.profile_photo_add)
+        photoRemove.visibility = if (hasPhoto) View.VISIBLE else View.GONE
+    }
+
+    private fun pickPhoto() {
+        startActivityForResult(ProfileAvatar.pickIntent(), REQUEST_AVATAR)
+    }
+
+    /**
+     * Importing decodes and re-encodes the image, so it runs off the main thread; the photo is copied
+     * into app storage rather than depending on a gallery file that may later move.
+     */
+    private suspend fun importPhoto(uri: Uri) {
+        val imported = withContext(Dispatchers.IO) {
+            runCatching { ProfileAvatar.import(this@ProfileActivity, uri) }.getOrDefault(false)
+        }
+        if (imported) {
+            render()
+            toast(R.string.profile_photo_updated)
+        } else {
+            toast(R.string.profile_photo_error)
+        }
+    }
+
+    private fun confirmRemovePhoto() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.profile_photo_remove_title)
+            .setMessage(R.string.profile_photo_remove_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                ProfileAvatar.remove(this)
+                render()
+                toast(R.string.profile_photo_removed)
+            }
+            .show()
     }
 
     private fun editName() {
@@ -252,6 +307,7 @@ class ProfileActivity : Activity() {
     companion object {
         private const val REQUEST_BACKUP = 1001
         private const val REQUEST_RESTORE = 1002
+        private const val REQUEST_AVATAR = 1003
         private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
         private const val DATABASE_NAME = "lumen_finance.db"
         private const val KEY_NAME = "display_name"
