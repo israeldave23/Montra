@@ -307,6 +307,12 @@
     <string name="budget_currency_locked">Currency is fixed for this budget.</string>
     <string name="budget_category_locked">Category is fixed for this budget.</string>
     <string name="profile_ad_privacy">Ad privacy options</string>
+    <string name="profile_reward_title">Remove ads for 24 hours</string>
+    <string name="profile_reward_body">Watch one short video. No purchase, no subscription.</string>
+    <string name="profile_reward_action">Watch</string>
+    <string name="profile_reward_active">No ads until %1$s</string>
+    <string name="profile_reward_earned">Ads are off for 24 hours</string>
+    <string name="profile_reward_unavailable">No video ready yet — try again in a moment.</string>
     <!-- Montra's AdMob application ID, read by the manifest meta-data. -->
     <string name="admob_application_id" translatable="false">ca-app-pub-5236559514557783~3965887393</string>
 </resources>

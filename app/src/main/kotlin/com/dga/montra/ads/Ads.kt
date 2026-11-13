@@ -25,11 +25,13 @@ import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
 /**
- * The whole ad surface of the app: three formats, one entry point each.
+ * The whole ad surface of the app: four formats, one entry point each.
  *
  * Design rules this class enforces so no caller has to remember them:
  *
@@ -41,6 +43,9 @@ import java.util.WeakHashMap
  *  * **App-open ads appear when the user comes back**, not when they arrive: an ad that covers the
  *    launcher tap on a cold start is the one users uninstall over. They also never cover an intent
  *    the user explicitly asked for (deep link, shortcut).
+ *  * **Rewarded video is a trade, and the app honours it.** Earning the reward writes an
+ *    ad-free-until timestamp that every other format checks, so the 24 hours are real rather than
+ *    a banner swap.
  *  * **Everything is destroyed with its screen.** An [AdView] that outlives its activity keeps the
  *    radio awake and leaks the window.
  */
@@ -61,6 +66,9 @@ object Ads {
     private var interstitial: InterstitialAd? = null
     private var interstitialLoading = false
     private var interstitialsThisSession = 0
+
+    private var rewardedAd: RewardedAd? = null
+    private var rewardedLoading = false
 
     private val attached = WeakHashMap<Activity, MutableList<AdView>>()
     private val waiting = mutableListOf<WeakReference<ViewGroup>>()
@@ -120,11 +128,33 @@ object Ads {
         }
     }
 
+    /**
+     * One question, asked everywhere: may this app show an ad right now?
+     *
+     * Three things can say no — the build switch, a paid removal, or the 24 hours a rewarded video
+     * bought. Keeping the answer in one function is the reason a new format cannot accidentally
+     * bypass the ad-free window.
+     */
+    private fun adsAllowed(context: Context): Boolean {
+        if (!AdConfig.ENABLED) return false
+        val prefs = AdPrefs(context)
+        if (prefs.adsRemoved) return false
+        return prefs.adFreeUntil <= System.currentTimeMillis()
+    }
+
+    /** Whether the profile screen should offer the rewarded card at all. */
+    fun rewardsEnabled(context: Context): Boolean =
+        AdConfig.ENABLED && !AdPrefs(context).adsRemoved
+
+    /** Epoch millis until which a rewarded video has suppressed ads; `0` when none is active. */
+    fun adFreeUntil(context: Context): Long = AdPrefs(context).adFreeUntil
+
     private fun startSdk(context: Context) {
         MobileAds.initialize(context) {
             ready = true
             loadInterstitial(context)
             loadAppOpen(context)
+            loadRewarded(context)
             flushWaiting()
         }
     }
@@ -142,7 +172,7 @@ object Ads {
         if (container.tag == ATTACHED) return
         val context = container.context
 
-        if (!AdConfig.ENABLED || AdPrefs(context).adsRemoved) {
+        if (!adsAllowed(context)) {
             container.visibility = View.GONE
             return
         }
@@ -229,7 +259,7 @@ object Ads {
      * session.
      */
     fun onTransactionSaved(activity: Activity) {
-        if (!ready) return
+        if (!ready || !adsAllowed(activity)) return
         val prefs = AdPrefs(activity)
         prefs.transactionsSinceInterstitial = prefs.transactionsSinceInterstitial + 1
         if (prefs.transactionsSinceInterstitial < AdConfig.INTERSTITIAL_EVERY) return
@@ -288,7 +318,7 @@ object Ads {
     // ------------------------------------------------------------------------------ app open
 
     private fun showAppOpen(activity: Activity) {
-        if (!ready) return
+        if (!ready || !adsAllowed(activity)) return
         // A system picker is not "leaving the app": coming back from the photo chooser with an
         // interstitial in your face is the kind of detail people uninstall over.
         if (suppressNextAppOpen) {
@@ -344,6 +374,80 @@ object Ads {
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     appOpenLoading = false
                     Log.w(TAG, "app-open load failed (${error.code}): ${error.message}")
+                }
+            }
+        )
+    }
+
+    // ------------------------------------------------------------------------------- rewarded
+
+    /**
+     * Shows a rewarded video and grants [onReward] only when the user actually earned it. The reward
+     * is 24 hours without any ad — deliberately not something the app already gives away free, so
+     * watching is a real trade rather than a toll on an existing feature.
+     */
+    fun showRewarded(activity: Activity, onReward: () -> Unit, onUnavailable: () -> Unit) {
+        if (!ready || activity.isFinishing || activity.isDestroyed) {
+            onUnavailable()
+            return
+        }
+        val ad = rewardedAd
+        if (ad == null) {
+            loadRewarded(activity.applicationContext)
+            onUnavailable()
+            return
+        }
+
+        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() = reloadRewarded(activity.applicationContext)
+
+            override fun onAdFailedToShowFullScreenContent(error: AdError) {
+                Log.w(TAG, "rewarded failed to show: ${error.message}")
+                reloadRewarded(activity.applicationContext)
+            }
+        }
+        ad.setOnUserEarnedRewardListener { reward ->
+            Log.i(TAG, "reward earned: ${reward.amount} ${reward.type}")
+            AdPrefs(activity).adFreeUntil = System.currentTimeMillis() + AdConfig.AD_FREE_MS
+            // The promise starts now, not on the next screen: any banner already on screen goes.
+            hideBanners()
+            onReward()
+        }
+
+        rewardedAd = null
+        ad.show(activity)
+    }
+
+    private fun hideBanners() {
+        attached.values.toList().forEach { list ->
+            list.toList().forEach { adView ->
+                (adView.parent as? ViewGroup)?.visibility = View.GONE
+                destroy(adView)
+            }
+        }
+    }
+
+    private fun reloadRewarded(context: Context) {
+        rewardedAd = null
+        loadRewarded(context)
+    }
+
+    private fun loadRewarded(context: Context) {
+        if (!AdConfig.ENABLED || rewardedAd != null || rewardedLoading) return
+        rewardedLoading = true
+        RewardedAd.load(
+            context,
+            AdConfig.rewarded(context),
+            AdRequest.Builder().build(),
+            object : RewardedAdLoadCallback() {
+                override fun onAdLoaded(ad: RewardedAd) {
+                    rewardedLoading = false
+                    rewardedAd = ad
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    rewardedLoading = false
+                    Log.w(TAG, "rewarded load failed (${error.code}): ${error.message}")
                 }
             }
         )

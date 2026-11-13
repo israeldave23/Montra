@@ -1,6 +1,6 @@
 # Ads — placements, caps, and the policy floor
 
-AdMob is wired in three formats: **adaptive banner**, **interstitial**, and **app-open**. Everything
+AdMob is wired in four formats: **adaptive banner**, **interstitial**, and **app-open**. Everything
 that decides *whether* an ad appears lives in `ads/AdConfig.kt`; everything that decides *how* it
 appears lives in `ads/Ads.kt`. No screen decides either.
 
@@ -70,6 +70,7 @@ traffic.
 | Banner | `ca-app-pub-5236559514557783/9256762586` | `ads/AdConfig.kt` → `LIVE_BANNER` |
 | Interstitial | `ca-app-pub-5236559514557783/2816457251` | `ads/AdConfig.kt` → `LIVE_INTERSTITIAL` |
 | App open | `ca-app-pub-5236559514557783/6208907355` | `ads/AdConfig.kt` → `LIVE_APP_OPEN` |
+| Rewarded | `ca-app-pub-5236559514557783/6490998444` | `ads/AdConfig.kt` → `LIVE_REWARDED` |
 
 **What each build actually serves:**
 
@@ -82,6 +83,34 @@ To earn money from a device you are holding, you need the **release** build. Tha
 debug build that served live ads would put your own test taps into the account as invalid traffic.
 
 Retrieved IDs can be changed in exactly two files; nothing else knows they exist.
+
+## Rewarded video — the one format users like
+
+A rewarded ad is a trade, so the design problem is choosing something worth trading for that the app
+does not already give away. **Watching one video removes every ad for 24 hours.**
+
+Why this reward and not an export or a report:
+
+* The export and the backup already exist and are free. Putting an ad in front of a feature that
+  worked yesterday is a regression disguised as monetisation, and users notice the exact version it
+  happened.
+* Ad-free time is the thing an ad-averse user actually wants from an ad. It converts the loudest
+  complaint into the most valuable impression in the app — rewarded eCPM is roughly 3–10× a banner.
+* It is honest at the store listing: "free, with ads — or watch one video a day and there are none".
+
+How it behaves:
+
+| Concern | Behaviour |
+| --- | --- |
+| Entry point | One card on the profile screen: reward stated in the body copy *before* the tap |
+| Availability | Preloaded with the other formats; if no fill, the button re-enables and says so — it never claims a reward was earned |
+| Grant | `OnUserEarnedRewardListener` only — the timestamp is written when Google says the reward was earned, not when the video closes |
+| Effect | `AdPrefs.adFreeUntil` (24 h). `Ads.adsAllowed()` checks it, so banners, interstitials and app-open all stop — including a banner **already on screen**, which is destroyed immediately |
+| While active | The card shows "No ads until 6:42 PM" and hides the button; no way to accidentally watch a second video |
+| Paid tier | `AdPrefs.adsRemoved` is separate and permanent; the rewarded card disappears entirely |
+
+The reward is time-boxed on purpose: an unlimited free removal would make the paid tier unsellable,
+and a permanent one turns "watch a video" into "never see an ad again after 30 seconds".
 
 ## Design-system contract
 
@@ -135,3 +164,5 @@ so nothing here has been compiled or run.** The first real build must confirm:
    around a rotation.
 5. Consent form appears for an EEA test device (`ConsentDebugSettings` with `DEBUG_GEOGRAPHY_EEA`
    during QA only).
+6. Rewarded video grants 24 hours: the profile card switches to "No ads until …", the home banner
+   disappears when you go back, and no interstitial appears on the next saves.

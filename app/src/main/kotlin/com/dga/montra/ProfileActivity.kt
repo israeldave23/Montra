@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
@@ -68,6 +69,7 @@ class ProfileActivity : AppActivity() {
         bindThemeSpinner()
         bindCurrencySpinner()
         render()
+        bindRewardCard()
     }
 
     override fun onDestroy() {
@@ -89,6 +91,49 @@ class ProfileActivity : AppActivity() {
             } catch (e: Exception) {
                 runOnUiThread { toast(R.string.profile_error) }
             }
+        }
+    }
+
+    /**
+     * The rewarded card. It states the reward before the tap, hides itself while the reward is
+     * running, and never pretends a video was watched when no ad was available.
+     */
+    private fun bindRewardCard() {
+        val card = findViewById<View>(R.id.profile_reward_card)
+        val action = findViewById<Button>(R.id.profile_reward_button)
+        val body = findViewById<TextView>(R.id.profile_reward_body)
+
+        if (!Ads.rewardsEnabled(this)) {
+            card.visibility = View.GONE
+            return
+        }
+        card.visibility = View.VISIBLE
+
+        val until = Ads.adFreeUntil(this)
+        if (until > System.currentTimeMillis()) {
+            action.visibility = View.GONE
+            val clock = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+            body.text = getString(R.string.profile_reward_active, clock.format(Date(until)))
+            return
+        }
+
+        action.visibility = View.VISIBLE
+        action.setText(R.string.profile_reward_action)
+        body.setText(R.string.profile_reward_body)
+        action.setOnClickListener {
+            action.isEnabled = false
+            Ads.showRewarded(
+                this,
+                onReward = {
+                    action.isEnabled = true
+                    toast(R.string.profile_reward_earned, short = true)
+                    bindRewardCard()
+                },
+                onUnavailable = {
+                    action.isEnabled = true
+                    toast(R.string.profile_reward_unavailable)
+                }
+            )
         }
     }
 
