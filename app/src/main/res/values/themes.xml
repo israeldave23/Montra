@@ -32,9 +32,8 @@
         <item name="colorOnSurfaceVariant">@color/m3_on_surface_variant</item>
         <item name="colorOutline">@color/m3_outline</item>
         <item name="colorOutlineVariant">@color/m3_outline_variant</item>
-        <item name="colorInverseSurface">@color/m3_inverse_surface</item>
-        <item name="colorInverseOnSurface">@color/m3_inverse_on_surface</item>
-        <item name="colorScrim">@color/m3_scrim</item>
+        <item name="colorSurfaceInverse">@color/m3_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/m3_inverse_on_surface</item>
 
         <!-- Legacy attributes still read by platform widgets. -->
         <item name="android:colorPrimary">@color/m3_primary</item>
