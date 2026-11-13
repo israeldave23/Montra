@@ -31,9 +31,9 @@ abstract class AppActivity : AppCompatActivity() {
     /** AppCompat routes `setContentView(int)` through `setContentView(View)`, so guard the second pass. */
     private var insetsApplied = false
 
-    override fun setContentView(view: View) {
+    override fun setContentView(view: View?) {
         super.setContentView(view)
-        applyEdgeToEdge(view)
+        view?.let(::applyEdgeToEdge)
     }
 
     override fun setContentView(layoutResId: Int) {

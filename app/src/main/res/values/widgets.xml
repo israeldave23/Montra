@@ -19,7 +19,7 @@
     </style>
 
     <!-- Icons are black two-tone vectors; the tint is the single source of their colour. -->
-    <style name="Widget.App.Icon">
+    <style name="Widget.App.Icon" parent="">
         <item name="android:layout_width">@dimen/icon_size</item>
         <item name="android:layout_height">@dimen/icon_size</item>
         <item name="android:tint">?attr/colorOnSurfaceVariant</item>

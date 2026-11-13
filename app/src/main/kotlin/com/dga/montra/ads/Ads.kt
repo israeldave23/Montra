@@ -27,6 +27,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.android.gms.ads.rewarded.RewardItem
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
@@ -406,16 +407,14 @@ object Ads {
                 reloadRewarded(activity.applicationContext)
             }
         }
-        ad.setOnUserEarnedRewardListener { reward ->
+        rewardedAd = null
+        ad.show(activity) { reward ->
             Log.i(TAG, "reward earned: ${reward.amount} ${reward.type}")
             AdPrefs(activity).adFreeUntil = System.currentTimeMillis() + AdConfig.AD_FREE_MS
             // The promise starts now, not on the next screen: any banner already on screen goes.
             hideBanners()
             onReward()
         }
-
-        rewardedAd = null
-        ad.show(activity)
     }
 
     private fun hideBanners() {
