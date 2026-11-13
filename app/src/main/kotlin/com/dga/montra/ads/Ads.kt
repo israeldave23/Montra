@@ -80,7 +80,7 @@ object Ads {
      * foreground bookkeeping — follows from here, so no activity has to opt in.
      */
     fun init(application: Application) {
-        if (!AdConfig.ENABLED || AdPrefs(application).adsRemoved) return
+        if (!AdConfig.ENABLED) return
         MobileAds.setRequestConfiguration(
             RequestConfiguration.Builder()
                 .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_PG)
@@ -131,20 +131,17 @@ object Ads {
     /**
      * One question, asked everywhere: may this app show an ad right now?
      *
-     * Three things can say no — the build switch, a paid removal, or the 24 hours a rewarded video
-     * bought. Keeping the answer in one function is the reason a new format cannot accidentally
-     * bypass the ad-free window.
+     * Two things can say no — the build switch, or the 24 hours a rewarded video bought. Keeping
+     * the answer in one function is the reason a new format cannot accidentally bypass the ad-free
+     * window.
      */
     private fun adsAllowed(context: Context): Boolean {
         if (!AdConfig.ENABLED) return false
-        val prefs = AdPrefs(context)
-        if (prefs.adsRemoved) return false
-        return prefs.adFreeUntil <= System.currentTimeMillis()
+        return AdPrefs(context).adFreeUntil <= System.currentTimeMillis()
     }
 
     /** Whether the profile screen should offer the rewarded card at all. */
-    fun rewardsEnabled(context: Context): Boolean =
-        AdConfig.ENABLED && !AdPrefs(context).adsRemoved
+    fun rewardsEnabled(context: Context): Boolean = AdConfig.ENABLED
 
     /** Epoch millis until which a rewarded video has suppressed ads; `0` when none is active. */
     fun adFreeUntil(context: Context): Long = AdPrefs(context).adFreeUntil
@@ -469,7 +466,7 @@ object Ads {
 
     /** Whether the profile screen should offer that row at all. */
     fun privacyOptionsAvailable(context: Context): Boolean {
-        if (!AdConfig.ENABLED || AdPrefs(context).adsRemoved) return false
+        if (!AdConfig.ENABLED) return false
         return Consent.privacyOptionsAvailable(context)
     }
 

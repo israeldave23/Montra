@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -20,15 +19,13 @@ import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import android.app.AlertDialog
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
+import androidx.lifecycle.lifecycleScope
 
 class TransactionsActivity : AppActivity() {
-    private val scope = MainScope()
     private lateinit var repository: RoomFinanceRepository
     private lateinit var list: RecyclerView
     private lateinit var emptyView: android.widget.TextView
@@ -80,7 +77,7 @@ class TransactionsActivity : AppActivity() {
 
     override fun onStart() {
         super.onStart()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             try {
                 repository.prepareForObservation()
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
@@ -101,7 +98,7 @@ class TransactionsActivity : AppActivity() {
     private fun load(text: String) {
         val version = ++requestVersion
         val filter = selectedFilter
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repository.searchTransactions(text).filter { filter.matches(it.type) } }
                 .onSuccess { transactions ->
                     if (version != requestVersion) return@onSuccess
@@ -144,7 +141,7 @@ class TransactionsActivity : AppActivity() {
     }
 
     private fun showEditTransactionDialog(tx: com.dga.montra.domain.Transaction) {
-        scope.launch {
+        lifecycleScope.launch {
             val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
             if (accounts.isEmpty()) { toast(R.string.empty_balance); return@launch }
             showEditTransactionDialogWithAccounts(tx, accounts)
@@ -230,7 +227,7 @@ class TransactionsActivity : AppActivity() {
                     else -> com.dga.montra.domain.TransactionCategories.expense
                 }
                 val catId = newCats[category.selectedItemPosition].id
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching {
                         repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)
                     }.onSuccess {
@@ -245,13 +242,13 @@ class TransactionsActivity : AppActivity() {
     }
 
     private fun deleteWithUndo(tx: Transaction) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repository.deleteTransaction(tx.id) }
                 .onSuccess {
                     load(query.text.toString())
                     Snackbar.make(findViewById<android.view.View>(android.R.id.content), R.string.transaction_deleted, Snackbar.LENGTH_LONG)
                         .setAction(R.string.undo) {
-                            scope.launch {
+                            lifecycleScope.launch {
                                 runCatching { repository.addTransaction(tx) }
                                     .onSuccess { load(query.text.toString()) }
                                     .onFailure { toast(R.string.transaction_error) }
@@ -276,8 +273,4 @@ class TransactionsActivity : AppActivity() {
             }.show()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
 }

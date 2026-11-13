@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
@@ -16,12 +15,11 @@ import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 /**
  * One account: its real current balance (opening balance plus every transaction), its own activity,
@@ -32,7 +30,6 @@ import kotlinx.coroutines.launch
  */
 class AccountDetailActivity : AppActivity() {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val scope = MainScope()
 
     private lateinit var list: RecyclerView
     private lateinit var emptyView: TextView
@@ -95,7 +92,7 @@ class AccountDetailActivity : AppActivity() {
         super.onStart()
         val id = accountId ?: return
         observation?.cancel()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             combine(
                 repo.observeAccount(id),
                 repo.observeAccountTransactions(id)
@@ -108,11 +105,6 @@ class AccountDetailActivity : AppActivity() {
     override fun onStop() {
         observation?.cancel()
         super.onStop()
-    }
-
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
     }
 
     private fun render(balance: AccountBalance?, transactions: List<Transaction>) {
@@ -220,7 +212,7 @@ class AccountDetailActivity : AppActivity() {
                     return@setOnClickListener
                 }
                 confirm.isEnabled = false
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching { repo.renameAccount(balance.account.id, name) }
                         .onSuccess {
                             dialog.dismiss()
@@ -246,11 +238,11 @@ class AccountDetailActivity : AppActivity() {
     }
 
     private fun archive(balance: AccountBalance) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.archiveAccount(balance.account.id) }
                 .onSuccess {
                     snackbarWithUndo(getString(R.string.account_archived_done)) {
-                        scope.launch {
+                        lifecycleScope.launch {
                             runCatching { repo.unarchiveAccount(balance.account.id) }
                                 .onFailure { snackbar(R.string.save_error) }
                         }
@@ -261,7 +253,7 @@ class AccountDetailActivity : AppActivity() {
     }
 
     private fun unarchive(balance: AccountBalance) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.unarchiveAccount(balance.account.id) }
                 .onSuccess { snackbar(R.string.account_unarchived) }
                 .onFailure { snackbar(R.string.save_error) }
@@ -278,7 +270,7 @@ class AccountDetailActivity : AppActivity() {
     }
 
     private fun delete(balance: AccountBalance) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.deleteAccount(balance.account.id) }
                 .onSuccess { finish() }
                 .onFailure {

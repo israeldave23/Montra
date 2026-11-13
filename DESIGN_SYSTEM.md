@@ -69,9 +69,10 @@ Every screen extends `AppActivity`, which owns the three things that used to be 
 
 | Concern | Before | Now |
 | --- | --- | --- |
-| Night mode | a private `applyTheme()` in two activities | one implementation in `onCreate`, before the first frame |
+| Night mode | a private `applyTheme()` per activity that mutated `resources.configuration` | `AppCompatDelegate.setDefaultNightMode` — one process-wide mode, applied before the first window, so dialogs and popups inherit it |
 | Edge-to-edge | `android:fitsSystemWindows="true"` on 8 roots | real insets: status/cutout as screen padding, the bottom inset as padding on `bottom_navigation` so its surface still reaches the edge |
 | Bar icon polarity | theme items only | `WindowInsetsControllerCompat` follows the resolved scheme |
+| Lifecycle | `MainScope()` per screen, cancelled by hand in `onDestroy` | `lifecycleScope` — cancelled by the framework, and the same scope the dialogs borrow |
 | Toasts | 4 private helpers | one `toast(message, short = false)` |
 
 `settings` is a typed facade (`Settings` in `data/`), not a `SharedPreferences` lookup at the call site —

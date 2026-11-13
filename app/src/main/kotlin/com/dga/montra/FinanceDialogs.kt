@@ -1,6 +1,6 @@
 package com.dga.montra
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.view.View
@@ -20,15 +20,13 @@ import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import androidx.lifecycle.lifecycleScope
 
 /**
  * The three dialogs that create money: an account, a transaction, a transfer.
@@ -38,13 +36,12 @@ import java.util.UUID
  */
 internal object FinanceDialogs {
 
-    private fun scope() = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private fun settings(activity: Activity) = Settings(activity)
+    private fun settings(activity: ComponentActivity) = Settings(activity)
 
-    private fun toast(activity: Activity, message: Int) =
+    private fun toast(activity: ComponentActivity, message: Int) =
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
 
-    private fun feedback(activity: Activity, message: Int) = Snackbar.make(
+    private fun feedback(activity: ComponentActivity, message: Int) = Snackbar.make(
         activity.findViewById(android.R.id.content),
         message,
         Snackbar.LENGTH_SHORT
@@ -52,7 +49,7 @@ internal object FinanceDialogs {
 
     // ---------------------------------------------------------------- accounts
 
-    fun addAccount(activity: Activity, repository: RoomFinanceRepository, onSaved: () -> Unit = {}) {
+    fun addAccount(activity: ComponentActivity, repository: RoomFinanceRepository, onSaved: () -> Unit = {}) {
         val content = activity.layoutInflater.inflate(R.layout.dialog_add_account, null)
         val name = content.findViewById<EditText>(R.id.account_name)
         val amount = content.findViewById<EditText>(R.id.opening_balance)
@@ -86,7 +83,7 @@ internal object FinanceDialogs {
                         name.error = activity.getString(R.string.account_name_too_long)
                     parsed == null || parsed.minorUnits < 0L ->
                         amount.error = activity.getString(R.string.opening_balance_invalid)
-                    else -> scope().launch {
+                    else -> activity.lifecycleScope.launch {
                         runCatching {
                             repository.addAccount(
                                 Account(UUID.randomUUID().toString(), trimmedName, parsed)
@@ -109,12 +106,12 @@ internal object FinanceDialogs {
     // ------------------------------------------------------------ transactions
 
     fun addTransaction(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         preselectAccountId: String? = null,
         onSaved: () -> Unit = {}
     ) {
-        scope().launch {
+        activity.lifecycleScope.launch {
             val accounts = runCatching { repository.allAccounts() }
                 .getOrElse { toast(activity, R.string.storage_error); return@launch }
                 .filterNot { it.isArchived }
@@ -127,7 +124,7 @@ internal object FinanceDialogs {
     }
 
     private fun showTransaction(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         accounts: List<Account>,
         preselectAccountId: String?,
@@ -277,7 +274,7 @@ internal object FinanceDialogs {
                 val transactionType = form.type
                 val categoryId = form.categoryId
                 confirm.isEnabled = false
-                scope().launch {
+                activity.lifecycleScope.launch {
                     runCatching {
                         repository.addTransaction(
                             Transaction(
@@ -310,12 +307,12 @@ internal object FinanceDialogs {
     // --------------------------------------------------------------- transfers
 
     fun transfer(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         preselectFromAccountId: String? = null,
         onSaved: () -> Unit = {}
     ) {
-        scope().launch {
+        activity.lifecycleScope.launch {
             val accounts = runCatching { repository.allAccounts() }
                 .getOrElse { toast(activity, R.string.storage_error); return@launch }
                 .filterNot { it.isArchived }
@@ -328,7 +325,7 @@ internal object FinanceDialogs {
     }
 
     private fun showTransfer(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         accounts: List<Account>,
         preselectFromAccountId: String?,
@@ -385,7 +382,7 @@ internal object FinanceDialogs {
                     return@setOnClickListener
                 }
                 confirm.isEnabled = false
-                scope().launch {
+                activity.lifecycleScope.launch {
                     runCatching {
                         repository.transfer(from.id, to.id, parsed, note.text.toString().trim())
                     }.onSuccess {

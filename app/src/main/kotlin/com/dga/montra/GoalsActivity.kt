@@ -22,14 +22,13 @@ import com.dga.montra.domain.GoalSummary
 import com.dga.montra.domain.Money
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
+import androidx.lifecycle.lifecycleScope
 
 /**
  * Savings goals: what you are putting money aside for, how far along you are, whether you are on
@@ -39,7 +38,6 @@ import java.util.Calendar
  */
 class GoalsActivity : SectionActivity(3) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val scope = MainScope()
 
     private lateinit var list: RecyclerView
     private lateinit var emptyView: View
@@ -78,7 +76,7 @@ class GoalsActivity : SectionActivity(3) {
 
     override fun onStart() {
         super.onStart()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             repo.observeGoals()
                 .catch { snackbar(R.string.storage_error) }
                 .collect { render(it) }
@@ -90,14 +88,9 @@ class GoalsActivity : SectionActivity(3) {
         super.onStop()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
     private fun render(items: List<Goal>) {
         goals = GoalOrdering.sorted(items, LocalDate.now(), ZoneId.systemDefault())
-        adapter.submit(goals)
+        adapter.submitList(goals)
         val empty = goals.isEmpty()
         list.visibility = if (empty) View.GONE else View.VISIBLE
         emptyView.visibility = if (empty) View.VISIBLE else View.GONE
@@ -302,7 +295,7 @@ class GoalsActivity : SectionActivity(3) {
 
                 val saveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 saveButton.isEnabled = false
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching {
                         if (existing == null) {
                             repo.createGoal(name, parsedTarget, parsedSaved ?: Money(0L, currency), targetDate)
@@ -416,7 +409,7 @@ class GoalsActivity : SectionActivity(3) {
                     return@setOnClickListener
                 }
                 confirm.isEnabled = false
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching {
                         if (mode == FundsMode.ADD) repo.addGoalFunds(goal.id, amount)
                         else repo.withdrawGoalFunds(goal.id, amount)
@@ -431,7 +424,7 @@ class GoalsActivity : SectionActivity(3) {
                             else -> getString(R.string.goal_funds_withdrawn, amount.format())
                         }
                         snackbarWithUndo(message) {
-                            scope.launch {
+                            lifecycleScope.launch {
                                 runCatching {
                                     if (mode == FundsMode.ADD) repo.withdrawGoalFunds(goal.id, amount)
                                     else repo.addGoalFunds(goal.id, amount)
@@ -458,11 +451,11 @@ class GoalsActivity : SectionActivity(3) {
     }
 
     private fun deleteGoal(goal: Goal) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.deleteGoal(goal.id) }
                 .onSuccess {
                     snackbarWithUndo(getString(R.string.goal_deleted)) {
-                        scope.launch {
+                        lifecycleScope.launch {
                             runCatching { repo.restoreGoal(goal) }
                                 .onFailure { snackbar(R.string.planning_error) }
                         }

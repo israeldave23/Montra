@@ -4,7 +4,7 @@ import android.content.Context
 
 /**
  * The little state ad serving needs to remember: when the last app-open and interstitial ran, and
- * whether the user has bought their way out of ads.
+ * how long the rewarded video's ad-free window lasts.
  *
  * It lives under `data/` on purpose — no activity should know that ad frequency is stored in
  * `SharedPreferences`, and the timestamp comparisons belong with the rest of the stored state.
@@ -14,16 +14,8 @@ internal class AdPrefs(context: Context) {
         .getSharedPreferences(Storage.PREFS_ADS, Context.MODE_PRIVATE)
 
     /**
-     * Set when the user has paid for the ad-free tier (not wired to a purchase yet — the flag is
-     * read by every format, so the tier only has to flip it).
-     */
-    var adsRemoved: Boolean
-        get() = prefs.getBoolean(KEY_ADS_REMOVED, false)
-        set(value) = prefs.edit().putBoolean(KEY_ADS_REMOVED, value).apply()
-
-    /**
      * Epoch millis until which ads are suppressed because the user watched a rewarded video.
-     * `0` means not ad-free. Distinct from [adsRemoved], which is a paid, permanent state.
+     * `0` means not ad-free.
      */
     var adFreeUntil: Long
         get() = prefs.getLong(KEY_AD_FREE_UNTIL, 0L)
@@ -45,7 +37,6 @@ internal class AdPrefs(context: Context) {
         set(value) = prefs.edit().putInt(KEY_TRANSACTIONS_SINCE, value).apply()
 
     private companion object {
-        const val KEY_ADS_REMOVED = "ads_removed"
         const val KEY_AD_FREE_UNTIL = "ad_free_until"
         const val KEY_APP_OPEN_AT = "app_open_at"
         const val KEY_INTERSTITIAL_AT = "interstitial_at"

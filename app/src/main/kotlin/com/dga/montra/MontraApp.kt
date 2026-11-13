@@ -2,6 +2,7 @@ package com.dga.montra
 
 import android.app.Application
 import com.dga.montra.ads.Ads
+import com.dga.montra.data.Settings
 import com.dga.montra.data.Storage
 
 /**
@@ -12,6 +13,9 @@ class MontraApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Storage.migrateLegacyNames(this)
+        // Before the first window exists: the delegate owns the scheme for the whole process, so
+        // dialogs and popups inherit it too.
+        AppActivity.applyThemeMode(Settings(this).themeMode)
         Ads.init(this)
     }
 }

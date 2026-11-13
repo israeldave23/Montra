@@ -12,14 +12,13 @@ import com.dga.montra.domain.MonthlyInsight
 import com.dga.montra.domain.Money
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
 
 /**
  * Monthly insight: where the money went, how it compares with last month, and what the pace implies
@@ -30,7 +29,6 @@ import java.util.Locale
  */
 class InsightsActivity : SectionActivity(4) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val scope = MainScope()
 
     private lateinit var list: RecyclerView
     private lateinit var emptyView: View
@@ -79,11 +77,6 @@ class InsightsActivity : SectionActivity(4) {
         super.onStop()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
     private fun shiftMonth(months: Long) {
         val target = month.plusMonths(months)
         if (target > YearMonth.now()) return
@@ -94,7 +87,7 @@ class InsightsActivity : SectionActivity(4) {
 
     private fun observe() {
         observation?.cancel()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             repo.observeInsight(month)
                 .catch { snackbar(R.string.storage_error) }
                 .collect { render(it) }
@@ -110,7 +103,7 @@ class InsightsActivity : SectionActivity(4) {
 
     private fun render(insight: MonthlyInsight) {
         val rows = buildRows(insight)
-        adapter.submit(rows)
+        adapter.submitList(rows)
         val empty = rows.isEmpty()
         list.visibility = if (empty) View.GONE else View.VISIBLE
         emptyView.visibility = if (empty) View.VISIBLE else View.GONE

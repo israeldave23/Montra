@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.domain.Goal
 import com.dga.montra.domain.GoalStatus
@@ -19,7 +21,7 @@ import java.util.Date
 class GoalAdapter(
     private val onOpen: (Goal) -> Unit,
     private val onMenu: (Goal, View) -> Unit
-) : RecyclerView.Adapter<GoalAdapter.Holder>() {
+) : ListAdapter<Goal, GoalAdapter.Holder>(GoalDiff) {
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.goal_row_name)
@@ -30,20 +32,11 @@ class GoalAdapter(
         val menu: View = view.findViewById(R.id.goal_row_menu)
     }
 
-    private var goals: List<Goal> = emptyList()
-
-    fun submit(items: List<Goal>) {
-        goals = items
-        notifyDataSetChanged()
-    }
-
-    override fun getItemCount(): Int = goals.size
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         Holder(LayoutInflater.from(parent.context).inflate(R.layout.item_goal_row, parent, false))
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        val goal = goals[position]
+        val goal = getItem(position)
         val context = holder.itemView.context
         val zone = ZoneId.systemDefault()
         val status = goal.status(LocalDate.now(), zone)
@@ -80,7 +73,13 @@ class GoalAdapter(
         )
         holder.itemView.setOnClickListener { onOpen(goal) }
         holder.menu.setOnClickListener { onMenu(goal, holder.menu) }
-    }
+    }}
+
+/** A goal is identified by its id; its saved amount and status are content. */
+private object GoalDiff : DiffUtil.ItemCallback<Goal>() {
+    override fun areItemsTheSame(oldItem: Goal, newItem: Goal): Boolean = oldItem.id == newItem.id
+
+    override fun areContentsTheSame(oldItem: Goal, newItem: Goal): Boolean = oldItem == newItem
 }
 
 private fun metaText(context: Context, goal: Goal, status: GoalStatus, zone: ZoneId): String {

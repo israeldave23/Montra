@@ -107,10 +107,10 @@ How it behaves:
 | Grant | `OnUserEarnedRewardListener` only — the timestamp is written when Google says the reward was earned, not when the video closes |
 | Effect | `AdPrefs.adFreeUntil` (24 h). `Ads.adsAllowed()` checks it, so banners, interstitials and app-open all stop — including a banner **already on screen**, which is destroyed immediately |
 | While active | The card shows "No ads until 6:42 PM" and hides the button; no way to accidentally watch a second video |
-| Paid tier | `AdPrefs.adsRemoved` is separate and permanent; the rewarded card disappears entirely |
+| No paid tier | Deliberately not built. The rewarded video is the app's only ad-free path, so there is no purchase flow to maintain and no paywall to get wrong |
 
-The reward is time-boxed on purpose: an unlimited free removal would make the paid tier unsellable,
-and a permanent one turns "watch a video" into "never see an ad again after 30 seconds".
+The reward is time-boxed on purpose. A permanent removal would turn "watch a video" into "never see
+an ad again after 30 seconds", and there is no paid tier behind it to justify that math.
 
 ## Design-system contract
 
@@ -136,19 +136,19 @@ and a permanent one turns "watch a video" into "never see an ad again after 30 s
       placements entirely).
 - [ ] Add a category blocklist in AdMob for loans, gambling, crypto and "get rich" offers. One
       predatory ad beside someone's overdraft costs more trust than a thousand impressions earn.
-- [ ] Decide the **ad-free tier**. `AdPrefs.adsRemoved` already short-circuits every format, so the
-      purchase flow only has to flip it.
+- [x] ~~Ad-free purchase tier~~ — dropped by decision. The rewarded video covers the same need
+      without a billing integration; if a tier is ever added, `AdPrefs` is the place for its flag.
 
 ## Where the revenue actually is
 
 Banner eCPM in the PH market is roughly $0.2–1.0; native $1–3; interstitial $2–5; rewarded $5–12.
 At 1,000 DAU × 2.5 impressions, banner-only is a couple of dollars a day. Order of leverage:
-**format mix → mediation (Meta/AppLovin) → retention → an ad-free tier**. Ads are the texture of the
+**format mix → mediation (Meta/AppLovin) → retention → rewarded**. Ads are the texture of the
 free tier, not the business.
 
 Not implemented on purpose: native ads (needs a real creative container and an "Ad" label, worth
 doing only once there is traffic to A/B), rewarded ads (needs a reward the app can actually grant —
-exports or deeper reports), mediation, and an ad-free purchase flow.
+exports or deeper reports), mediation, and an ad-free purchase flow (tier dropped — see above).
 
 ## Verification status — read this before shipping
 

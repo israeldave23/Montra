@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.content.Intent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -13,23 +12,16 @@ import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.DashboardState
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 
 class MainActivity : AppActivity() {
     private var latestDashboard: DashboardState? = null
     private lateinit var repository: RoomFinanceRepository
-    private val scope = MainScope()
     private var dashboardJob: Job? = null
     private lateinit var balanceView: TextView
     private lateinit var summaryView: TextView
-
-    override fun onDestroy() {
-        scope.coroutineContext.cancel()
-        super.onDestroy()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,7 +72,7 @@ class MainActivity : AppActivity() {
 
     private fun observeHome() {
         dashboardJob?.cancel()
-        dashboardJob = scope.launch {
+        dashboardJob = lifecycleScope.launch {
             try {
                 repository.prepareForObservation()
             } catch (cancelled: kotlinx.coroutines.CancellationException) {

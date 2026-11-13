@@ -19,8 +19,6 @@ import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,9 +30,9 @@ import java.util.Date
 import java.util.Locale
 import kotlin.io.path.copyTo
 import com.dga.montra.data.Storage
+import androidx.lifecycle.lifecycleScope
 
 class ProfileActivity : AppActivity() {
-    private val scope = MainScope()
     private lateinit var avatar: TextView
     private lateinit var avatarImage: ImageView
     private lateinit var photoChange: TextView
@@ -72,16 +70,11 @@ class ProfileActivity : AppActivity() {
         bindRewardCard()
     }
 
-    override fun onDestroy() {
-        scope.coroutineContext.cancel()
-        super.onDestroy()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != Activity.RESULT_OK || data?.data == null) return@onActivityResult
         val uri = data.data!!
-        scope.launch {
+        lifecycleScope.launch {
             try {
                 when (requestCode) {
                     REQUEST_BACKUP -> backupToUri(uri)
@@ -148,8 +141,9 @@ class ProfileActivity : AppActivity() {
                 val current = settings.themeMode
                 if (position != current) {
                     settings.themeMode = position
-                    // The base class applies the scheme in onCreate, so a recreate is the switch.
-                    recreate()
+                    // The delegate owns the mode for the process and recreates the visible screen
+                    // itself; calling recreate() here would restart the screen twice.
+                    AppActivity.applyThemeMode(position)
                 }
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
@@ -243,7 +237,7 @@ class ProfileActivity : AppActivity() {
     }
 
     private fun exportTransactions() {
-        scope.launch {
+        lifecycleScope.launch {
             try {
                 val repo = RoomFinanceRepository.get(applicationContext)
                 val accounts = repo.allAccounts().associateBy { it.id }.mapValues { it.value.name }
