@@ -27,7 +27,7 @@ class GoalAdapter(
         val amount: TextView = view.findViewById(R.id.goal_row_amount)
         val progress: ProgressBar = view.findViewById(R.id.goal_row_progress)
         val meta: TextView = view.findViewById(R.id.goal_row_meta)
-        val menu: TextView = view.findViewById(R.id.goal_row_menu)
+        val menu: View = view.findViewById(R.id.goal_row_menu)
     }
 
     private var goals: List<Goal> = emptyList()

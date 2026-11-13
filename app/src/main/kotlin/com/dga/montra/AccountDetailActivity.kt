@@ -46,7 +46,7 @@ class AccountDetailActivity : Activity() {
     private lateinit var countView: TextView
     private lateinit var addTransactionButton: View
     private lateinit var transferButton: View
-    private lateinit var menuButton: TextView
+    private lateinit var menuButton: View
 
     private var accountId: String? = null
     private var current: AccountBalance? = null
@@ -72,7 +72,7 @@ class AccountDetailActivity : Activity() {
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = TransactionListAdapter(emptyList())
 
-        findViewById<TextView>(R.id.account_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.account_back).setOnClickListener { finish() }
         menuButton.setOnClickListener { showMenu(it) }
         addTransactionButton.setOnClickListener {
             FinanceDialogs.addTransaction(

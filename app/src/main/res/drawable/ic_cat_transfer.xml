@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Tinted at the call site; the alpha tone gives the icon depth. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
+    android:width="@dimen/icon_size"
+    android:height="@dimen/icon_size"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path android:pathData="M3,4.6 H14.4 V2.2 L20.8,6.4 L14.4,10.6 V8.2 H3 Z"

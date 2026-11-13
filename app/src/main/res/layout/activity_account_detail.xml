@@ -15,7 +15,7 @@
         android:paddingTop="@dimen/space_8"
         android:paddingEnd="@dimen/space_8">
 
-        <TextView
+        <ImageView
             android:id="@+id/account_back"
             android:layout_width="@dimen/touch_target"
             android:layout_height="@dimen/touch_target"
@@ -23,17 +23,17 @@
             android:clickable="true"
             android:contentDescription="@string/back"
             android:focusable="true"
-            android:gravity="center"
-            android:text="‹"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_24" />
+            android:padding="@dimen/space_12"
+            android:src="@drawable/ic_back"
+            android:scaleType="fitCenter"
+            style="@style/Widget.App.Icon" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <TextView
+        <ImageView
             android:id="@+id/account_menu"
             android:layout_width="@dimen/touch_target"
             android:layout_height="@dimen/touch_target"
@@ -41,10 +41,10 @@
             android:clickable="true"
             android:contentDescription="@string/account_more_actions"
             android:focusable="true"
-            android:gravity="center"
-            android:text="⋮"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_20" />
+            android:padding="@dimen/space_12"
+            android:src="@drawable/ic_more_vert"
+            android:scaleType="fitCenter"
+            style="@style/Widget.App.Icon" />
     </LinearLayout>
 
     <LinearLayout
@@ -61,18 +61,16 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Headline"
                 android:id="@+id/account_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="@color/m3_on_surface"
-                android:textSize="@dimen/text_24"
-                android:textStyle="bold" />
+                android:textColor="@color/m3_on_surface" />
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
                 android:id="@+id/account_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -85,19 +83,16 @@
                 android:paddingBottom="@dimen/space_4"
                 android:text="@string/account_archived"
                 android:textColor="@color/m3_on_primary"
-                android:textSize="@dimen/text_12"
-                android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/account_archived_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
             android:text="@string/account_archived_hint"
             android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -112,29 +107,25 @@
         android:orientation="vertical"
         android:padding="@dimen/card_padding">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/account_balance_label"
-            android:textColor="@color/m3_on_hero"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_hero" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Display"
             android:id="@+id/account_balance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/m3_on_hero"
-            android:textSize="@dimen/text_36"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_hero" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/account_meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/m3_on_hero"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_hero" />
     </LinearLayout>
 
     <LinearLayout
@@ -145,7 +136,7 @@
         android:layout_marginEnd="@dimen/screen_h_padding"
         android:orientation="horizontal">
 
-        <Button
+        <Button android:textAppearance="@style/TextAppearance.App.Label"
             android:id="@+id/account_add_transaction"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -153,11 +144,9 @@
             android:background="@drawable/primary_button_ripple"
             android:text="@string/account_add_transaction"
             android:textAllCaps="false"
-            android:textColor="@color/m3_on_primary"
-            android:textSize="@dimen/text_14"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_primary" />
 
-        <Button
+        <Button android:textAppearance="@style/TextAppearance.App.Label"
             android:id="@+id/account_transfer"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -166,9 +155,7 @@
             android:background="@drawable/action_tile_ripple"
             android:text="@string/account_transfer"
             android:textAllCaps="false"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_14"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
     </LinearLayout>
 
     <LinearLayout
@@ -180,21 +167,18 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.SectionTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/account_activity_title"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_18"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/account_activity_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
     </LinearLayout>
 
     <FrameLayout
@@ -212,7 +196,7 @@
             android:paddingEnd="@dimen/screen_h_padding"
             android:paddingBottom="@dimen/space_16" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/account_activity_empty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -222,7 +206,6 @@
             android:paddingEnd="@dimen/screen_h_padding"
             android:text="@string/account_activity_empty"
             android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_14"
             android:visibility="gone" />
     </FrameLayout>
 

@@ -7,61 +7,51 @@
     android:orientation="vertical"
     android:padding="@dimen/space_16">
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
         android:id="@+id/insight_summary_currency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_on_surface_variant" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
         android:text="@string/insights_expenses_label"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12" />
+        android:textColor="@color/m3_on_surface_variant" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Headline"
         android:id="@+id/insight_summary_expense"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_4"
-        android:textColor="@color/m3_on_surface"
-        android:textSize="@dimen/text_24"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_on_surface" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Body"
         android:id="@+id/insight_summary_flow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_4"
-        android:textColor="@color/m3_on_surface"
-        android:textSize="@dimen/text_14" />
+        android:textColor="@color/m3_on_surface" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:id="@+id/insight_summary_change"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12" />
+        android:textColor="@color/m3_on_surface_variant" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:id="@+id/insight_summary_average"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_4"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12" />
+        android:textColor="@color/m3_on_surface_variant" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
         android:id="@+id/insight_summary_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_4"
-        android:textColor="@color/m3_primary"
-        android:textSize="@dimen/text_12"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_primary" />
 </LinearLayout>

@@ -5,7 +5,7 @@ into CI unchanged.
 
 | Script | What it enforces |
 | --- | --- |
-| `check_ui_tokens.py` | No raw colours, dp or sp outside `dimens.xml` / `colors.xml` |
+| `check_ui_tokens.py` | The design system itself: no raw text sizes/weights in layouts, no raw dp/sp except `0dp`, no hex colours outside `colors.xml`, only `@color/m3_*` roles, raw dimens only in `dimens.xml`, type-scale sizes from `@dimen/text_*` |
 | `check_resources.py` | Every `@type/name` and `R.type.name` resolves **in its own namespace**; `getString` argument counts match the format string; no duplicate resource names; no unbalanced Kotlin braces; no CJK characters; light/night colour parity; unused resources reported as warnings |
 
 ```bash

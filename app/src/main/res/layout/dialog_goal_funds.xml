@@ -6,12 +6,11 @@
     android:orientation="vertical"
     android:padding="@dimen/space_24">
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Body"
         android:id="@+id/goal_funds_context"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/m3_on_surface"
-        android:textSize="@dimen/text_14" />
+        android:textColor="@color/m3_on_surface" />
 
     <EditText
         android:id="@+id/goal_funds_amount"
@@ -28,7 +27,7 @@
         android:layout_marginTop="@dimen/space_8"
         android:orientation="horizontal">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Label"
             android:id="@+id/goal_funds_quick_1"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -38,11 +37,9 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_14"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_primary" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Label"
             android:id="@+id/goal_funds_quick_2"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -53,11 +50,9 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_14"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_primary" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Label"
             android:id="@+id/goal_funds_quick_3"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -67,25 +62,21 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_14"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_primary" />
     </LinearLayout>
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:id="@+id/goal_funds_preview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_12"
         android:accessibilityLiveRegion="polite"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12" />
+        android:textColor="@color/m3_on_surface_variant" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
         android:text="@string/add_funds_note"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12" />
+        android:textColor="@color/m3_on_surface_variant" />
 </LinearLayout>

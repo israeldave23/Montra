@@ -14,21 +14,18 @@
         android:paddingTop="@dimen/space_32"
         android:paddingEnd="@dimen/screen_h_padding">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Headline"
             android:id="@+id/insights_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_24"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/insights_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_14" />
+            android:textColor="@color/m3_on_surface_variant" />
     </LinearLayout>
 
     <LinearLayout
@@ -43,7 +40,7 @@
         android:paddingStart="@dimen/space_8"
         android:paddingEnd="@dimen/space_8">
 
-        <TextView
+        <ImageView
             android:id="@+id/insights_month_prev"
             android:layout_width="@dimen/touch_target"
             android:layout_height="@dimen/touch_target"
@@ -51,22 +48,20 @@
             android:clickable="true"
             android:contentDescription="@string/insights_previous_month"
             android:focusable="true"
-            android:gravity="center"
-            android:text="‹"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_24" />
+            android:padding="@dimen/space_12"
+            android:src="@drawable/ic_chevron_left"
+            android:scaleType="fitCenter"
+            style="@style/Widget.App.Icon.Primary" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Subtitle"
             android:id="@+id/insights_month_label"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_16"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
 
-        <TextView
+        <ImageView
             android:id="@+id/insights_month_next"
             android:layout_width="@dimen/touch_target"
             android:layout_height="@dimen/touch_target"
@@ -74,10 +69,10 @@
             android:clickable="true"
             android:contentDescription="@string/insights_next_month"
             android:focusable="true"
-            android:gravity="center"
-            android:text="›"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_24" />
+            android:padding="@dimen/space_12"
+            android:src="@drawable/ic_chevron_right"
+            android:scaleType="fitCenter"
+            style="@style/Widget.App.Icon.Primary" />
     </LinearLayout>
 
     <FrameLayout
@@ -107,22 +102,20 @@
             android:paddingEnd="@dimen/screen_h_padding"
             android:visibility="gone">
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Body"
                 android:id="@+id/insights_empty_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="@color/m3_on_surface_variant"
-                android:textSize="@dimen/text_14" />
+                android:textColor="@color/m3_on_surface_variant" />
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_8"
                 android:gravity="center"
                 android:text="@string/insights_empty_hint"
-                android:textColor="@color/m3_on_surface_variant"
-                android:textSize="@dimen/text_12" />
+                android:textColor="@color/m3_on_surface_variant" />
         </LinearLayout>
     </FrameLayout>
 

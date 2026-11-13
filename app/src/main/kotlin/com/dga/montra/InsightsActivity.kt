@@ -35,8 +35,8 @@ class InsightsActivity : SectionActivity(4) {
     private lateinit var emptyView: View
     private lateinit var emptyTitle: TextView
     private lateinit var monthLabel: TextView
-    private lateinit var previousButton: TextView
-    private lateinit var nextButton: TextView
+    private lateinit var previousButton: View
+    private lateinit var nextButton: View
     private lateinit var adapter: InsightAdapter
 
     private var month: YearMonth = YearMonth.now()

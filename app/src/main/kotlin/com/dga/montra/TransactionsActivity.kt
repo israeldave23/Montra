@@ -44,7 +44,7 @@ class TransactionsActivity : Activity() {
         setContentView(R.layout.activity_transactions)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 1)
         repository = RoomFinanceRepository.get(this)
-        findViewById<TextView>(R.id.transactions_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.transactions_back).setOnClickListener { finish() }
         list = findViewById(R.id.transaction_list)
         list.layoutManager = LinearLayoutManager(this)
         emptyView = findViewById(R.id.transaction_empty)

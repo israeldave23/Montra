@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Widget styles, so screens never restate size, weight or tint. Anything visual that appears more
+      than once belongs here rather than in a layout.
+    -->
+    <style name="BottomNavigationItem" parent="TextAppearance.App.LabelSmall">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/nav_item_height</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">@dimen/space_4</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/m3_on_surface_variant</item>
+        <item name="android:drawablePadding">@dimen/space_4</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:minWidth">@dimen/touch_target</item>
+        <item name="android:minHeight">@dimen/touch_target</item>
+    </style>
+
+    <!-- Icons are black two-tone vectors; the tint is the single source of their colour. -->
+    <style name="Widget.App.Icon">
+        <item name="android:layout_width">@dimen/icon_size</item>
+        <item name="android:layout_height">@dimen/icon_size</item>
+        <item name="android:tint">?attr/colorOnSurfaceVariant</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <style name="Widget.App.Icon.Primary">
+        <item name="android:tint">?attr/colorPrimary</item>
+    </style>
+
+    <!-- Icons sitting on a tonal badge: badge and glyph are one colour pair. -->
+    <style name="Widget.App.Icon.OnBadge">
+        <item name="android:tint">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="Widget.App.Icon.OnAccentBadge">
+        <item name="android:tint">?attr/colorOnTertiaryContainer</item>
+    </style>
+</resources>

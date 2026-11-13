@@ -27,7 +27,7 @@ class BudgetAdapter(
         val amount: TextView = view.findViewById(R.id.budget_row_amount)
         val meta: TextView = view.findViewById(R.id.budget_row_meta)
         val progress: ProgressBar = view.findViewById(R.id.budget_row_progress)
-        val menu: TextView = view.findViewById(R.id.budget_row_menu)
+        val menu: View = view.findViewById(R.id.budget_row_menu)
     }
 
     private var items: List<BudgetProgress> = emptyList()

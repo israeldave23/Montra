@@ -10,21 +10,19 @@
         android:orientation="vertical"
         android:padding="@dimen/space_24">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/budget_edit_hint"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/budget_edit_category_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_16"
             android:text="@string/budget_category_label"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
 
         <Spinner
             android:id="@+id/budget_edit_category"
@@ -42,12 +40,11 @@
             android:inputType="numberDecimal"
             android:singleLine="true" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/budget_edit_context"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_12"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
     </LinearLayout>
 </ScrollView>
