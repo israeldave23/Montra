@@ -54,6 +54,7 @@ object Ads {
     private const val ATTACHED = "montra.ad.attached"
 
     private var consentStarted = false
+    private var starting = false
     private var ready = false
 
     private var startedActivities = 0
@@ -147,6 +148,8 @@ object Ads {
     fun adFreeUntil(context: Context): Long = AdPrefs(context).adFreeUntil
 
     private fun startSdk(context: Context) {
+        if (ready || starting) return
+        starting = true
         MobileAds.initialize(context) {
             ready = true
             loadInterstitial(context)

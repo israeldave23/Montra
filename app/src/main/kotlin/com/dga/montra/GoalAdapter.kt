@@ -73,7 +73,8 @@ class GoalAdapter(
         )
         holder.itemView.setOnClickListener { onOpen(goal) }
         holder.menu.setOnClickListener { onMenu(goal, holder.menu) }
-    }}
+    }
+}
 
 /** A goal is identified by its id; its saved amount and status are content. */
 private object GoalDiff : DiffUtil.ItemCallback<Goal>() {

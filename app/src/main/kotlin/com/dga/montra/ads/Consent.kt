@@ -32,12 +32,13 @@ internal object Consent {
         requested = true
 
         val information = UserMessagingPlatform.getConsentInformation(activity)
-        if (information.canRequestAds()) {
-            onResolved(true)
-            return
-        }
+        val parameters = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false).build()
 
-        val parameters = ConsentRequestParameters.Builder().build()
+        // Consent from a previous session is enough to start ads immediately; the refresh below runs
+        // in parallel, so a changed decision is picked up on the next launch rather than gating this
+        // one behind a network round trip.
+        if (information.canRequestAds()) onResolved(true)
+
         information.requestConsentInfoUpdate(
             activity,
             parameters,
