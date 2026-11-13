@@ -62,19 +62,26 @@ The profile screen shows **Ad privacy options** — but only when a form exists 
 ID has not been filled in. Test units exist so that development taps are never charged as invalid
 traffic.
 
-### Filling in your IDs
+### Configured IDs
 
-1. **AdMob app ID** → `app/src/main/res/values/strings.xml`, `admob_application_id`. It is read by
-   the manifest entry `com.google.android.gms.ads.APPLICATION_ID`; without it `MobileAds.initialize`
-   throws.
-2. **Unit IDs** → `app/src/main/kotlin/com/dga/montra/ads/AdConfig.kt`:
-   ```kotlin
-   private const val LIVE_BANNER = "ca-app-pub-XXXX/YYYY"
-   private const val LIVE_INTERSTITIAL = "ca-app-pub-XXXX/ZZZZ"
-   private const val LIVE_APP_OPEN = "ca-app-pub-XXXX/WWWW"
-   ```
-Nothing else changes. Empty IDs fall back to test units, so a partially configured build still
-renders the slots in QA.
+| Setting | Value | Lives in |
+| --- | --- | --- |
+| App ID | `ca-app-pub-5236559514557783~3965887393` | `res/values/strings.xml` → `admob_application_id`, read by the manifest meta-data `com.google.android.gms.ads.APPLICATION_ID` |
+| Banner | `ca-app-pub-5236559514557783/9256762586` | `ads/AdConfig.kt` → `LIVE_BANNER` |
+| Interstitial | `ca-app-pub-5236559514557783/2816457251` | `ads/AdConfig.kt` → `LIVE_INTERSTITIAL` |
+| App open | `ca-app-pub-5236559514557783/6208907355` | `ads/AdConfig.kt` → `LIVE_APP_OPEN` |
+
+**What each build actually serves:**
+
+| Build | Unit IDs | Result |
+| --- | --- | --- |
+| `debug` | Google's test units | Always fills, never earns — development taps are never billed |
+| `release` (minified or not) | The live units above | Real inventory |
+
+To earn money from a device you are holding, you need the **release** build. That is deliberate: a
+debug build that served live ads would put your own test taps into the account as invalid traffic.
+
+Retrieved IDs can be changed in exactly two files; nothing else knows they exist.
 
 ## Design-system contract
 
@@ -91,7 +98,7 @@ renders the slots in QA.
 
 ## Before you publish
 
-- [ ] Replace `admob_application_id` and the three `LIVE_*` unit IDs.
+- [x] `admob_application_id` and the three `LIVE_*` unit IDs are configured.
 - [ ] Publish `app-ads.txt` for the developer website listed on the Play listing.
 - [ ] Update the Play **Data safety** form: device or advertising ID, approximate location, ad
       interaction data, collected by Google.

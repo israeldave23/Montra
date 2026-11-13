@@ -307,6 +307,6 @@
     <string name="budget_currency_locked">Currency is fixed for this budget.</string>
     <string name="budget_category_locked">Category is fixed for this budget.</string>
     <string name="profile_ad_privacy">Ad privacy options</string>
-    <!-- Google's sample AdMob application ID. Replace with the real one before release (ADS.md). -->
-    <string name="admob_application_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <!-- Montra's AdMob application ID, read by the manifest meta-data. -->
+    <string name="admob_application_id" translatable="false">ca-app-pub-5236559514557783~3965887393</string>
 </resources>

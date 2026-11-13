@@ -25,9 +25,9 @@ object AdConfig {
     // Empty strings fall back to the test units below, so an unfilled build still renders the
     // slots (with test creatives) instead of showing nothing in QA. Replace before release.
 
-    private const val LIVE_BANNER = ""
-    private const val LIVE_INTERSTITIAL = ""
-    private const val LIVE_APP_OPEN = ""
+    private const val LIVE_BANNER = "ca-app-pub-5236559514557783/9256762586"
+    private const val LIVE_INTERSTITIAL = "ca-app-pub-5236559514557783/2816457251"
+    private const val LIVE_APP_OPEN = "ca-app-pub-5236559514557783/6208907355"
 
     // ------------------------------------------------ Google's sample units (never earn)
     private const val TEST_BANNER = "ca-app-pub-3940256099942544/9214589741"
