@@ -12,9 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.App">
 
-        <!-- AdMob application ID. The value below is Google's test app ID; replace it with the one
-             from your AdMob account before the first real release, or every request is a test
-             request that earns nothing. See ADS.md. -->
+        <!-- Montra's live AdMob application ID, read from the admob_application_id string. Debug
+             builds still serve Google's test unit IDs, so development taps are never billed as
+             invalid traffic. See ADS.md. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/admob_application_id" />

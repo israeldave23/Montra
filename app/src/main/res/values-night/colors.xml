@@ -47,7 +47,6 @@
     <color name="m3_on_hero_raised">#2EFFFFFF</color>
     <color name="m3_on_hero_outline">#66FFFFFF</color>
     <color name="m3_ripple">#33A8C8FF</color>
-    <color name="m3_scrim">#000000</color>
     <!-- Launcher artwork is static: it must not follow the night scheme. -->
     <color name="ic_launcher_background">#14508C</color>
 </resources>
