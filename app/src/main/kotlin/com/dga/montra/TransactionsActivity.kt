@@ -14,6 +14,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Button
 import android.widget.AdapterView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
@@ -41,6 +42,7 @@ class TransactionsActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transactions)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 1)
         repository = RoomFinanceRepository.get(this)
         findViewById<View>(R.id.transactions_back).setOnClickListener { finish() }

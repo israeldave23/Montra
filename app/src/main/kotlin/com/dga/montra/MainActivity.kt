@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.catch
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.AccountBalance
@@ -33,6 +34,7 @@ class MainActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<android.view.View>(R.id.avatar_container).setOnClickListener {
             startActivity(

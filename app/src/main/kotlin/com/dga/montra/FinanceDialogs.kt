@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.data.Settings
 import com.dga.montra.domain.Account
@@ -294,6 +295,8 @@ internal object FinanceDialogs {
                         dialog.dismiss()
                         feedback(activity, R.string.transaction_saved)
                         onSaved()
+                        // Earned, not timed: the ad follows a completed save, never a tap.
+                        Ads.onTransactionSaved(activity)
                     }.onFailure {
                         confirm.isEnabled = true
                         toast(activity, R.string.transaction_error)

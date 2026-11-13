@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.CurrencyInsight
 import com.dga.montra.domain.MonthlyInsight
@@ -45,6 +46,7 @@ class InsightsActivity : SectionActivity(4) {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_insights)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
         findViewById<TextView>(R.id.insights_title).setText(R.string.insights_title)
         findViewById<TextView>(R.id.insights_subtitle).setText(R.string.insights_subtitle)
 

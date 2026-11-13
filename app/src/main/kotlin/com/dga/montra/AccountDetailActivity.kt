@@ -9,6 +9,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.Money
@@ -53,6 +54,7 @@ class AccountDetailActivity : AppActivity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_account_detail)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
 
         list = findViewById(R.id.account_transactions)
         emptyView = findViewById(R.id.account_activity_empty)

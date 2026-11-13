@@ -1,6 +1,7 @@
 package com.dga.montra
 
 import android.app.Application
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.Storage
 
 /**
@@ -11,5 +12,6 @@ class MontraApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Storage.migrateLegacyNames(this)
+        Ads.init(this)
     }
 }

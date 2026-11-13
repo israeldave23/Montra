@@ -58,6 +58,7 @@ hero, so each usage still sets `android:textColor` from an `m3_*` role.
 | `Widget.App.Icon.OnAccentBadge` | tinted `colorOnTertiaryContainer` (the single amber accent badge) |
 | `BottomNavigationItem` | nav label, inherits `TextAppearance.App.LabelSmall` + touch target |
 | `TextAppearance.App.*` | the type scale above |
+| `layout/view_ad_slot.xml` | the one ad slot: `@dimen/ad_banner_height` tall, `screen_h_padding` gutter, `GONE` until `Ads` fills it — see `ADS.md` |
 
 `Base.Theme.App` holds every theme role once. `Theme.App` exists twice — `values/` and `values-night/`
 — and carries **only** the four window items that genuinely differ, so the two files cannot drift.
@@ -103,6 +104,8 @@ so an unknown category still renders. No screen contains a text glyph as a contr
    python3 tools/check_resources.py
    ```
 6. Anything visual that appears twice belongs in `values/widgets.xml` or `type.xml`, not in a layout.
+7. If the screen shows a banner, `<include layout="@layout/view_ad_slot" />` and call
+   `Ads.attachBanner(findViewById(R.id.ad_slot))` — never build an `AdView` by hand (`ADS.md`).
 
 ## What the linters reject
 

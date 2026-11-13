@@ -118,5 +118,6 @@
         </LinearLayout>
     </FrameLayout>
 
+    <include layout="@layout/view_ad_slot" />
     <include layout="@layout/view_bottom_navigation" />
 </LinearLayout>

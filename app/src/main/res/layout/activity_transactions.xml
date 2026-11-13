@@ -29,5 +29,6 @@
         <TextView android:textAppearance="@style/TextAppearance.App.Body" android:id="@+id/transaction_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/action_tile_background" android:padding="@dimen/space_24" android:text="@string/empty_transactions" android:textColor="@color/m3_on_surface_variant" android:visibility="gone" />
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/transaction_list" android:layout_width="match_parent" android:layout_height="match_parent" android:clipToPadding="false" android:paddingBottom="@dimen/space_12" />
     </LinearLayout>
+    <include layout="@layout/view_ad_slot" />
     <include layout="@layout/view_bottom_navigation" />
 </LinearLayout>

@@ -17,6 +17,10 @@
     <dimen name="progress_thickness">6dp</dimen>
     <dimen name="launcher_artboard">108dp</dimen>
 
+    <!-- Ad slot. Reserved before the ad loads, so a fill never pushes content around. -->
+    <dimen name="ad_banner_height">56dp</dimen>
+    <dimen name="ad_slot_gap">8dp</dimen>
+
     <!-- Spacing -->
     <dimen name="screen_h_padding">24dp</dimen>
     <dimen name="card_padding">24dp</dimen>

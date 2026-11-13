@@ -38,6 +38,7 @@
                 <TextView android:textAppearance="@style/TextAppearance.App.Label" android:id="@+id/profile_backup" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/space_8" android:gravity="center" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:padding="@dimen/space_8" android:text="@string/profile_backup_database" android:textColor="@color/m3_primary" />
             </LinearLayout>
             <TextView android:textAppearance="@style/TextAppearance.App.Label" android:id="@+id/profile_restore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_8" android:gravity="center" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:padding="@dimen/space_8" android:text="@string/profile_restore_database" android:textColor="@color/m3_primary" />
+            <TextView android:textAppearance="@style/TextAppearance.App.Label" android:id="@+id/profile_privacy" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_8" android:gravity="center" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:padding="@dimen/space_8" android:text="@string/profile_ad_privacy" android:textColor="@color/m3_on_surface_variant" android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
     </ScrollView>

@@ -306,4 +306,7 @@
     <string name="account_menu">Account options</string>
     <string name="budget_currency_locked">Currency is fixed for this budget.</string>
     <string name="budget_category_locked">Category is fixed for this budget.</string>
+    <string name="profile_ad_privacy">Ad privacy options</string>
+    <!-- Google's sample AdMob application ID. Replace with the real one before release (ADS.md). -->
+    <string name="admob_application_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
 </resources>

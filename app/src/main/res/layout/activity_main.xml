@@ -47,6 +47,9 @@
                 </LinearLayout>
                 <TextView android:textAppearance="@style/TextAppearance.App.Body" android:id="@+id/recent_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:background="@drawable/action_tile_background" android:padding="@dimen/space_16" android:text="@string/recent_activity_empty" android:textColor="@color/m3_on_surface_variant" />
                 <LinearLayout android:id="@+id/recent_transactions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:orientation="vertical" />
+    <!-- The scroll body is already inset by screen_h_padding; zero the slot's own gutter so
+         the ad lines up with the cards above it instead of sitting 48dp in. -->
+    <include layout="@layout/view_ad_slot" android:layout_marginStart="0dp" android:layout_marginEnd="0dp" />
             </LinearLayout>
        </LinearLayout>
       </LinearLayout>

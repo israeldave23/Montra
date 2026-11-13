@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.core.content.FileProvider
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
@@ -59,6 +60,11 @@ class ProfileActivity : AppActivity() {
         findViewById<TextView>(R.id.profile_export).setOnClickListener { exportTransactions() }
         findViewById<TextView>(R.id.profile_backup).setOnClickListener { backupDatabase() }
         findViewById<TextView>(R.id.profile_restore).setOnClickListener { restoreDatabase() }
+        // Only offered where a consent form exists; a setting that does nothing is a lie.
+        findViewById<TextView>(R.id.profile_privacy).apply {
+            setOnClickListener { Ads.showPrivacyOptions(this@ProfileActivity) }
+            visibility = if (Ads.privacyOptionsAvailable(this@ProfileActivity)) View.VISIBLE else View.GONE
+        }
         bindThemeSpinner()
         bindCurrencySpinner()
         render()
@@ -136,6 +142,7 @@ class ProfileActivity : AppActivity() {
     }
 
     private fun pickPhoto() {
+        Ads.suppressNextAppOpen()
         startActivityForResult(ProfileAvatar.pickIntent(), REQUEST_AVATAR)
     }
 
@@ -246,6 +253,7 @@ class ProfileActivity : AppActivity() {
             type = "application/octet-stream"
             putExtra(Intent.EXTRA_TITLE, DATABASE_NAME)
         }
+        Ads.suppressNextAppOpen()
         startActivityForResult(intent, REQUEST_BACKUP)
     }
 
@@ -254,6 +262,7 @@ class ProfileActivity : AppActivity() {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
         }
+        Ads.suppressNextAppOpen()
         startActivityForResult(intent, REQUEST_RESTORE)
     }
 
