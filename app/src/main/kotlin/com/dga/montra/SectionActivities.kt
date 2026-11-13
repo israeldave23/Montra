@@ -1,12 +1,9 @@
 package com.dga.montra
 
-import android.app.Activity
-import android.os.Bundle
-
+/**
+ * A screen reachable from the bottom navigation. It exists only to carry the selected tab; the
+ * window, theme and inset wiring lives in [AppActivity].
+ */
 abstract class SectionActivity(
     val tab: Int
-) : Activity() {
-    override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
-    }
-}
+) : AppActivity()

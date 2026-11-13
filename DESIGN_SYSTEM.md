@@ -62,6 +62,21 @@ hero, so each usage still sets `android:textColor` from an `m3_*` role.
 `Base.Theme.App` holds every theme role once. `Theme.App` exists twice — `values/` and `values-night/`
 — and carries **only** the four window items that genuinely differ, so the two files cannot drift.
 
+## Screen foundation — `AppActivity`
+
+Every screen extends `AppActivity`, which owns the three things that used to be copy-pasted:
+
+| Concern | Before | Now |
+| --- | --- | --- |
+| Night mode | a private `applyTheme()` in two activities | one implementation in `onCreate`, before the first frame |
+| Edge-to-edge | `android:fitsSystemWindows="true"` on 8 roots | real insets: status/cutout as screen padding, the bottom inset as padding on `bottom_navigation` so its surface still reaches the edge |
+| Bar icon polarity | theme items only | `WindowInsetsControllerCompat` follows the resolved scheme |
+| Toasts | 4 private helpers | one `toast(message, short = false)` |
+
+`settings` is a typed facade (`Settings` in `data/`), not a `SharedPreferences` lookup at the call site —
+`balanceHidden`, `themeMode`, `displayName`, `defaultCurrency` and the remembered form fields all have
+named accessors and documented defaults.
+
 ## Icons
 
 24dp vectors, viewport 24, two tones (a second path at ~0.5 alpha for depth), tinted at the call site.

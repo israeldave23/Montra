@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import com.dga.montra.data.Storage
 
 /**
  * One account: its real current balance (opening balance plus every transaction), its own activity,
@@ -31,9 +29,8 @@ import com.dga.montra.data.Storage
  * The balance here is the same number the home screen shows, because both read
  * [com.dga.montra.domain.accountBalances]; nothing is recomputed per screen.
  */
-class AccountDetailActivity : Activity() {
+class AccountDetailActivity : AppActivity() {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private val scope = MainScope()
 
     private lateinit var list: RecyclerView
@@ -122,7 +119,7 @@ class AccountDetailActivity : Activity() {
             return
         }
         current = balance
-        val hidden = settings.getBoolean("balance_hidden", false)
+        val hidden = settings.balanceHidden
         val account = balance.account
 
         nameView.text = account.name
@@ -292,7 +289,7 @@ class AccountDetailActivity : Activity() {
     private fun showMissingAccount() {
         if (reportedMissing || isFinishing || isDestroyed) return
         reportedMissing = true
-        Toast.makeText(this, R.string.account_not_found_body, Toast.LENGTH_LONG).show()
+        toast(R.string.account_not_found_body)
         finish()
     }
 

@@ -30,7 +30,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
-import com.dga.montra.data.Storage
 
 /**
  * Monthly spending plan: one limit per category, with the money actually spent counted from
@@ -40,7 +39,6 @@ import com.dga.montra.data.Storage
  */
 class BudgetActivity : SectionActivity(2) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private val scope = MainScope()
 
     private lateinit var list: RecyclerView
@@ -288,7 +286,7 @@ class BudgetActivity : SectionActivity(2) {
     }
 
     private fun defaultCurrency(): String {
-        val preferred = settings.getString("default_currency", Money.currencies.first())
+        val preferred = settings.defaultCurrency
         return if (preferred != null && preferred in Money.currencies) preferred else Money.currencies.first()
     }
 

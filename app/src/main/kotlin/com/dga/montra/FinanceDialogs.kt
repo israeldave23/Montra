@@ -3,7 +3,6 @@ package com.dga.montra
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
-import android.content.Context
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -13,7 +12,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import com.dga.montra.data.RoomFinanceRepository
-import com.dga.montra.data.Storage
+import com.dga.montra.data.Settings
 import com.dga.montra.domain.Account
 import com.dga.montra.domain.Category
 import com.dga.montra.domain.Money
@@ -39,8 +38,7 @@ import java.util.UUID
 internal object FinanceDialogs {
 
     private fun scope() = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private fun settings(activity: Activity) =
-        activity.getSharedPreferences(Storage.PREFS_SETTINGS, Context.MODE_PRIVATE)
+    private fun settings(activity: Activity) = Settings(activity)
 
     private fun toast(activity: Activity, message: Int) =
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
@@ -64,7 +62,7 @@ internal object FinanceDialogs {
             android.R.layout.simple_spinner_item,
             Money.currencies
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-        prefs.getString("last_currency", null)?.let { code ->
+        prefs.lastCurrency?.let { code ->
             currency.setSelection(Money.currencies.indexOf(code).coerceAtLeast(0))
         }
         val dialog = AlertDialog.Builder(activity)
@@ -93,7 +91,7 @@ internal object FinanceDialogs {
                                 Account(UUID.randomUUID().toString(), trimmedName, parsed)
                             )
                         }.onSuccess {
-                            prefs.edit().putString("last_currency", code).apply()
+                            prefs.rememberCurrency(code)
                             dialog.dismiss()
                             feedback(activity, R.string.account_added)
                             onSaved()
@@ -157,12 +155,12 @@ internal object FinanceDialogs {
             android.R.layout.simple_spinner_item,
             accounts.map { "${it.name} (${it.openingBalance.currencyCode})" }
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-        val preselected = preselectAccountId ?: prefs.getString("last_account", null)
+        val preselected = preselectAccountId ?: prefs.lastAccountId
         account.setSelection(
             accounts.indexOfFirst { it.id == preselected }.coerceAtLeast(0)
         )
 
-        val lastType = prefs.getString("last_type", TransactionType.EXPENSE.name)
+        val lastType = prefs.lastTransactionType
         form.selectType(
             when (lastType) {
                 TransactionType.INCOME.name -> TransactionType.INCOME
@@ -170,7 +168,7 @@ internal object FinanceDialogs {
                 else -> TransactionType.EXPENSE
             }
         )
-        prefs.getString("last_category", null)?.let { id ->
+        prefs.lastCategoryId?.let { id ->
             if (form.categories.any { it.id == id }) form.selectCategory(id)
         }
         type.adapter = ArrayAdapter(
@@ -291,11 +289,7 @@ internal object FinanceDialogs {
                             )
                         )
                     }.onSuccess {
-                        prefs.edit()
-                            .putString("last_account", selected.id)
-                            .putString("last_category", categoryId)
-                            .putString("last_type", transactionType.name)
-                            .apply()
+                        prefs.rememberTransactionForm(selected.id, categoryId, transactionType.name)
                         form.reset()
                         dialog.dismiss()
                         feedback(activity, R.string.transaction_saved)
@@ -350,7 +344,7 @@ internal object FinanceDialogs {
         toSpinner.adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_item, labels)
             .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        val preferred = preselectFromAccountId ?: prefs.getString("last_transfer_account", null)
+        val preferred = preselectFromAccountId ?: prefs.lastTransferAccountId
         fromSpinner.setSelection(accounts.indexOfFirst { it.id == preferred }.coerceAtLeast(0))
         toSpinner.setSelection((fromSpinner.selectedItemPosition + 1) % accounts.size)
 
@@ -392,7 +386,7 @@ internal object FinanceDialogs {
                     runCatching {
                         repository.transfer(from.id, to.id, parsed, note.text.toString().trim())
                     }.onSuccess {
-                        prefs.edit().putString("last_transfer_account", from.id).apply()
+                        prefs.lastTransferAccountId = from.id
                         dialog.dismiss()
                         feedback(activity, R.string.save_feedback_transfer)
                         onSaved()

@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
-import com.dga.montra.data.Storage
 
 /**
  * Savings goals: what you are putting money aside for, how far along you are, whether you are on
@@ -40,7 +39,6 @@ import com.dga.montra.data.Storage
  */
 class GoalsActivity : SectionActivity(3) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private val scope = MainScope()
 
     private lateinit var list: RecyclerView
@@ -475,7 +473,7 @@ class GoalsActivity : SectionActivity(3) {
     }
 
     private fun defaultCurrency(): String {
-        val preferred = settings.getString("default_currency", Money.currencies.first())
+        val preferred = settings.defaultCurrency
         return if (preferred != null && preferred in Money.currencies) preferred else Money.currencies.first()
     }
 

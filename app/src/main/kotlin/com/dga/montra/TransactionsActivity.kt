@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.snackbar.Snackbar
 import android.widget.Spinner
-import android.widget.Toast
 import android.widget.TextView
 import android.widget.Button
 import android.widget.AdapterView
@@ -27,7 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
 
-class TransactionsActivity : Activity() {
+class TransactionsActivity : AppActivity() {
     private val scope = MainScope()
     private lateinit var repository: RoomFinanceRepository
     private lateinit var list: RecyclerView
@@ -85,10 +84,10 @@ class TransactionsActivity : Activity() {
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show()
+                toast(R.string.storage_error)
                 return@launch
             }
-            repository.observeTransactions().catch { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }.collect { load(query.text.toString()) }
+            repository.observeTransactions().catch { toast(R.string.storage_error) }.collect { load(query.text.toString()) }
         }
     }
 
@@ -112,7 +111,7 @@ class TransactionsActivity : Activity() {
                         else showEditTransactionDialog(tx)
                     }, { tx -> confirmDelete(tx) })
                 }
-                .onFailure { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }
+                .onFailure { toast(R.string.storage_error) }
         }
     }
 
@@ -234,17 +233,13 @@ class TransactionsActivity : Activity() {
                         repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)
                     }.onSuccess {
                         dialog.dismiss()
-                        Toast.makeText(this@TransactionsActivity, R.string.transaction_updated, Toast.LENGTH_SHORT).show()
+                        toast(R.string.transaction_updated, short = true)
                         load(query.text.toString())
                     }.onFailure { toast(R.string.transaction_error) }
                 }
             }
         }
         dialog.show()
-    }
-
-    private fun toast(message: Int) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     private fun deleteWithUndo(tx: Transaction) {

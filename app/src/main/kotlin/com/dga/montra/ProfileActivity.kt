@@ -3,7 +3,6 @@ package com.dga.montra
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -13,7 +12,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
@@ -33,9 +31,7 @@ import java.util.Locale
 import kotlin.io.path.copyTo
 import com.dga.montra.data.Storage
 
-class ProfileActivity : Activity() {
-    private val prefs by lazy { getSharedPreferences(Storage.PREFS_PROFILE, MODE_PRIVATE) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
+class ProfileActivity : AppActivity() {
     private val scope = MainScope()
     private lateinit var avatar: TextView
     private lateinit var avatarImage: ImageView
@@ -46,7 +42,6 @@ class ProfileActivity : Activity() {
     private lateinit var currencySpinner: Spinner
 
     override fun onCreate(state: Bundle?) {
-        applyTheme()
         super.onCreate(state)
         setContentView(R.layout.activity_profile)
         avatar = findViewById(R.id.profile_avatar)
@@ -91,33 +86,18 @@ class ProfileActivity : Activity() {
         }
     }
 
-    private fun applyTheme() {
-        val mode = settings.getInt("theme_mode", 0)
-        val cur = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val target = when (mode) {
-            1 -> Configuration.UI_MODE_NIGHT_NO
-            2 -> Configuration.UI_MODE_NIGHT_YES
-            else -> cur
-        }
-        if (target != cur) {
-            val config = Configuration(resources.configuration)
-            config.uiMode = target
-            resources.updateConfiguration(config, resources.displayMetrics)
-        }
-    }
-
     private fun bindThemeSpinner() {
         val entries = arrayOf(R.string.profile_theme_system, R.string.profile_theme_light, R.string.profile_theme_dark)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, entries.map { getString(it) }.toTypedArray())
         themeSpinner.adapter = adapter
-        val saved = settings.getInt("theme_mode", 0).coerceIn(0, 2)
+        val saved = settings.themeMode
         themeSpinner.setSelection(saved)
         themeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val current = settings.getInt("theme_mode", 0)
+                val current = settings.themeMode
                 if (position != current) {
-                    settings.edit().putInt("theme_mode", position).apply()
-                    applyTheme()
+                    settings.themeMode = position
+                    // The base class applies the scheme in onCreate, so a recreate is the switch.
                     recreate()
                 }
             }
@@ -128,20 +108,20 @@ class ProfileActivity : Activity() {
     private fun bindCurrencySpinner() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, Money.currencies.toTypedArray())
         currencySpinner.adapter = adapter
-        val savedCode = settings.getString("default_currency", "PHP")
+        val savedCode = settings.defaultCurrency
         val savedIndex = Money.currencies.indexOf(savedCode).coerceAtLeast(0)
         currencySpinner.setSelection(savedIndex)
         currencySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val code = Money.currencies[position]
-                settings.edit().putString("default_currency", code).putString("last_currency", code).apply()
+                settings.rememberCurrency(code)
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
     private fun render() {
-        val name = prefs.getString(KEY_NAME, "")?.trim().orEmpty()
+        val name = settings.displayName
         nameView.text = if (name.isEmpty()) getString(R.string.profile_default_name) else name
         avatar.text = initials(name)
         ProfileAvatar.bind(
@@ -191,7 +171,7 @@ class ProfileActivity : Activity() {
     private fun editName() {
         val input = layoutInflater.inflate(R.layout.dialog_edit_profile, null)
         val field = input.findViewById<EditText>(R.id.profile_name_input)
-        field.setText(prefs.getString(KEY_NAME, ""))
+        field.setText(settings.displayName)
         field.setSelection(field.length())
         val dialog = AlertDialog.Builder(this).setTitle(R.string.profile_edit_title).setView(input)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
@@ -202,7 +182,7 @@ class ProfileActivity : Activity() {
                     value.isEmpty() -> field.error = getString(R.string.profile_name_required)
                     value.length > 50 -> field.error = getString(R.string.profile_name_too_long)
                     value.any { it.isISOControl() } -> field.error = getString(R.string.profile_name_invalid)
-                    !prefs.edit().putString(KEY_NAME, value).commit() -> field.error = getString(R.string.profile_save_error)
+                    !settings.tryDisplayName(value) -> field.error = getString(R.string.profile_save_error)
                     else -> { dialog.dismiss(); render() }
                 }
             }
@@ -296,8 +276,6 @@ class ProfileActivity : Activity() {
         runOnUiThread { toast(R.string.profile_restore_success) }
     }
 
-    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
-
     private fun initials(name: String): String =
         ProfileAvatar.initialsFor(name, getString(R.string.app_name).take(1).uppercase())
 
@@ -307,6 +285,5 @@ class ProfileActivity : Activity() {
         private const val REQUEST_AVATAR = 1003
         private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
         private const val DATABASE_NAME = Storage.DATABASE
-        private const val KEY_NAME = "display_name"
     }
 }
