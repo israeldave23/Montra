@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.domain.BudgetProgress
 import com.dga.montra.domain.BudgetState
@@ -18,7 +20,7 @@ import com.dga.montra.domain.Money
  */
 class BudgetAdapter(
     private val onMenu: (BudgetProgress, View) -> Unit
-) : RecyclerView.Adapter<BudgetAdapter.Holder>() {
+) : ListAdapter<BudgetProgress, BudgetAdapter.Holder>(BudgetDiff) {
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val icon: android.widget.ImageView = view.findViewById(R.id.budget_row_icon)
@@ -27,23 +29,14 @@ class BudgetAdapter(
         val amount: TextView = view.findViewById(R.id.budget_row_amount)
         val meta: TextView = view.findViewById(R.id.budget_row_meta)
         val progress: ProgressBar = view.findViewById(R.id.budget_row_progress)
-        val menu: TextView = view.findViewById(R.id.budget_row_menu)
+        val menu: View = view.findViewById(R.id.budget_row_menu)
     }
-
-    private var items: List<BudgetProgress> = emptyList()
-
-    fun submit(budgets: List<BudgetProgress>) {
-        items = budgets
-        notifyDataSetChanged()
-    }
-
-    override fun getItemCount(): Int = items.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         Holder(LayoutInflater.from(parent.context).inflate(R.layout.item_budget_row, parent, false))
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        val item = items[position]
+        val item = getItem(position)
         val context = holder.itemView.context
         val state = item.state
         val stateLabel = context.getString(state.labelRes())
@@ -81,6 +74,15 @@ class BudgetAdapter(
         holder.itemView.setOnClickListener { onMenu(item, holder.menu) }
         holder.menu.setOnClickListener { onMenu(item, holder.menu) }
     }
+}
+
+/** Identity is the budget row; contents cover the month's progress, so a new spend animates. */
+private object BudgetDiff : DiffUtil.ItemCallback<BudgetProgress>() {
+    override fun areItemsTheSame(oldItem: BudgetProgress, newItem: BudgetProgress): Boolean =
+        oldItem.budget.id == newItem.budget.id
+
+    override fun areContentsTheSame(oldItem: BudgetProgress, newItem: BudgetProgress): Boolean =
+        oldItem == newItem
 }
 
 private fun metaText(context: Context, item: BudgetProgress, percent: Int): String {

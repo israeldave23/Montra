@@ -21,6 +21,7 @@ internal object Storage {
     const val PREFS_ACCOUNTS = "montra_accounts"
     const val PREFS_TRANSACTIONS = "montra_tx"
     const val PREFS_MIGRATION = "montra_migration"
+    const val PREFS_ADS = "montra_ads"
 
     private const val LEGACY_DATABASE = "lumen_finance.db"
 

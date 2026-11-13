@@ -21,8 +21,6 @@ import com.dga.montra.domain.TransactionCategories
 import com.dga.montra.domain.daysLeft
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -30,7 +28,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
-import com.dga.montra.data.Storage
+import androidx.lifecycle.lifecycleScope
 
 /**
  * Monthly spending plan: one limit per category, with the money actually spent counted from
@@ -40,8 +38,6 @@ import com.dga.montra.data.Storage
  */
 class BudgetActivity : SectionActivity(2) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
-    private val scope = MainScope()
 
     private lateinit var list: RecyclerView
     private lateinit var emptyView: View
@@ -82,7 +78,7 @@ class BudgetActivity : SectionActivity(2) {
         super.onStart()
         month = YearMonth.now()
         renderMonthLabel()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             repo.observeBudgets(month)
                 .catch { snackbar(R.string.storage_error) }
                 .collect { render(it) }
@@ -94,14 +90,9 @@ class BudgetActivity : SectionActivity(2) {
         super.onStop()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
     private fun render(items: List<BudgetProgress>) {
         budgets = BudgetOrdering.sorted(items)
-        adapter.submit(budgets)
+        adapter.submitList(budgets)
         val empty = budgets.isEmpty()
         list.visibility = if (empty) View.GONE else View.VISIBLE
         emptyView.visibility = if (empty) View.VISIBLE else View.GONE
@@ -234,7 +225,7 @@ class BudgetActivity : SectionActivity(2) {
                     return@setOnClickListener
                 }
                 confirm.isEnabled = false
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching {
                         if (existing == null) repo.createBudget(month, categoryId, limit)
                         else repo.updateBudget(existing.id, limit)
@@ -273,11 +264,11 @@ class BudgetActivity : SectionActivity(2) {
     }
 
     private fun deleteBudget(budget: Budget) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.deleteBudget(budget.id) }
                 .onSuccess {
                     snackbarWithUndo(getString(R.string.budget_deleted)) {
-                        scope.launch {
+                        lifecycleScope.launch {
                             runCatching { repo.restoreBudget(budget) }
                                 .onFailure { snackbar(R.string.planning_error) }
                         }
@@ -288,7 +279,7 @@ class BudgetActivity : SectionActivity(2) {
     }
 
     private fun defaultCurrency(): String {
-        val preferred = settings.getString("default_currency", Money.currencies.first())
+        val preferred = settings.defaultCurrency
         return if (preferred != null && preferred in Money.currencies) preferred else Money.currencies.first()
     }
 

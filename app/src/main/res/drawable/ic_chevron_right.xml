@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Next month chevron. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/icon_size"
+    android:height="@dimen/icon_size"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M8.6,4.6 L6.2,7 L12.6,12 L6.2,17 L8.6,19.4 L17.4,12 Z"
+        android:fillColor="#FF000000" />
+</vector>

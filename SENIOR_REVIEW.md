@@ -17,7 +17,7 @@ Biggest single risk, and it is not UI: **the database has four schema versions a
 
 ### 1. No migration tests, and no CI to run anything
 `FinanceDatabase` is `version = 4` with `MIGRATION_1_2`, `2_3`, `3_4` (`db/Migrations.kt`), 49 unit tests, and **no `androidTest` source set exists** — so no `MigrationTestHelper`, no Room DAO test, no instrumentation test. There is also no `.github/workflows`, so nothing verifies a push. A broken migration silently destroys the only copy of someone's ledger.
-→ Add `androidTest` with `MigrationTestHelper` for 1→2→3→4, a DAO round-trip test on an in-memory DB, and a CI job (`assembleDebug`, `testDebugUnitTest`, `lintDebug`, `connectedCheck` on a managed device for the migration tests). Given `module.toml` is a custom harness rather than Gradle, I'd extract a real Gradle build first — you cannot run lint, R8 or instrumentation without one.
+→ Add `androidTest` with `MigrationTestHelper` for 1→2→3→4, a DAO round-trip test on an in-memory DB, and a CI job (`assembleDebug`, `testDebugUnitTest`, `lintDebug`, `connectedCheck` on a managed device for the migration tests). Given `module.toml` is a custom harness rather than Gradle, I'd extract a real Gradle build first — you cannot run lint, R8 or instrumentation without one. Until then, `tools/check_resources.py` and `tools/check_ui_tokens.py` are the only gates, and they are static (see `tools/README.md`).
 
 ### 2. Restore overwrites the live database file
 `ProfileActivity:294` copies a picked file straight onto `getDatabasePath("lumen_finance.db")` while Room holds it open, with no validation of what was copied. A wrong file, a truncated copy, or a file from a different schema leaves the app in a state it cannot open.

@@ -12,14 +12,14 @@
 
     <ImageView
         android:id="@+id/budget_row_icon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/icon_badge_size"
+        android:layout_height="@dimen/icon_badge_size"
         android:layout_marginEnd="@dimen/space_12"
         android:background="@drawable/icon_badge_background"
         android:contentDescription="@null"
         android:importantForAccessibility="no"
         android:padding="@dimen/space_8"
-        android:tint="@color/m3_on_secondary_container" />
+        style="@style/Widget.App.Icon.OnBadge" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -33,18 +33,16 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Subtitle"
                 android:id="@+id/budget_row_category"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/m3_on_surface"
-                android:textSize="@dimen/text_16"
-                android:textStyle="bold" />
+                android:textColor="@color/m3_on_surface" />
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
                 android:id="@+id/budget_row_state"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -53,24 +51,21 @@
                 android:paddingStart="@dimen/space_8"
                 android:paddingTop="@dimen/space_4"
                 android:paddingEnd="@dimen/space_8"
-                android:paddingBottom="@dimen/space_4"
-                android:textSize="@dimen/text_12"
-                android:textStyle="bold" />
+                android:paddingBottom="@dimen/space_4" />
         </LinearLayout>
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/budget_row_amount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_14" />
+            android:textColor="@color/m3_on_surface" />
 
         <ProgressBar
             android:id="@+id/budget_row_progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
+            android:layout_height="@dimen/progress_thickness"
             android:layout_marginTop="@dimen/space_8"
             android:max="100"
             android:progress="0" />
@@ -82,15 +77,14 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Meta"
                 android:id="@+id/budget_row_meta"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="@color/m3_on_surface_variant"
-                android:textSize="@dimen/text_12" />
+                android:textColor="@color/m3_on_surface_variant" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/budget_row_menu"
                 android:layout_width="@dimen/touch_target"
                 android:layout_height="@dimen/touch_target"
@@ -98,10 +92,10 @@
                 android:clickable="true"
                 android:contentDescription="@string/budget_more_actions"
                 android:focusable="true"
-                android:gravity="center"
-                android:text="⋮"
-                android:textColor="@color/m3_on_surface_variant"
-                android:textSize="@dimen/text_20" />
+                android:padding="@dimen/space_12"
+                android:src="@drawable/ic_more_vert"
+                android:scaleType="fitCenter"
+                style="@style/Widget.App.Icon" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 /** Display-ready content for one currency card on the Insights screen. */
@@ -33,19 +35,10 @@ internal data class InsightCategoryRow(
  * Renders the monthly insight as a currency card followed by that currency's category bars, so
  * amounts from different currencies are never added together or shown under one total.
  */
-class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    private var rows: List<Any> = emptyList()
-
-    fun submit(items: List<Any>) {
-        rows = items
-        notifyDataSetChanged()
-    }
-
-    override fun getItemCount(): Int = rows.size
+class InsightAdapter : ListAdapter<Any, RecyclerView.ViewHolder>(Diff) {
 
     override fun getItemViewType(position: Int): Int =
-        if (rows[position] is InsightSummaryRow) TYPE_SUMMARY else TYPE_CATEGORY
+        if (getItem(position) is InsightSummaryRow) TYPE_SUMMARY else TYPE_CATEGORY
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -57,7 +50,7 @@ class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (val row = rows[position]) {
+        when (val row = getItem(position)) {
             is InsightSummaryRow -> (holder as SummaryHolder).bind(row)
             is InsightCategoryRow -> (holder as CategoryHolder).bind(row)
         }
@@ -112,4 +105,20 @@ class InsightAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         const val TYPE_SUMMARY = 0
         const val TYPE_CATEGORY = 1
     }
+}
+
+/**
+ * A currency card and its category bars are different rows with different identity, so the diff has
+ * to look at the row type before comparing ids.
+ */
+private object Diff : DiffUtil.ItemCallback<Any>() {
+    override fun areItemsTheSame(oldItem: Any, newItem: Any): Boolean = when {
+        oldItem is InsightSummaryRow && newItem is InsightSummaryRow ->
+            oldItem.currencyCode == newItem.currencyCode
+        oldItem is InsightCategoryRow && newItem is InsightCategoryRow ->
+            oldItem.categoryId == newItem.categoryId
+        else -> false
+    }
+
+    override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem == newItem
 }

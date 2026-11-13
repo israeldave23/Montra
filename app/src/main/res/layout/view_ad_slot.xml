@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One ad slot, used by every screen that shows a banner.
+
+  It is GONE by default, so a build without ads has no reserved hole. Ads.attachBanner() flips it to
+  INVISIBLE while a request is in flight — the height is already reserved, so a fill never moves the
+  content around it — and to VISIBLE only once a creative is on screen.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ad_slot"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ad_banner_height"
+    android:layout_marginStart="@dimen/screen_h_padding"
+    android:layout_marginEnd="@dimen/screen_h_padding"
+    android:layout_marginTop="@dimen/ad_slot_gap"
+    android:layout_marginBottom="@dimen/ad_slot_gap"
+    android:visibility="gone" />

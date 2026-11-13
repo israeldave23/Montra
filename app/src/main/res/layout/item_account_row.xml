@@ -11,16 +11,14 @@
     android:orientation="horizontal"
     android:padding="@dimen/space_16">
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Initial"
         android:id="@+id/account_row_initial"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/touch_target"
+        android:layout_height="@dimen/touch_target"
         android:layout_marginEnd="@dimen/space_12"
         android:background="@drawable/avatar_background"
         android:gravity="center"
-        android:textColor="@color/m3_on_primary"
-        android:textSize="@dimen/text_16"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_on_primary" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -34,18 +32,16 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Subtitle"
                 android:id="@+id/account_row_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/m3_on_surface"
-                android:textSize="@dimen/text_16"
-                android:textStyle="bold" />
+                android:textColor="@color/m3_on_surface" />
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
                 android:id="@+id/account_row_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -58,29 +54,24 @@
                 android:paddingBottom="@dimen/space_4"
                 android:text="@string/account_archived"
                 android:textColor="@color/m3_on_primary"
-                android:textSize="@dimen/text_12"
-                android:textStyle="bold"
                 android:visibility="gone" />
         </LinearLayout>
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/account_row_meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_4"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
     </LinearLayout>
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Subtitle"
         android:id="@+id/account_row_balance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_12"
         android:gravity="end"
-        android:textColor="@color/m3_on_surface"
-        android:textSize="@dimen/text_16"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_on_surface" />
 </LinearLayout>

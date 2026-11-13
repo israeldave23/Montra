@@ -1,5 +1,7 @@
 # Montra theming: Material 3 palette and icons
 
+Type, spacing, shape, components and icons are documented in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
+
 The UI runs on a Material 3 colour system instead of ad-hoc constants. Every colour is a role in
 `values/colors.xml`, mirrored for `values-night/colors.xml`, and every screen reads a role directly —
 there are no aliases left, so a colour name means exactly one thing. `tools/check_ui_tokens.py` stays

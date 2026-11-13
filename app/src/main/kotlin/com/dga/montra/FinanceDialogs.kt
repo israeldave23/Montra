@@ -1,9 +1,8 @@
 package com.dga.montra
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
-import android.content.Context
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -12,23 +11,22 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
-import com.dga.montra.data.Storage
+import com.dga.montra.data.Settings
 import com.dga.montra.domain.Account
 import com.dga.montra.domain.Category
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import androidx.lifecycle.lifecycleScope
 
 /**
  * The three dialogs that create money: an account, a transaction, a transfer.
@@ -38,14 +36,12 @@ import java.util.UUID
  */
 internal object FinanceDialogs {
 
-    private fun scope() = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private fun settings(activity: Activity) =
-        activity.getSharedPreferences(Storage.PREFS_SETTINGS, Context.MODE_PRIVATE)
+    private fun settings(activity: ComponentActivity) = Settings(activity)
 
-    private fun toast(activity: Activity, message: Int) =
+    private fun toast(activity: ComponentActivity, message: Int) =
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
 
-    private fun feedback(activity: Activity, message: Int) = Snackbar.make(
+    private fun feedback(activity: ComponentActivity, message: Int) = Snackbar.make(
         activity.findViewById(android.R.id.content),
         message,
         Snackbar.LENGTH_SHORT
@@ -53,7 +49,7 @@ internal object FinanceDialogs {
 
     // ---------------------------------------------------------------- accounts
 
-    fun addAccount(activity: Activity, repository: RoomFinanceRepository, onSaved: () -> Unit = {}) {
+    fun addAccount(activity: ComponentActivity, repository: RoomFinanceRepository, onSaved: () -> Unit = {}) {
         val content = activity.layoutInflater.inflate(R.layout.dialog_add_account, null)
         val name = content.findViewById<EditText>(R.id.account_name)
         val amount = content.findViewById<EditText>(R.id.opening_balance)
@@ -64,7 +60,7 @@ internal object FinanceDialogs {
             android.R.layout.simple_spinner_item,
             Money.currencies
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-        prefs.getString("last_currency", null)?.let { code ->
+        prefs.lastCurrency?.let { code ->
             currency.setSelection(Money.currencies.indexOf(code).coerceAtLeast(0))
         }
         val dialog = AlertDialog.Builder(activity)
@@ -87,13 +83,13 @@ internal object FinanceDialogs {
                         name.error = activity.getString(R.string.account_name_too_long)
                     parsed == null || parsed.minorUnits < 0L ->
                         amount.error = activity.getString(R.string.opening_balance_invalid)
-                    else -> scope().launch {
+                    else -> activity.lifecycleScope.launch {
                         runCatching {
                             repository.addAccount(
                                 Account(UUID.randomUUID().toString(), trimmedName, parsed)
                             )
                         }.onSuccess {
-                            prefs.edit().putString("last_currency", code).apply()
+                            prefs.rememberCurrency(code)
                             dialog.dismiss()
                             feedback(activity, R.string.account_added)
                             onSaved()
@@ -110,12 +106,12 @@ internal object FinanceDialogs {
     // ------------------------------------------------------------ transactions
 
     fun addTransaction(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         preselectAccountId: String? = null,
         onSaved: () -> Unit = {}
     ) {
-        scope().launch {
+        activity.lifecycleScope.launch {
             val accounts = runCatching { repository.allAccounts() }
                 .getOrElse { toast(activity, R.string.storage_error); return@launch }
                 .filterNot { it.isArchived }
@@ -128,7 +124,7 @@ internal object FinanceDialogs {
     }
 
     private fun showTransaction(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         accounts: List<Account>,
         preselectAccountId: String?,
@@ -157,12 +153,12 @@ internal object FinanceDialogs {
             android.R.layout.simple_spinner_item,
             accounts.map { "${it.name} (${it.openingBalance.currencyCode})" }
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-        val preselected = preselectAccountId ?: prefs.getString("last_account", null)
+        val preselected = preselectAccountId ?: prefs.lastAccountId
         account.setSelection(
             accounts.indexOfFirst { it.id == preselected }.coerceAtLeast(0)
         )
 
-        val lastType = prefs.getString("last_type", TransactionType.EXPENSE.name)
+        val lastType = prefs.lastTransactionType
         form.selectType(
             when (lastType) {
                 TransactionType.INCOME.name -> TransactionType.INCOME
@@ -170,7 +166,7 @@ internal object FinanceDialogs {
                 else -> TransactionType.EXPENSE
             }
         )
-        prefs.getString("last_category", null)?.let { id ->
+        prefs.lastCategoryId?.let { id ->
             if (form.categories.any { it.id == id }) form.selectCategory(id)
         }
         type.adapter = ArrayAdapter(
@@ -278,7 +274,7 @@ internal object FinanceDialogs {
                 val transactionType = form.type
                 val categoryId = form.categoryId
                 confirm.isEnabled = false
-                scope().launch {
+                activity.lifecycleScope.launch {
                     runCatching {
                         repository.addTransaction(
                             Transaction(
@@ -291,15 +287,13 @@ internal object FinanceDialogs {
                             )
                         )
                     }.onSuccess {
-                        prefs.edit()
-                            .putString("last_account", selected.id)
-                            .putString("last_category", categoryId)
-                            .putString("last_type", transactionType.name)
-                            .apply()
+                        prefs.rememberTransactionForm(selected.id, categoryId, transactionType.name)
                         form.reset()
                         dialog.dismiss()
                         feedback(activity, R.string.transaction_saved)
                         onSaved()
+                        // Earned, not timed: the ad follows a completed save, never a tap.
+                        Ads.onTransactionSaved(activity)
                     }.onFailure {
                         confirm.isEnabled = true
                         toast(activity, R.string.transaction_error)
@@ -313,12 +307,12 @@ internal object FinanceDialogs {
     // --------------------------------------------------------------- transfers
 
     fun transfer(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         preselectFromAccountId: String? = null,
         onSaved: () -> Unit = {}
     ) {
-        scope().launch {
+        activity.lifecycleScope.launch {
             val accounts = runCatching { repository.allAccounts() }
                 .getOrElse { toast(activity, R.string.storage_error); return@launch }
                 .filterNot { it.isArchived }
@@ -331,7 +325,7 @@ internal object FinanceDialogs {
     }
 
     private fun showTransfer(
-        activity: Activity,
+        activity: ComponentActivity,
         repository: RoomFinanceRepository,
         accounts: List<Account>,
         preselectFromAccountId: String?,
@@ -350,7 +344,7 @@ internal object FinanceDialogs {
         toSpinner.adapter = ArrayAdapter(activity, android.R.layout.simple_spinner_item, labels)
             .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        val preferred = preselectFromAccountId ?: prefs.getString("last_transfer_account", null)
+        val preferred = preselectFromAccountId ?: prefs.lastTransferAccountId
         fromSpinner.setSelection(accounts.indexOfFirst { it.id == preferred }.coerceAtLeast(0))
         toSpinner.setSelection((fromSpinner.selectedItemPosition + 1) % accounts.size)
 
@@ -388,11 +382,11 @@ internal object FinanceDialogs {
                     return@setOnClickListener
                 }
                 confirm.isEnabled = false
-                scope().launch {
+                activity.lifecycleScope.launch {
                     runCatching {
                         repository.transfer(from.id, to.id, parsed, note.text.toString().trim())
                     }.onSuccess {
-                        prefs.edit().putString("last_transfer_account", from.id).apply()
+                        prefs.lastTransferAccountId = from.id
                         dialog.dismiss()
                         feedback(activity, R.string.save_feedback_transfer)
                         onSaved()

@@ -5,20 +5,20 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.CurrencyInsight
 import com.dga.montra.domain.MonthlyInsight
 import com.dga.montra.domain.Money
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
 
 /**
  * Monthly insight: where the money went, how it compares with last month, and what the pace implies
@@ -29,14 +29,13 @@ import java.util.Locale
  */
 class InsightsActivity : SectionActivity(4) {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val scope = MainScope()
 
     private lateinit var list: RecyclerView
     private lateinit var emptyView: View
     private lateinit var emptyTitle: TextView
     private lateinit var monthLabel: TextView
-    private lateinit var previousButton: TextView
-    private lateinit var nextButton: TextView
+    private lateinit var previousButton: View
+    private lateinit var nextButton: View
     private lateinit var adapter: InsightAdapter
 
     private var month: YearMonth = YearMonth.now()
@@ -45,6 +44,7 @@ class InsightsActivity : SectionActivity(4) {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_insights)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
         findViewById<TextView>(R.id.insights_title).setText(R.string.insights_title)
         findViewById<TextView>(R.id.insights_subtitle).setText(R.string.insights_subtitle)
 
@@ -77,11 +77,6 @@ class InsightsActivity : SectionActivity(4) {
         super.onStop()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
     private fun shiftMonth(months: Long) {
         val target = month.plusMonths(months)
         if (target > YearMonth.now()) return
@@ -92,7 +87,7 @@ class InsightsActivity : SectionActivity(4) {
 
     private fun observe() {
         observation?.cancel()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             repo.observeInsight(month)
                 .catch { snackbar(R.string.storage_error) }
                 .collect { render(it) }
@@ -108,7 +103,7 @@ class InsightsActivity : SectionActivity(4) {
 
     private fun render(insight: MonthlyInsight) {
         val rows = buildRows(insight)
-        adapter.submit(rows)
+        adapter.submitList(rows)
         val empty = rows.isEmpty()
         list.visibility = if (empty) View.GONE else View.VISIBLE
         emptyView.visibility = if (empty) View.VISIBLE else View.GONE

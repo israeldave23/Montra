@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Material 3 theme with an explicit role map. The UI is plain Views, so the roles are applied by
-      referencing these attributes (and the matching colours) from layouts and drawables.
+      Everything scheme-independent lives here. values-night themes.xml only re-declares Theme.App with
+      the handful of items that actually differ, so the two files cannot drift apart the way two full
+      copies of a theme do.
     -->
-    <style name="Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowBackground">@color/m3_background</item>
+        <item name="android:windowAnimationStyle">@style/AppWindowAnimation</item>
 
         <item name="colorPrimary">@color/m3_primary</item>
         <item name="colorOnPrimary">@color/m3_on_primary</item>
@@ -35,18 +37,20 @@
         <item name="colorSurfaceInverse">@color/m3_inverse_surface</item>
         <item name="colorOnSurfaceInverse">@color/m3_inverse_on_surface</item>
 
-        <!-- Legacy attributes still read by platform widgets. -->
+        <!-- Platform attributes still read by framework widgets. -->
         <item name="android:colorPrimary">@color/m3_primary</item>
         <item name="android:colorAccent">@color/m3_primary</item>
         <item name="android:textColorPrimary">@color/m3_on_surface</item>
         <item name="android:textColorSecondary">@color/m3_on_surface_variant</item>
-
-        <item name="android:windowLightStatusBar">true</item>
         <item name="android:statusBarColor">@color/m3_background</item>
         <item name="android:navigationBarColor">@color/m3_surface</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:windowAnimationStyle">@style/AppWindowAnimation</item>
     </style>
+
+    <style name="Theme.App" parent="Base.Theme.App">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
     <style name="AppWindowAnimation">
         <item name="android:activityOpenEnterAnimation">@anim/activity_enter</item>
         <item name="android:activityOpenExitAnimation">@anim/activity_exit</item>
@@ -58,20 +62,5 @@
         <item name="android:taskCloseExitAnimation">@anim/activity_exit</item>
         <item name="android:windowEnterAnimation">@anim/activity_enter</item>
         <item name="android:windowExitAnimation">@anim/activity_exit</item>
-    </style>
-    <style name="BottomNavigationItem">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">60dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_margin">3dp</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/m3_on_surface_variant</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:drawablePadding">@dimen/space_4</item>
-        <item name="android:clickable">true</item>
-        <item name="android:focusable">true</item>
-        <item name="android:minWidth">48dp</item>
-        <item name="android:minHeight">48dp</item>
     </style>
 </resources>

@@ -12,16 +12,14 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Title"
             android:id="@+id/goal_detail_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_20"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
             android:id="@+id/goal_detail_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,46 +28,41 @@
             android:paddingStart="@dimen/space_8"
             android:paddingTop="@dimen/space_4"
             android:paddingEnd="@dimen/space_8"
-            android:paddingBottom="@dimen/space_4"
-            android:textSize="@dimen/text_12"
-            android:textStyle="bold" />
+            android:paddingBottom="@dimen/space_4" />
     </LinearLayout>
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.BodyLarge"
         android:id="@+id/goal_detail_amounts"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
-        android:textColor="@color/m3_on_surface"
-        android:textSize="@dimen/text_16" />
+        android:textColor="@color/m3_on_surface" />
 
     <ProgressBar
         android:id="@+id/goal_detail_progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="6dp"
+        android:layout_height="@dimen/progress_thickness"
         android:layout_marginTop="@dimen/space_12"
         android:max="100"
         android:progress="0" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:id="@+id/goal_detail_meta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_8"
-        android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12" />
+        android:textColor="@color/m3_on_surface_variant" />
 
-    <TextView
+    <TextView android:textAppearance="@style/TextAppearance.App.Meta"
         android:id="@+id/goal_detail_plan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_4"
         android:textColor="@color/m3_on_surface_variant"
-        android:textSize="@dimen/text_12"
         android:visibility="gone" />
 
-    <Button
+    <Button android:textAppearance="@style/TextAppearance.App.Label"
         android:id="@+id/goal_detail_add_funds"
         android:layout_width="match_parent"
         android:layout_height="@dimen/touch_target"
@@ -77,9 +70,7 @@
         android:background="@drawable/primary_button_ripple"
         android:text="@string/add_funds"
         android:textAllCaps="false"
-        android:textColor="@color/m3_on_primary"
-        android:textSize="@dimen/text_14"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_on_primary" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -87,7 +78,7 @@
         android:layout_marginTop="@dimen/space_4"
         android:orientation="horizontal">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/goal_detail_withdraw"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -97,10 +88,9 @@
             android:focusable="true"
             android:gravity="center"
             android:text="@string/goal_withdraw"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_14" />
+            android:textColor="@color/m3_primary" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/goal_detail_edit"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -110,10 +100,9 @@
             android:focusable="true"
             android:gravity="center"
             android:text="@string/edit"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_14" />
+            android:textColor="@color/m3_primary" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/goal_detail_delete"
             android:layout_width="0dp"
             android:layout_height="@dimen/touch_target"
@@ -123,7 +112,6 @@
             android:focusable="true"
             android:gravity="center"
             android:text="@string/delete"
-            android:textColor="@color/m3_negative"
-            android:textSize="@dimen/text_14" />
+            android:textColor="@color/m3_negative" />
     </LinearLayout>
 </LinearLayout>

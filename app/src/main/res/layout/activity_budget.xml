@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/m3_background"
-    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <LinearLayout
@@ -14,30 +13,25 @@
         android:paddingTop="@dimen/space_32"
         android:paddingEnd="@dimen/screen_h_padding">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Headline"
             android:id="@+id/budget_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_24"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Body"
             android:id="@+id/budget_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_14" />
+            android:textColor="@color/m3_on_surface_variant" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.LabelSmall"
             android:id="@+id/budget_month"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
-            android:textColor="@color/m3_primary"
-            android:textSize="@dimen/text_12"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_primary" />
     </LinearLayout>
 
     <LinearLayout
@@ -51,29 +45,25 @@
         android:orientation="vertical"
         android:padding="@dimen/card_padding">
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/budget_summary_label"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Headline"
             android:id="@+id/budget_summary_amount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_4"
-            android:textColor="@color/m3_on_surface"
-            android:textSize="@dimen/text_24"
-            android:textStyle="bold" />
+            android:textColor="@color/m3_on_surface" />
 
-        <TextView
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta"
             android:id="@+id/budget_summary_detail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_4"
-            android:textColor="@color/m3_on_surface_variant"
-            android:textSize="@dimen/text_12" />
+            android:textColor="@color/m3_on_surface_variant" />
     </LinearLayout>
 
     <FrameLayout
@@ -103,26 +93,24 @@
             android:paddingEnd="@dimen/screen_h_padding"
             android:visibility="gone">
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="@string/budget_body"
-                android:textColor="@color/m3_on_surface_variant"
-                android:textSize="@dimen/text_14" />
+                android:textColor="@color/m3_on_surface_variant" />
 
-            <TextView
+            <TextView android:textAppearance="@style/TextAppearance.App.Meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_8"
                 android:gravity="center"
                 android:text="@string/budget_empty_hint"
-                android:textColor="@color/m3_on_surface_variant"
-                android:textSize="@dimen/text_12" />
+                android:textColor="@color/m3_on_surface_variant" />
         </LinearLayout>
     </FrameLayout>
 
-    <Button
+    <Button android:textAppearance="@style/TextAppearance.App.Label"
         android:id="@+id/budget_action"
         android:layout_width="match_parent"
         android:layout_height="@dimen/touch_target"
@@ -133,9 +121,7 @@
         android:background="@drawable/primary_button_ripple"
         android:text="@string/budget_new_action"
         android:textAllCaps="false"
-        android:textColor="@color/m3_on_primary"
-        android:textSize="@dimen/text_14"
-        android:textStyle="bold" />
+        android:textColor="@color/m3_on_primary" />
 
     <include layout="@layout/view_bottom_navigation" />
 </LinearLayout>

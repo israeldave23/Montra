@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.content.Intent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -8,36 +7,26 @@ import kotlinx.coroutines.flow.catch
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import android.content.res.Configuration
-import android.widget.Toast
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.DashboardState
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import com.dga.montra.data.Storage
+import androidx.lifecycle.lifecycleScope
 
 
-class MainActivity : Activity() {
+class MainActivity : AppActivity() {
     private var latestDashboard: DashboardState? = null
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
     private lateinit var repository: RoomFinanceRepository
-    private val scope = MainScope()
     private var dashboardJob: Job? = null
     private lateinit var balanceView: TextView
     private lateinit var summaryView: TextView
 
-    override fun onDestroy() {
-        scope.coroutineContext.cancel()
-        super.onDestroy()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        applyTheme()
         setContentView(R.layout.activity_main)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
         findViewById<android.view.View>(R.id.avatar_container).setOnClickListener {
             startActivity(
@@ -64,7 +53,7 @@ class MainActivity : Activity() {
             FinanceDialogs.addTransaction(this, repository)
         }
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).setOnClickListener {
-            settings.edit().putBoolean("balance_hidden", !settings.getBoolean("balance_hidden", false)).apply()
+            settings.balanceHidden = !settings.balanceHidden
             latestDashboard?.let { render(it) }
         }
         refreshProfileHeader()
@@ -83,7 +72,7 @@ class MainActivity : Activity() {
 
     private fun observeHome() {
         dashboardJob?.cancel()
-        dashboardJob = scope.launch {
+        dashboardJob = lifecycleScope.launch {
             try {
                 repository.prepareForObservation()
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
@@ -99,7 +88,7 @@ class MainActivity : Activity() {
     private fun render(state: DashboardState) {
         latestDashboard = state
         val monthlyView = findViewById<TextView>(R.id.monthly_summary)
-        val hidden = settings.getBoolean("balance_hidden", false)
+        val hidden = settings.balanceHidden
         monthlyView.text = if (hidden) getString(R.string.monthly_summary_hidden) else state.monthlyTotals.entries.joinToString("\n") { (currency, totals) ->
             getString(R.string.monthly_summary, Money(totals.first, currency).format(), Money(totals.second, currency).format(), Money(Math.subtractExact(totals.first, totals.second), currency).format())
         }
@@ -136,7 +125,7 @@ class MainActivity : Activity() {
 
 
     private fun refreshProfileHeader() {
-        val name = getSharedPreferences(Storage.PREFS_PROFILE, MODE_PRIVATE).getString("display_name", "")?.trim().orEmpty()
+        val name = settings.displayName
         val initials = findViewById<TextView>(R.id.avatar)
         initials.text = ProfileAvatar.initialsFor(name, defaultInitial())
         // A chosen profile photo replaces the initials circle until it is removed.
@@ -170,7 +159,7 @@ class MainActivity : Activity() {
 
     private fun accountRow(item: AccountBalance, parent: android.view.ViewGroup): android.view.View {
         val row = layoutInflater.inflate(R.layout.item_account_row, parent, false)
-        val hidden = settings.getBoolean("balance_hidden", false)
+        val hidden = settings.balanceHidden
         val name = item.account.name
         val balanceText = if (hidden) {
             getString(R.string.account_masked_amount)
@@ -211,24 +200,5 @@ class MainActivity : Activity() {
     /** The app's own initial, so a nameless profile is never branded with a stale letter. */
     private fun defaultInitial(): String =
         getString(R.string.app_name).take(1).uppercase()
-
-    private fun applyTheme() {
-        val mode = settings.getInt("theme_mode", 0)
-        val cur = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val target = when (mode) {
-            1 -> Configuration.UI_MODE_NIGHT_NO
-            2 -> Configuration.UI_MODE_NIGHT_YES
-            else -> cur
-        }
-        if (target != cur) {
-            val config = Configuration(resources.configuration)
-            config.uiMode = target
-            resources.updateConfiguration(config, resources.displayMetrics)
-        }
-    }
-
-    private fun toast(message: Int) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-    }
 
 }

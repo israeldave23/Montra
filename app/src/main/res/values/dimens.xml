@@ -1,13 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Shape -->
     <dimen name="card_radius">16dp</dimen>
     <dimen name="hero_radius">@dimen/card_radius</dimen>
     <dimen name="control_radius">28dp</dimen>
-    <dimen name="icon_badge">48dp</dimen>
+    <dimen name="stroke_hairline">1dp</dimen>
+
+    <!-- Size -->
     <dimen name="icon_size">24dp</dimen>
+    <dimen name="icon_badge_size">40dp</dimen>
+    <dimen name="avatar_size">48dp</dimen>
+    <dimen name="profile_avatar_size">92dp</dimen>
+    <dimen name="touch_target">48dp</dimen>
+    <dimen name="nav_bar_height">76dp</dimen>
+    <dimen name="nav_item_height">60dp</dimen>
+    <dimen name="progress_thickness">6dp</dimen>
+    <dimen name="launcher_artboard">108dp</dimen>
+
+    <!-- Ad slot. Reserved before the ad loads, so a fill never pushes content around. -->
+    <dimen name="ad_banner_height">56dp</dimen>
+    <dimen name="ad_slot_gap">8dp</dimen>
+
+    <!-- Spacing -->
     <dimen name="screen_h_padding">24dp</dimen>
     <dimen name="card_padding">24dp</dimen>
-    <dimen name="touch_target">48dp</dimen>
     <dimen name="space_4">4dp</dimen>
     <dimen name="space_8">8dp</dimen>
     <dimen name="space_12">12dp</dimen>
@@ -17,6 +33,8 @@
     <dimen name="space_48">48dp</dimen>
     <dimen name="space_64">64dp</dimen>
     <dimen name="space_96">96dp</dimen>
+
+    <!-- Type scale. Sizes live here; weights live in values/type.xml. -->
     <dimen name="text_12">12sp</dimen>
     <dimen name="text_14">14sp</dimen>
     <dimen name="text_16">16sp</dimen>

@@ -3,24 +3,22 @@ package com.dga.montra
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.FileProvider
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,11 +30,9 @@ import java.util.Date
 import java.util.Locale
 import kotlin.io.path.copyTo
 import com.dga.montra.data.Storage
+import androidx.lifecycle.lifecycleScope
 
-class ProfileActivity : Activity() {
-    private val prefs by lazy { getSharedPreferences(Storage.PREFS_PROFILE, MODE_PRIVATE) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
-    private val scope = MainScope()
+class ProfileActivity : AppActivity() {
     private lateinit var avatar: TextView
     private lateinit var avatarImage: ImageView
     private lateinit var photoChange: TextView
@@ -46,7 +42,6 @@ class ProfileActivity : Activity() {
     private lateinit var currencySpinner: Spinner
 
     override fun onCreate(state: Bundle?) {
-        applyTheme()
         super.onCreate(state)
         setContentView(R.layout.activity_profile)
         avatar = findViewById(R.id.profile_avatar)
@@ -59,26 +54,27 @@ class ProfileActivity : Activity() {
         photoRemove.setOnClickListener { confirmRemovePhoto() }
         themeSpinner = findViewById(R.id.profile_theme)
         currencySpinner = findViewById(R.id.profile_currency)
-        findViewById<TextView>(R.id.profile_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.profile_back).setOnClickListener { finish() }
         findViewById<android.widget.Button>(R.id.profile_edit).setOnClickListener { editName() }
         findViewById<TextView>(R.id.profile_export).setOnClickListener { exportTransactions() }
         findViewById<TextView>(R.id.profile_backup).setOnClickListener { backupDatabase() }
         findViewById<TextView>(R.id.profile_restore).setOnClickListener { restoreDatabase() }
+        // Only offered where a consent form exists; a setting that does nothing is a lie.
+        findViewById<TextView>(R.id.profile_privacy).apply {
+            setOnClickListener { Ads.showPrivacyOptions(this@ProfileActivity) }
+            visibility = if (Ads.privacyOptionsAvailable(this@ProfileActivity)) View.VISIBLE else View.GONE
+        }
         bindThemeSpinner()
         bindCurrencySpinner()
         render()
-    }
-
-    override fun onDestroy() {
-        scope.coroutineContext.cancel()
-        super.onDestroy()
+        bindRewardCard()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != Activity.RESULT_OK || data?.data == null) return@onActivityResult
         val uri = data.data!!
-        scope.launch {
+        lifecycleScope.launch {
             try {
                 when (requestCode) {
                     REQUEST_BACKUP -> backupToUri(uri)
@@ -91,18 +87,46 @@ class ProfileActivity : Activity() {
         }
     }
 
-    private fun applyTheme() {
-        val mode = settings.getInt("theme_mode", 0)
-        val cur = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val target = when (mode) {
-            1 -> Configuration.UI_MODE_NIGHT_NO
-            2 -> Configuration.UI_MODE_NIGHT_YES
-            else -> cur
+    /**
+     * The rewarded card. It states the reward before the tap, hides itself while the reward is
+     * running, and never pretends a video was watched when no ad was available.
+     */
+    private fun bindRewardCard() {
+        val card = findViewById<View>(R.id.profile_reward_card)
+        val action = findViewById<Button>(R.id.profile_reward_button)
+        val body = findViewById<TextView>(R.id.profile_reward_body)
+
+        if (!Ads.rewardsEnabled(this)) {
+            card.visibility = View.GONE
+            return
         }
-        if (target != cur) {
-            val config = Configuration(resources.configuration)
-            config.uiMode = target
-            resources.updateConfiguration(config, resources.displayMetrics)
+        card.visibility = View.VISIBLE
+
+        val until = Ads.adFreeUntil(this)
+        if (until > System.currentTimeMillis()) {
+            action.visibility = View.GONE
+            val clock = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+            body.text = getString(R.string.profile_reward_active, clock.format(Date(until)))
+            return
+        }
+
+        action.visibility = View.VISIBLE
+        action.setText(R.string.profile_reward_action)
+        body.setText(R.string.profile_reward_body)
+        action.setOnClickListener {
+            action.isEnabled = false
+            Ads.showRewarded(
+                this,
+                onReward = {
+                    action.isEnabled = true
+                    toast(R.string.profile_reward_earned, short = true)
+                    bindRewardCard()
+                },
+                onUnavailable = {
+                    action.isEnabled = true
+                    toast(R.string.profile_reward_unavailable)
+                }
+            )
         }
     }
 
@@ -110,15 +134,16 @@ class ProfileActivity : Activity() {
         val entries = arrayOf(R.string.profile_theme_system, R.string.profile_theme_light, R.string.profile_theme_dark)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, entries.map { getString(it) }.toTypedArray())
         themeSpinner.adapter = adapter
-        val saved = settings.getInt("theme_mode", 0).coerceIn(0, 2)
+        val saved = settings.themeMode
         themeSpinner.setSelection(saved)
         themeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val current = settings.getInt("theme_mode", 0)
+                val current = settings.themeMode
                 if (position != current) {
-                    settings.edit().putInt("theme_mode", position).apply()
-                    applyTheme()
-                    recreate()
+                    settings.themeMode = position
+                    // The delegate owns the mode for the process and recreates the visible screen
+                    // itself; calling recreate() here would restart the screen twice.
+                    AppActivity.applyThemeMode(position)
                 }
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
@@ -128,20 +153,20 @@ class ProfileActivity : Activity() {
     private fun bindCurrencySpinner() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, Money.currencies.toTypedArray())
         currencySpinner.adapter = adapter
-        val savedCode = settings.getString("default_currency", "PHP")
+        val savedCode = settings.defaultCurrency
         val savedIndex = Money.currencies.indexOf(savedCode).coerceAtLeast(0)
         currencySpinner.setSelection(savedIndex)
         currencySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val code = Money.currencies[position]
-                settings.edit().putString("default_currency", code).putString("last_currency", code).apply()
+                settings.rememberCurrency(code)
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
     private fun render() {
-        val name = prefs.getString(KEY_NAME, "")?.trim().orEmpty()
+        val name = settings.displayName
         nameView.text = if (name.isEmpty()) getString(R.string.profile_default_name) else name
         avatar.text = initials(name)
         ProfileAvatar.bind(
@@ -156,6 +181,7 @@ class ProfileActivity : Activity() {
     }
 
     private fun pickPhoto() {
+        Ads.suppressNextAppOpen()
         startActivityForResult(ProfileAvatar.pickIntent(), REQUEST_AVATAR)
     }
 
@@ -191,7 +217,7 @@ class ProfileActivity : Activity() {
     private fun editName() {
         val input = layoutInflater.inflate(R.layout.dialog_edit_profile, null)
         val field = input.findViewById<EditText>(R.id.profile_name_input)
-        field.setText(prefs.getString(KEY_NAME, ""))
+        field.setText(settings.displayName)
         field.setSelection(field.length())
         val dialog = AlertDialog.Builder(this).setTitle(R.string.profile_edit_title).setView(input)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
@@ -202,7 +228,7 @@ class ProfileActivity : Activity() {
                     value.isEmpty() -> field.error = getString(R.string.profile_name_required)
                     value.length > 50 -> field.error = getString(R.string.profile_name_too_long)
                     value.any { it.isISOControl() } -> field.error = getString(R.string.profile_name_invalid)
-                    !prefs.edit().putString(KEY_NAME, value).commit() -> field.error = getString(R.string.profile_save_error)
+                    !settings.tryDisplayName(value) -> field.error = getString(R.string.profile_save_error)
                     else -> { dialog.dismiss(); render() }
                 }
             }
@@ -211,7 +237,7 @@ class ProfileActivity : Activity() {
     }
 
     private fun exportTransactions() {
-        scope.launch {
+        lifecycleScope.launch {
             try {
                 val repo = RoomFinanceRepository.get(applicationContext)
                 val accounts = repo.allAccounts().associateBy { it.id }.mapValues { it.value.name }
@@ -266,6 +292,7 @@ class ProfileActivity : Activity() {
             type = "application/octet-stream"
             putExtra(Intent.EXTRA_TITLE, DATABASE_NAME)
         }
+        Ads.suppressNextAppOpen()
         startActivityForResult(intent, REQUEST_BACKUP)
     }
 
@@ -274,6 +301,7 @@ class ProfileActivity : Activity() {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
         }
+        Ads.suppressNextAppOpen()
         startActivityForResult(intent, REQUEST_RESTORE)
     }
 
@@ -296,8 +324,6 @@ class ProfileActivity : Activity() {
         runOnUiThread { toast(R.string.profile_restore_success) }
     }
 
-    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
-
     private fun initials(name: String): String =
         ProfileAvatar.initialsFor(name, getString(R.string.app_name).take(1).uppercase())
 
@@ -307,6 +333,5 @@ class ProfileActivity : Activity() {
         private const val REQUEST_AVATAR = 1003
         private const val FILE_PROVIDER_AUTHORITY = "com.dga.montra.fileprovider"
         private const val DATABASE_NAME = Storage.DATABASE
-        private const val KEY_NAME = "display_name"
     }
 }

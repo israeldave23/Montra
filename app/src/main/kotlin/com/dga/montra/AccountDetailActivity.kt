@@ -1,28 +1,25 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import com.dga.montra.data.Storage
+import androidx.lifecycle.lifecycleScope
 
 /**
  * One account: its real current balance (opening balance plus every transaction), its own activity,
@@ -31,10 +28,8 @@ import com.dga.montra.data.Storage
  * The balance here is the same number the home screen shows, because both read
  * [com.dga.montra.domain.accountBalances]; nothing is recomputed per screen.
  */
-class AccountDetailActivity : Activity() {
+class AccountDetailActivity : AppActivity() {
     private val repo by lazy { RoomFinanceRepository.get(this) }
-    private val settings by lazy { getSharedPreferences(Storage.PREFS_SETTINGS, MODE_PRIVATE) }
-    private val scope = MainScope()
 
     private lateinit var list: RecyclerView
     private lateinit var emptyView: TextView
@@ -46,7 +41,7 @@ class AccountDetailActivity : Activity() {
     private lateinit var countView: TextView
     private lateinit var addTransactionButton: View
     private lateinit var transferButton: View
-    private lateinit var menuButton: TextView
+    private lateinit var menuButton: View
 
     private var accountId: String? = null
     private var current: AccountBalance? = null
@@ -56,6 +51,7 @@ class AccountDetailActivity : Activity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_account_detail)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
 
         list = findViewById(R.id.account_transactions)
         emptyView = findViewById(R.id.account_activity_empty)
@@ -72,7 +68,7 @@ class AccountDetailActivity : Activity() {
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = TransactionListAdapter(emptyList())
 
-        findViewById<TextView>(R.id.account_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.account_back).setOnClickListener { finish() }
         menuButton.setOnClickListener { showMenu(it) }
         addTransactionButton.setOnClickListener {
             FinanceDialogs.addTransaction(
@@ -96,7 +92,7 @@ class AccountDetailActivity : Activity() {
         super.onStart()
         val id = accountId ?: return
         observation?.cancel()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             combine(
                 repo.observeAccount(id),
                 repo.observeAccountTransactions(id)
@@ -111,18 +107,13 @@ class AccountDetailActivity : Activity() {
         super.onStop()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
     private fun render(balance: AccountBalance?, transactions: List<Transaction>) {
         if (balance == null) {
             showMissingAccount()
             return
         }
         current = balance
-        val hidden = settings.getBoolean("balance_hidden", false)
+        val hidden = settings.balanceHidden
         val account = balance.account
 
         nameView.text = account.name
@@ -221,7 +212,7 @@ class AccountDetailActivity : Activity() {
                     return@setOnClickListener
                 }
                 confirm.isEnabled = false
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching { repo.renameAccount(balance.account.id, name) }
                         .onSuccess {
                             dialog.dismiss()
@@ -247,11 +238,11 @@ class AccountDetailActivity : Activity() {
     }
 
     private fun archive(balance: AccountBalance) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.archiveAccount(balance.account.id) }
                 .onSuccess {
                     snackbarWithUndo(getString(R.string.account_archived_done)) {
-                        scope.launch {
+                        lifecycleScope.launch {
                             runCatching { repo.unarchiveAccount(balance.account.id) }
                                 .onFailure { snackbar(R.string.save_error) }
                         }
@@ -262,7 +253,7 @@ class AccountDetailActivity : Activity() {
     }
 
     private fun unarchive(balance: AccountBalance) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.unarchiveAccount(balance.account.id) }
                 .onSuccess { snackbar(R.string.account_unarchived) }
                 .onFailure { snackbar(R.string.save_error) }
@@ -279,7 +270,7 @@ class AccountDetailActivity : Activity() {
     }
 
     private fun delete(balance: AccountBalance) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repo.deleteAccount(balance.account.id) }
                 .onSuccess { finish() }
                 .onFailure {
@@ -292,7 +283,7 @@ class AccountDetailActivity : Activity() {
     private fun showMissingAccount() {
         if (reportedMissing || isFinishing || isDestroyed) return
         reportedMissing = true
-        Toast.makeText(this, R.string.account_not_found_body, Toast.LENGTH_LONG).show()
+        toast(R.string.account_not_found_body)
         finish()
     }
 

@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,24 +10,22 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.snackbar.Snackbar
 import android.widget.Spinner
-import android.widget.Toast
 import android.widget.TextView
 import android.widget.Button
 import android.widget.AdapterView
+import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import android.app.AlertDialog
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
+import androidx.lifecycle.lifecycleScope
 
-class TransactionsActivity : Activity() {
-    private val scope = MainScope()
+class TransactionsActivity : AppActivity() {
     private lateinit var repository: RoomFinanceRepository
     private lateinit var list: RecyclerView
     private lateinit var emptyView: android.widget.TextView
@@ -42,9 +39,10 @@ class TransactionsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transactions)
+        Ads.attachBanner(findViewById(R.id.ad_slot))
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 1)
         repository = RoomFinanceRepository.get(this)
-        findViewById<TextView>(R.id.transactions_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.transactions_back).setOnClickListener { finish() }
         list = findViewById(R.id.transaction_list)
         list.layoutManager = LinearLayoutManager(this)
         emptyView = findViewById(R.id.transaction_empty)
@@ -79,16 +77,16 @@ class TransactionsActivity : Activity() {
 
     override fun onStart() {
         super.onStart()
-        observation = scope.launch {
+        observation = lifecycleScope.launch {
             try {
                 repository.prepareForObservation()
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show()
+                toast(R.string.storage_error)
                 return@launch
             }
-            repository.observeTransactions().catch { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }.collect { load(query.text.toString()) }
+            repository.observeTransactions().catch { toast(R.string.storage_error) }.collect { load(query.text.toString()) }
         }
     }
 
@@ -100,7 +98,7 @@ class TransactionsActivity : Activity() {
     private fun load(text: String) {
         val version = ++requestVersion
         val filter = selectedFilter
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repository.searchTransactions(text).filter { filter.matches(it.type) } }
                 .onSuccess { transactions ->
                     if (version != requestVersion) return@onSuccess
@@ -112,7 +110,7 @@ class TransactionsActivity : Activity() {
                         else showEditTransactionDialog(tx)
                     }, { tx -> confirmDelete(tx) })
                 }
-                .onFailure { Toast.makeText(this@TransactionsActivity, R.string.storage_error, Toast.LENGTH_LONG).show() }
+                .onFailure { toast(R.string.storage_error) }
         }
     }
 
@@ -143,7 +141,7 @@ class TransactionsActivity : Activity() {
     }
 
     private fun showEditTransactionDialog(tx: com.dga.montra.domain.Transaction) {
-        scope.launch {
+        lifecycleScope.launch {
             val accounts = runCatching { repository.allAccounts() }.getOrElse { toast(R.string.storage_error); return@launch }
             if (accounts.isEmpty()) { toast(R.string.empty_balance); return@launch }
             showEditTransactionDialogWithAccounts(tx, accounts)
@@ -229,12 +227,12 @@ class TransactionsActivity : Activity() {
                     else -> com.dga.montra.domain.TransactionCategories.expense
                 }
                 val catId = newCats[category.selectedItemPosition].id
-                scope.launch {
+                lifecycleScope.launch {
                     runCatching {
                         repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)
                     }.onSuccess {
                         dialog.dismiss()
-                        Toast.makeText(this@TransactionsActivity, R.string.transaction_updated, Toast.LENGTH_SHORT).show()
+                        toast(R.string.transaction_updated, short = true)
                         load(query.text.toString())
                     }.onFailure { toast(R.string.transaction_error) }
                 }
@@ -243,18 +241,14 @@ class TransactionsActivity : Activity() {
         dialog.show()
     }
 
-    private fun toast(message: Int) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-    }
-
     private fun deleteWithUndo(tx: Transaction) {
-        scope.launch {
+        lifecycleScope.launch {
             runCatching { repository.deleteTransaction(tx.id) }
                 .onSuccess {
                     load(query.text.toString())
                     Snackbar.make(findViewById<android.view.View>(android.R.id.content), R.string.transaction_deleted, Snackbar.LENGTH_LONG)
                         .setAction(R.string.undo) {
-                            scope.launch {
+                            lifecycleScope.launch {
                                 runCatching { repository.addTransaction(tx) }
                                     .onSuccess { load(query.text.toString()) }
                                     .onFailure { toast(R.string.transaction_error) }
@@ -279,8 +273,4 @@ class TransactionsActivity : Activity() {
             }.show()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
 }
