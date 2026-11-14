@@ -5,7 +5,7 @@
       the handful of items that actually differ, so the two files cannot drift apart the way two full
       copies of a theme do.
     -->
-    <style name="Base.Theme.App" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.App" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowBackground">@color/m3_background</item>
         <item name="android:windowAnimationStyle">@style/AppWindowAnimation</item>
