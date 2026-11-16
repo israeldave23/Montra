@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.databinding.ActivityInsightsBinding
 import com.dga.montra.domain.CurrencyInsight
 import com.dga.montra.domain.MonthlyInsight
 import com.dga.montra.domain.Money
@@ -28,6 +29,8 @@ import androidx.lifecycle.lifecycleScope
  * never summed, so the numbers stay exact and comparable.
  */
 class InsightsActivity : SectionActivity(4) {
+    private lateinit var binding: ActivityInsightsBinding
+
     private val repo by lazy { RoomFinanceRepository.get(this) }
 
     private lateinit var list: RecyclerView
@@ -43,17 +46,18 @@ class InsightsActivity : SectionActivity(4) {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_insights)
-        Ads.attachBanner(findViewById(R.id.ad_slot))
-        findViewById<TextView>(R.id.insights_title).setText(R.string.insights_title)
-        findViewById<TextView>(R.id.insights_subtitle).setText(R.string.insights_subtitle)
+        binding = ActivityInsightsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        Ads.attachBanner(binding.root)
+        binding.insightsTitle.setText(R.string.insights_title)
+        binding.insightsSubtitle.setText(R.string.insights_subtitle)
 
-        list = findViewById(R.id.insights_list)
-        emptyView = findViewById(R.id.insights_empty)
-        emptyTitle = findViewById(R.id.insights_empty_title)
-        monthLabel = findViewById(R.id.insights_month_label)
-        previousButton = findViewById(R.id.insights_month_prev)
-        nextButton = findViewById(R.id.insights_month_next)
+        list = binding.insightsList
+        emptyView = binding.insightsEmpty
+        emptyTitle = binding.insightsEmptyTitle
+        monthLabel = binding.insightsMonthLabel
+        previousButton = binding.insightsMonthPrev
+        nextButton = binding.insightsMonthNext
 
         list.layoutManager = LinearLayoutManager(this)
         adapter = InsightAdapter()
@@ -62,7 +66,7 @@ class InsightsActivity : SectionActivity(4) {
         previousButton.setOnClickListener { shiftMonth(-1) }
         nextButton.setOnClickListener { shiftMonth(1) }
 
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
+        bindBottomNavigation(binding.root, tab)
         renderMonthControls()
         render(MonthlyInsight(month, emptyList()))
     }
@@ -210,7 +214,7 @@ class InsightsActivity : SectionActivity(4) {
     private fun snackbar(message: Int) = snackbar(getString(message))
 
     private fun snackbar(message: String) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private companion object {

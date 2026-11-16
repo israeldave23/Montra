@@ -13,6 +13,9 @@ import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.dga.montra.ads.Ads
+import com.dga.montra.databinding.DialogAddAccountBinding
+import com.dga.montra.databinding.DialogAddTransactionBinding
+import com.dga.montra.databinding.DialogAddTransferBinding
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.data.Settings
 import com.dga.montra.domain.Account
@@ -51,10 +54,10 @@ internal object FinanceDialogs {
     // ---------------------------------------------------------------- accounts
 
     fun addAccount(activity: ComponentActivity, repository: RoomFinanceRepository, onSaved: () -> Unit = {}) {
-        val content = activity.layoutInflater.inflate(R.layout.dialog_add_account, null)
-        val name = content.findViewById<EditText>(R.id.account_name)
-        val amount = content.findViewById<EditText>(R.id.opening_balance)
-        val currency = content.findViewById<Spinner>(R.id.currency_picker)
+        val content = DialogAddAccountBinding.inflate(activity.layoutInflater)
+        val name = content.accountName
+        val amount = content.openingBalance
+        val currency = content.currencyPicker
         val prefs = settings(activity)
         currency.adapter = ArrayAdapter(
             activity,
@@ -66,7 +69,7 @@ internal object FinanceDialogs {
         }
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_account)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
@@ -131,13 +134,13 @@ internal object FinanceDialogs {
         preselectAccountId: String?,
         onSaved: () -> Unit
     ) {
-        val content = activity.layoutInflater.inflate(R.layout.dialog_add_transaction, null)
-        val account = content.findViewById<Spinner>(R.id.transaction_account)
-        val type = content.findViewById<Spinner>(R.id.transaction_type)
-        val category = content.findViewById<Spinner>(R.id.transaction_category)
-        val datePickerBtn = content.findViewById<Button>(R.id.transaction_date_picker)
-        val amount = content.findViewById<EditText>(R.id.transaction_amount)
-        val note = content.findViewById<EditText>(R.id.transaction_note)
+        val content = DialogAddTransactionBinding.inflate(activity.layoutInflater)
+        val account = content.transactionAccount
+        val type = content.transactionType
+        val category = content.transactionCategory
+        val datePickerBtn = content.transactionDatePicker
+        val amount = content.transactionAmount
+        val note = content.transactionNote
         val prefs = settings(activity)
         val form = TransactionFormState()
 
@@ -252,7 +255,7 @@ internal object FinanceDialogs {
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_transaction)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
@@ -332,11 +335,11 @@ internal object FinanceDialogs {
         preselectFromAccountId: String?,
         onSaved: () -> Unit
     ) {
-        val content = activity.layoutInflater.inflate(R.layout.dialog_add_transfer, null)
-        val fromSpinner = content.findViewById<Spinner>(R.id.transfer_from_account)
-        val toSpinner = content.findViewById<Spinner>(R.id.transfer_to_account)
-        val amount = content.findViewById<EditText>(R.id.transfer_amount)
-        val note = content.findViewById<EditText>(R.id.transfer_note)
+        val content = DialogAddTransferBinding.inflate(activity.layoutInflater)
+        val fromSpinner = content.transferFromAccount
+        val toSpinner = content.transferToAccount
+        val amount = content.transferAmount
+        val note = content.transferNote
         val prefs = settings(activity)
         val labels = accounts.map { "${it.name} (${it.openingBalance.currencyCode})" }
 
@@ -351,7 +354,7 @@ internal object FinanceDialogs {
 
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_transfer)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()

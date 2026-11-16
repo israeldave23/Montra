@@ -13,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.databinding.ActivityBudgetBinding
+import com.dga.montra.databinding.DialogBudgetEditBinding
 import com.dga.montra.domain.Budget
 import com.dga.montra.domain.BudgetOrdering
 import com.dga.montra.domain.BudgetProgress
@@ -38,6 +40,8 @@ import kotlinx.coroutines.launch
  * Budgets never move money. Spending is derived, so there is nothing to reconcile by hand.
  */
 class BudgetActivity : SectionActivity(2) {
+    private lateinit var binding: ActivityBudgetBinding
+
     private val repo by lazy { RoomFinanceRepository.get(this) }
 
     private lateinit var list: RecyclerView
@@ -55,23 +59,24 @@ class BudgetActivity : SectionActivity(2) {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_budget)
-        findViewById<TextView>(R.id.budget_title).setText(R.string.budget_title)
-        findViewById<TextView>(R.id.budget_subtitle).setText(R.string.budget_subtitle)
+        binding = ActivityBudgetBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.budgetTitle.setText(R.string.budget_title)
+        binding.budgetSubtitle.setText(R.string.budget_subtitle)
 
-        list = findViewById(R.id.budget_list)
-        emptyView = findViewById(R.id.budget_empty)
-        summaryCard = findViewById(R.id.budget_summary)
-        summaryAmount = findViewById(R.id.budget_summary_amount)
-        summaryDetail = findViewById(R.id.budget_summary_detail)
-        monthLabel = findViewById(R.id.budget_month)
-        actionButton = findViewById(R.id.budget_action)
+        list = binding.budgetList
+        emptyView = binding.budgetEmpty
+        summaryCard = binding.budgetSummary
+        summaryAmount = binding.budgetSummaryAmount
+        summaryDetail = binding.budgetSummaryDetail
+        monthLabel = binding.budgetMonth
+        actionButton = binding.budgetAction
 
         list.layoutManager = LinearLayoutManager(this)
         adapter = BudgetAdapter(onMenu = { item, anchor -> showBudgetMenu(item, anchor) })
         list.adapter = adapter
         actionButton.setOnClickListener { showEditor(null) }
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
+        bindBottomNavigation(binding.root, tab)
         render(emptyList())
     }
 
@@ -151,11 +156,11 @@ class BudgetActivity : SectionActivity(2) {
             snackbar(R.string.budget_all_categories)
             return
         }
-        val content = layoutInflater.inflate(R.layout.dialog_budget_edit, null)
-        val categorySpinner = content.findViewById<Spinner>(R.id.budget_edit_category)
-        val categoryLabelView = content.findViewById<TextView>(R.id.budget_edit_category_label)
-        val amountInput = content.findViewById<EditText>(R.id.budget_edit_amount)
-        val contextView = content.findViewById<TextView>(R.id.budget_edit_context)
+        val content = DialogBudgetEditBinding.inflate(layoutInflater)
+        val categorySpinner = content.budgetEditCategory
+        val categoryLabelView = content.budgetEditCategoryLabel
+        val amountInput = content.budgetEditAmount
+        val contextView = content.budgetEditContext
 
         val currency = existing?.currencyCode ?: defaultCurrency()
         val categories = TransactionCategories.expense
@@ -195,7 +200,7 @@ class BudgetActivity : SectionActivity(2) {
         val titleRes = if (existing == null) R.string.budget_new_title else R.string.budget_edit_title
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(titleRes)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
@@ -287,11 +292,11 @@ class BudgetActivity : SectionActivity(2) {
     private fun snackbar(message: Int) = snackbar(getString(message))
 
     private fun snackbar(message: String) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun snackbarWithUndo(message: String, undo: () -> Unit) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_LONG)
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
             .setAction(R.string.undo) { undo() }
             .show()
     }

@@ -163,13 +163,25 @@ object Ads {
     // ---------------------------------------------------------------------------------- banner
 
     /**
+     * Attaches a banner to the `@+id/ad_slot` container inside [root], or does nothing when the
+     * screen has no slot.
+     *
+     * Callers pass their view-binding root, so a screen never has to reach into an `<include>` by
+     * id and the ad wiring survives the layout being restructured.
+     */
+    fun attachBanner(root: View) {
+        val container = root.findViewById<ViewGroup>(R.id.ad_slot) ?: return
+        fill(container)
+    }
+
+    /**
      * Fills [container] with an adaptive banner, or hides it.
      *
      * Safe to call from `onCreate`: if consent has not resolved yet the container is queued and
      * filled when the SDK is ready, and if a no-fill arrives it is hidden for the rest of the
      * screen's life.
      */
-    fun attachBanner(container: ViewGroup) {
+    private fun fill(container: ViewGroup) {
         if (container.tag == ATTACHED) return
         val context = container.context
 
@@ -236,7 +248,7 @@ object Ads {
         waiting.clear()
         pending.forEach { ref ->
             val container = ref.get()
-            if (container != null && container.isAttachedToWindow) attachBanner(container)
+            if (container != null && container.isAttachedToWindow) fill(container)
         }
     }
 

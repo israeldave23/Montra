@@ -18,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.data.Storage
+import com.dga.montra.databinding.ActivityProfileBinding
+import com.dga.montra.databinding.DialogEditProfileBinding
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
@@ -34,6 +36,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ProfileActivity : AppActivity() {
+    private lateinit var binding: ActivityProfileBinding
+
     private lateinit var avatar: TextView
     private lateinit var avatarImage: ImageView
     private lateinit var photoChange: TextView
@@ -44,24 +48,25 @@ class ProfileActivity : AppActivity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_profile)
-        avatar = findViewById(R.id.profile_avatar)
-        avatarImage = findViewById(R.id.profile_avatar_image)
-        photoChange = findViewById(R.id.profile_photo_change)
-        photoRemove = findViewById(R.id.profile_photo_remove)
-        nameView = findViewById(R.id.profile_name)
-        findViewById<View>(R.id.profile_avatar_container).setOnClickListener { pickPhoto() }
+        binding = ActivityProfileBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        avatar = binding.profileAvatar
+        avatarImage = binding.profileAvatarImage
+        photoChange = binding.profilePhotoChange
+        photoRemove = binding.profilePhotoRemove
+        nameView = binding.profileName
+        binding.profileAvatarContainer.setOnClickListener { pickPhoto() }
         photoChange.setOnClickListener { pickPhoto() }
         photoRemove.setOnClickListener { confirmRemovePhoto() }
-        themeSpinner = findViewById(R.id.profile_theme)
-        currencySpinner = findViewById(R.id.profile_currency)
-        findViewById<View>(R.id.profile_back).setOnClickListener { finish() }
-        findViewById<android.widget.Button>(R.id.profile_edit).setOnClickListener { editName() }
-        findViewById<TextView>(R.id.profile_export).setOnClickListener { exportTransactions() }
-        findViewById<TextView>(R.id.profile_backup).setOnClickListener { backupDatabase() }
-        findViewById<TextView>(R.id.profile_restore).setOnClickListener { restoreDatabase() }
+        themeSpinner = binding.profileTheme
+        currencySpinner = binding.profileCurrency
+        binding.profileBack.setOnClickListener { finish() }
+        binding.profileEdit.setOnClickListener { editName() }
+        binding.profileExport.setOnClickListener { exportTransactions() }
+        binding.profileBackup.setOnClickListener { backupDatabase() }
+        binding.profileRestore.setOnClickListener { restoreDatabase() }
         // Only offered where a consent form exists; a setting that does nothing is a lie.
-        findViewById<TextView>(R.id.profile_privacy).apply {
+        binding.profilePrivacy.apply {
             setOnClickListener { Ads.showPrivacyOptions(this@ProfileActivity) }
             visibility = if (Ads.privacyOptionsAvailable(this@ProfileActivity)) View.VISIBLE else View.GONE
         }
@@ -93,9 +98,9 @@ class ProfileActivity : AppActivity() {
      * running, and never pretends a video was watched when no ad was available.
      */
     private fun bindRewardCard() {
-        val card = findViewById<View>(R.id.profile_reward_card)
-        val action = findViewById<Button>(R.id.profile_reward_button)
-        val body = findViewById<TextView>(R.id.profile_reward_body)
+        val card = binding.profileRewardCard
+        val action = binding.profileRewardButton
+        val body = binding.profileRewardBody
 
         if (!Ads.rewardsEnabled(this)) {
             card.visibility = View.GONE
@@ -216,11 +221,11 @@ class ProfileActivity : AppActivity() {
     }
 
     private fun editName() {
-        val input = layoutInflater.inflate(R.layout.dialog_edit_profile, null)
-        val field = input.findViewById<EditText>(R.id.profile_name_input)
+        val input = DialogEditProfileBinding.inflate(layoutInflater)
+        val field = input.profileNameInput
         field.setText(settings.displayName)
         field.setSelection(field.length())
-        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.profile_edit_title).setView(input)
+        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.profile_edit_title).setView(input.root)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {

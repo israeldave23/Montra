@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.databinding.ActivityTransactionsBinding
+import com.dga.montra.databinding.DialogAddTransactionBinding
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
@@ -28,6 +30,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class TransactionsActivity : AppActivity() {
+    private lateinit var binding: ActivityTransactionsBinding
+
     private lateinit var repository: RoomFinanceRepository
     private lateinit var list: RecyclerView
     private lateinit var emptyView: android.widget.TextView
@@ -40,14 +44,15 @@ class TransactionsActivity : AppActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_transactions)
-        Ads.attachBanner(findViewById(R.id.ad_slot))
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), 1)
+        binding = ActivityTransactionsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        Ads.attachBanner(binding.root)
+        bindBottomNavigation(binding.root, 1)
         repository = RoomFinanceRepository.get(this)
-        findViewById<View>(R.id.transactions_back).setOnClickListener { finish() }
-        list = findViewById(R.id.transaction_list)
+        binding.transactionsBack.setOnClickListener { finish() }
+        list = binding.transactionList
         list.layoutManager = LinearLayoutManager(this)
-        emptyView = findViewById(R.id.transaction_empty)
+        emptyView = binding.transactionEmpty
         activeTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
             override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
@@ -59,8 +64,8 @@ class TransactionsActivity : AppActivity() {
                 currentItems.getOrNull(position)?.let { deleteWithUndo(it) }
             }
         }).also { it.attachToRecyclerView(list) }
-        query = findViewById(R.id.transaction_search)
-        findViewById<com.google.android.material.chip.ChipGroup>(R.id.transaction_filters).setOnCheckedStateChangeListener { _, checkedIds ->
+        query = binding.transactionSearch
+        binding.transactionFilters.setOnCheckedStateChangeListener { _, checkedIds ->
             selectedFilter = when (checkedIds.firstOrNull()) {
                 R.id.filter_income -> com.dga.montra.domain.TransactionFilter.INCOME
                 R.id.filter_expense -> com.dga.montra.domain.TransactionFilter.EXPENSE
@@ -151,13 +156,13 @@ class TransactionsActivity : AppActivity() {
     }
 
     private fun showEditTransactionDialogWithAccounts(tx: com.dga.montra.domain.Transaction, accounts: List<com.dga.montra.domain.Account>) {
-        val content = layoutInflater.inflate(R.layout.dialog_add_transaction, null)
-        val account = content.findViewById<Spinner>(R.id.transaction_account)
-        val type = content.findViewById<Spinner>(R.id.transaction_type)
-        val category = content.findViewById<Spinner>(R.id.transaction_category)
-        val datePickerBtn = content.findViewById<Button>(R.id.transaction_date_picker)
-        val amount = content.findViewById<EditText>(R.id.transaction_amount)
-        val note = content.findViewById<EditText>(R.id.transaction_note)
+        val content = DialogAddTransactionBinding.inflate(layoutInflater)
+        val account = content.transactionAccount
+        val type = content.transactionType
+        val category = content.transactionCategory
+        val datePickerBtn = content.transactionDatePicker
+        val amount = content.transactionAmount
+        val note = content.transactionNote
 
         val fmt = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.getDefault())
         val cal = java.util.Calendar.getInstance().apply {
@@ -215,7 +220,7 @@ class TransactionsActivity : AppActivity() {
                 cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show()
         }
 
-        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.edit_transaction).setView(content)
+        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.edit_transaction).setView(content.root)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -248,7 +253,7 @@ class TransactionsActivity : AppActivity() {
             runCatching { repository.deleteTransaction(tx.id) }
                 .onSuccess {
                     load(query.text.toString())
-                    Snackbar.make(findViewById<android.view.View>(android.R.id.content), R.string.transaction_deleted, Snackbar.LENGTH_LONG)
+                    Snackbar.make(binding.root, R.string.transaction_deleted, Snackbar.LENGTH_LONG)
                         .setAction(R.string.undo) {
                             lifecycleScope.launch {
                                 runCatching { repository.addTransaction(tx) }

@@ -16,6 +16,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.databinding.ActivityGoalsBinding
+import com.dga.montra.databinding.DialogGoalDetailBinding
+import com.dga.montra.databinding.DialogGoalEditBinding
+import com.dga.montra.databinding.DialogGoalFundsBinding
 import com.dga.montra.domain.Goal
 import com.dga.montra.domain.GoalOrdering
 import com.dga.montra.domain.GoalStatus
@@ -38,6 +42,8 @@ import kotlinx.coroutines.launch
  * Goals never move money: all copy says so, and the only writes are to the goal row.
  */
 class GoalsActivity : SectionActivity(3) {
+    private lateinit var binding: ActivityGoalsBinding
+
     private val repo by lazy { RoomFinanceRepository.get(this) }
 
     private lateinit var list: RecyclerView
@@ -53,16 +59,17 @@ class GoalsActivity : SectionActivity(3) {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_goals)
-        findViewById<TextView>(R.id.goal_title).setText(R.string.goals_title)
-        findViewById<TextView>(R.id.goal_subtitle).setText(R.string.goals_subtitle)
+        binding = ActivityGoalsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.goalTitle.setText(R.string.goals_title)
+        binding.goalSubtitle.setText(R.string.goals_subtitle)
 
-        list = findViewById(R.id.goal_list)
-        emptyView = findViewById(R.id.goal_empty)
-        summaryCard = findViewById(R.id.goal_summary)
-        summarySaved = findViewById(R.id.goal_summary_amount)
-        summaryDetail = findViewById(R.id.goal_summary_detail)
-        actionButton = findViewById(R.id.goal_action)
+        list = binding.goalList
+        emptyView = binding.goalEmpty
+        summaryCard = binding.goalSummary
+        summarySaved = binding.goalSummaryAmount
+        summaryDetail = binding.goalSummaryDetail
+        actionButton = binding.goalAction
 
         list.layoutManager = LinearLayoutManager(this)
         adapter = GoalAdapter(
@@ -71,7 +78,7 @@ class GoalsActivity : SectionActivity(3) {
         )
         list.adapter = adapter
         actionButton.setOnClickListener { showGoalEditor(null) }
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), tab)
+        bindBottomNavigation(binding.root, tab)
         render(emptyList())
     }
 
@@ -116,50 +123,50 @@ class GoalsActivity : SectionActivity(3) {
     }
 
     private fun showGoalDetail(goal: Goal) {
-        val content = layoutInflater.inflate(R.layout.dialog_goal_detail, null)
+        val content = DialogGoalDetailBinding.inflate(layoutInflater)
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now()
         val status = goal.status(today, zone)
         val percent = goal.progressPercent()
 
-        content.findViewById<TextView>(R.id.goal_detail_name).text = goal.name
-        content.findViewById<TextView>(R.id.goal_detail_status).apply {
+        content.goalDetailName.text = goal.name
+        content.goalDetailStatus.apply {
             text = getString(status.labelRes())
             backgroundTintList = ColorStateList.valueOf(getColor(status.colorRes()))
             setTextColor(getColor(status.textColorRes()))
         }
-        content.findViewById<TextView>(R.id.goal_detail_amounts).text =
+        content.goalDetailAmounts.text =
             getString(R.string.goal_amount_progress, goal.saved.format(), goal.target.format())
-        content.findViewById<ProgressBar>(R.id.goal_detail_progress).apply {
+        content.goalDetailProgress.apply {
             progressTintList = ColorStateList.valueOf(getColor(status.colorRes()))
             max = 100
             progress = percent
         }
-        content.findViewById<TextView>(R.id.goal_detail_meta).text = detailMeta(goal, status, percent, zone)
-        content.findViewById<TextView>(R.id.goal_detail_plan).apply {
+        content.goalDetailMeta.text = detailMeta(goal, status, percent, zone)
+        content.goalDetailPlan.apply {
             val plan = planText(goal, today, zone)
             text = plan
             visibility = if (plan.isBlank()) View.GONE else View.VISIBLE
         }
 
         val dialog = MaterialAlertDialogBuilder(this)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.close, null)
             .create()
 
-        content.findViewById<Button>(R.id.goal_detail_add_funds).setOnClickListener {
+        content.goalDetailAddFunds.setOnClickListener {
             dialog.dismiss()
             showFundsDialog(goal, FundsMode.ADD)
         }
-        content.findViewById<TextView>(R.id.goal_detail_withdraw).setOnClickListener {
+        content.goalDetailWithdraw.setOnClickListener {
             dialog.dismiss()
             showFundsDialog(goal, FundsMode.WITHDRAW)
         }
-        content.findViewById<TextView>(R.id.goal_detail_edit).setOnClickListener {
+        content.goalDetailEdit.setOnClickListener {
             dialog.dismiss()
             showGoalEditor(goal)
         }
-        content.findViewById<TextView>(R.id.goal_detail_delete).setOnClickListener {
+        content.goalDetailDelete.setOnClickListener {
             dialog.dismiss()
             confirmDelete(goal)
         }
@@ -217,13 +224,13 @@ class GoalsActivity : SectionActivity(3) {
     }
 
     private fun showGoalEditor(existing: Goal?) {
-        val content = layoutInflater.inflate(R.layout.dialog_goal_edit, null)
-        val nameInput = content.findViewById<EditText>(R.id.goal_edit_name)
-        val targetInput = content.findViewById<EditText>(R.id.goal_edit_target)
-        val savedInput = content.findViewById<EditText>(R.id.goal_edit_saved)
-        val savedRow = content.findViewById<View>(R.id.goal_edit_saved_row)
-        val dateButton = content.findViewById<Button>(R.id.goal_edit_date)
-        val clearDate = content.findViewById<TextView>(R.id.goal_edit_clear_date)
+        val content = DialogGoalEditBinding.inflate(layoutInflater)
+        val nameInput = content.goalEditName
+        val targetInput = content.goalEditTarget
+        val savedInput = content.goalEditSaved
+        val savedRow = content.goalEditSavedRow
+        val dateButton = content.goalEditDate
+        val clearDate = content.goalEditClearDate
 
         val currency = existing?.currencyCode ?: defaultCurrency()
         targetInput.hint = getString(R.string.target_amount, currency)
@@ -258,7 +265,7 @@ class GoalsActivity : SectionActivity(3) {
 
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (existing == null) R.string.new_goal else R.string.goal_edit_title)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
@@ -319,14 +326,14 @@ class GoalsActivity : SectionActivity(3) {
     private enum class FundsMode { ADD, WITHDRAW }
 
     private fun showFundsDialog(goal: Goal, mode: FundsMode) {
-        val content = layoutInflater.inflate(R.layout.dialog_goal_funds, null)
-        val amountInput = content.findViewById<EditText>(R.id.goal_funds_amount)
-        val contextView = content.findViewById<TextView>(R.id.goal_funds_context)
-        val preview = content.findViewById<TextView>(R.id.goal_funds_preview)
-        val quickRow = content.findViewById<View>(R.id.goal_funds_quick_row)
-        val quick1 = content.findViewById<TextView>(R.id.goal_funds_quick_1)
-        val quick2 = content.findViewById<TextView>(R.id.goal_funds_quick_2)
-        val quick3 = content.findViewById<TextView>(R.id.goal_funds_quick_3)
+        val content = DialogGoalFundsBinding.inflate(layoutInflater)
+        val amountInput = content.goalFundsAmount
+        val contextView = content.goalFundsContext
+        val preview = content.goalFundsPreview
+        val quickRow = content.goalFundsQuickRow
+        val quick1 = content.goalFundsQuick1
+        val quick2 = content.goalFundsQuick2
+        val quick3 = content.goalFundsQuick3
 
         contextView.text = getString(R.string.goal_funds_context, goal.saved.format(), goal.target.format())
         amountInput.hint = getString(R.string.goal_amount_label, goal.currencyCode)
@@ -386,7 +393,7 @@ class GoalsActivity : SectionActivity(3) {
         val titleRes = if (mode == FundsMode.ADD) R.string.add_funds else R.string.goal_withdraw
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(titleRes)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(titleRes, null)
             .create()
@@ -474,11 +481,11 @@ class GoalsActivity : SectionActivity(3) {
     private fun snackbar(message: Int) = snackbar(getString(message))
 
     private fun snackbar(message: String) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun snackbarWithUndo(message: String, undo: () -> Unit) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_LONG)
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
             .setAction(R.string.undo) { undo() }
             .show()
     }

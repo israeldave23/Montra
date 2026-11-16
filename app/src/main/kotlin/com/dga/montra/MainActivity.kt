@@ -1,6 +1,7 @@
 package com.dga.montra
 
 import android.content.Intent
+import com.dga.montra.databinding.ActivityMainBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
@@ -17,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 
 
 class MainActivity : AppActivity() {
+    private lateinit var binding: ActivityMainBinding
+
     private var latestDashboard: DashboardState? = null
     private lateinit var repository: RoomFinanceRepository
     private var dashboardJob: Job? = null
@@ -25,34 +28,35 @@ class MainActivity : AppActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        Ads.attachBanner(findViewById(R.id.ad_slot))
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
-        findViewById<android.view.View>(R.id.avatar_container).setOnClickListener {
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        Ads.attachBanner(binding.root)
+        bindBottomNavigation(binding.root, 0)
+        binding.avatarContainer.setOnClickListener {
             startActivity(
                 android.content.Intent(this, ProfileActivity::class.java),
                 android.app.ActivityOptions.makeCustomAnimation(this, R.anim.activity_enter, R.anim.activity_exit).toBundle()
             )
         }
         repository = RoomFinanceRepository.get(this)
-        balanceView = findViewById(R.id.balance)
-        summaryView = findViewById(R.id.balance_summary)
-        findViewById<Button>(R.id.add_account_button).setOnClickListener {
+        balanceView = binding.balance
+        summaryView = binding.balanceSummary
+        binding.addAccountButton.setOnClickListener {
             FinanceDialogs.addAccount(this, repository)
         }
-        findViewById<Button>(R.id.view_activity_button).setOnClickListener {
+        binding.viewActivityButton.setOnClickListener {
             startActivity(android.content.Intent(this, TransactionsActivity::class.java))
         }
-        findViewById<android.view.View>(R.id.add_transaction_button).setOnClickListener {
+        binding.addTransactionButton.setOnClickListener {
             FinanceDialogs.addTransaction(this, repository)
         }
-        findViewById<android.view.View>(R.id.add_transfer_button).setOnClickListener {
+        binding.addTransferButton.setOnClickListener {
             FinanceDialogs.transfer(this, repository)
         }
         if (intent.getBooleanExtra("open_add_transaction", false)) {
             FinanceDialogs.addTransaction(this, repository)
         }
-        findViewById<android.widget.ImageButton>(R.id.toggle_balance).setOnClickListener {
+        binding.toggleBalance.setOnClickListener {
             settings.balanceHidden = !settings.balanceHidden
             latestDashboard?.let { render(it) }
         }
@@ -87,7 +91,7 @@ class MainActivity : AppActivity() {
 
     private fun render(state: DashboardState) {
         latestDashboard = state
-        val monthlyView = findViewById<TextView>(R.id.monthly_summary)
+        val monthlyView = binding.monthlySummary
         val hidden = settings.balanceHidden
         monthlyView.text = if (hidden) getString(R.string.monthly_summary_hidden) else state.monthlyTotals.entries.joinToString("\n") { (currency, totals) ->
             getString(R.string.monthly_summary, Money(totals.first, currency).format(), Money(totals.second, currency).format(), Money(Math.subtractExact(totals.first, totals.second), currency).format())
@@ -105,9 +109,9 @@ class MainActivity : AppActivity() {
             }
         }
         renderAccounts(state.accounts)
-        val recent = findViewById<android.widget.LinearLayout>(R.id.recent_transactions)
+        val recent = binding.recentTransactions
         val items = state.recentTransactions
-        findViewById<TextView>(R.id.recent_empty).visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        binding.recentEmpty.visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         recent.removeAllViews()
         val adapter = TransactionAdapter(this, items)
         items.indices.forEach { index -> recent.addView(adapter.getView(index, null, recent)) }
@@ -118,24 +122,24 @@ class MainActivity : AppActivity() {
             state.balances.size == 1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
             else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
         }
-        findViewById<android.widget.ImageButton>(R.id.toggle_balance).setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
-        findViewById<android.widget.ImageButton>(R.id.toggle_balance).contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
-        findViewById<Button>(R.id.add_account_button).setText(if (state.accounts.isEmpty()) R.string.add_first_account else R.string.add_account)
+        binding.toggleBalance.setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
+        binding.toggleBalance.contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
+        binding.addAccountButton.setText(if (state.accounts.isEmpty()) R.string.add_first_account else R.string.add_account)
     }
 
 
     private fun refreshProfileHeader() {
         val name = settings.displayName
-        val initials = findViewById<TextView>(R.id.avatar)
+        val initials = binding.avatar
         initials.text = ProfileAvatar.initialsFor(name, defaultInitial())
         // A chosen profile photo replaces the initials circle until it is removed.
         ProfileAvatar.bind(
             this,
-            findViewById(R.id.avatar_image),
+            binding.avatarImage,
             initials,
             resources.getDimensionPixelSize(R.dimen.space_48)
         )
-        findViewById<TextView>(R.id.greeting_title).text = if (name.isEmpty()) getString(R.string.overview) else name
+        binding.greetingTitle.text = if (name.isEmpty()) getString(R.string.overview) else name
     }
 
     /**
@@ -143,10 +147,10 @@ class MainActivity : AppActivity() {
      * opens that account — never an arbitrary first account.
      */
     private fun renderAccounts(accounts: List<AccountBalance>) {
-        val section = findViewById<android.view.View>(R.id.home_accounts_section)
-        val empty = findViewById<android.view.View>(R.id.home_accounts_empty)
-        val container = findViewById<android.widget.LinearLayout>(R.id.home_accounts)
-        val count = findViewById<TextView>(R.id.home_accounts_count)
+        val section = binding.homeAccountsSection
+        val empty = binding.homeAccountsEmpty
+        val container = binding.homeAccounts
+        val count = binding.homeAccountsCount
 
         container.removeAllViews()
         section.visibility = if (accounts.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE

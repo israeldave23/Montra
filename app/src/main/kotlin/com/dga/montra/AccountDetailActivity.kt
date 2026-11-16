@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.databinding.ActivityAccountDetailBinding
+import com.dga.montra.databinding.DialogRenameAccountBinding
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
@@ -30,6 +32,8 @@ import kotlinx.coroutines.launch
  * [com.dga.montra.domain.accountBalances]; nothing is recomputed per screen.
  */
 class AccountDetailActivity : AppActivity() {
+    private lateinit var binding: ActivityAccountDetailBinding
+
     private val repo by lazy { RoomFinanceRepository.get(this) }
 
     private lateinit var list: RecyclerView
@@ -51,25 +55,26 @@ class AccountDetailActivity : AppActivity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        setContentView(R.layout.activity_account_detail)
-        Ads.attachBanner(findViewById(R.id.ad_slot))
+        binding = ActivityAccountDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        Ads.attachBanner(binding.root)
 
-        list = findViewById(R.id.account_transactions)
-        emptyView = findViewById(R.id.account_activity_empty)
-        nameView = findViewById(R.id.account_name)
-        statusView = findViewById(R.id.account_status)
-        archivedHint = findViewById(R.id.account_archived_hint)
-        balanceView = findViewById(R.id.account_balance)
-        metaView = findViewById(R.id.account_meta)
-        countView = findViewById(R.id.account_activity_count)
-        addTransactionButton = findViewById(R.id.account_add_transaction)
-        transferButton = findViewById(R.id.account_transfer)
-        menuButton = findViewById(R.id.account_menu)
+        list = binding.accountTransactions
+        emptyView = binding.accountActivityEmpty
+        nameView = binding.accountName
+        statusView = binding.accountStatus
+        archivedHint = binding.accountArchivedHint
+        balanceView = binding.accountBalance
+        metaView = binding.accountMeta
+        countView = binding.accountActivityCount
+        addTransactionButton = binding.accountAddTransaction
+        transferButton = binding.accountTransfer
+        menuButton = binding.accountMenu
 
         list.layoutManager = LinearLayoutManager(this)
         list.adapter = TransactionListAdapter(emptyList())
 
-        findViewById<View>(R.id.account_back).setOnClickListener { finish() }
+        binding.accountBack.setOnClickListener { finish() }
         menuButton.setOnClickListener { showMenu(it) }
         addTransactionButton.setOnClickListener {
             FinanceDialogs.addTransaction(
@@ -81,7 +86,7 @@ class AccountDetailActivity : AppActivity() {
         transferButton.setOnClickListener {
             FinanceDialogs.transfer(this, repo, preselectFromAccountId = accountId)
         }
-        bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
+        bindBottomNavigation(binding.root, 0)
 
         accountId = intent.getStringExtra(EXTRA_ACCOUNT_ID)
         if (accountId == null) {
@@ -190,13 +195,13 @@ class AccountDetailActivity : AppActivity() {
     }
 
     private fun showRename(balance: AccountBalance) {
-        val content = layoutInflater.inflate(R.layout.dialog_rename_account, null)
-        val input = content.findViewById<EditText>(R.id.account_rename_input)
+        val content = DialogRenameAccountBinding.inflate(layoutInflater)
+        val input = content.accountRenameInput
         input.setText(balance.account.name)
         input.setSelection(input.text.length)
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.rename_account)
-            .setView(content)
+            .setView(content.root)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.save, null)
             .create()
@@ -291,11 +296,11 @@ class AccountDetailActivity : AppActivity() {
     private fun snackbar(message: Int) = snackbar(getString(message))
 
     private fun snackbar(message: String) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun snackbarWithUndo(message: String, undo: () -> Unit) {
-        Snackbar.make(findViewById<View>(android.R.id.content), message, Snackbar.LENGTH_LONG)
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
             .setAction(R.string.undo) { undo() }
             .show()
     }
