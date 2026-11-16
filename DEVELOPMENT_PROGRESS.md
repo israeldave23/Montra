@@ -13,7 +13,7 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 | 3 — ViewModel and StateFlow | **Done** | Six screen view models; screens render `UiState`; `GoalsActivity` is 136 lines, down from 505 |
 | 4 — Release readiness | **Mostly done** | R8 + bundle verified in CI, `app-ads.txt`, Play answers and a privacy-policy draft; the keystore and the upload need a human (see `RELEASE.md`) |
 | 6 — targetSdk 36 | **Done** | `targetSdk` 36 with the three Android 16 behaviour changes checked in code: edge-to-edge already handled, back never intercepted, no orientation lock. See `RELEASE.md` §5b |
-| 5 — Android Lint | **Done** | Lint runs on every push: 4 errors and 130 warnings on the first run, **0 errors and 34 warnings** now, every remaining one justified in `LINT.md` |
+| 5 — Android Lint | **Done** | Lint runs on every push: 4 errors and 130 warnings on the first run, **0 errors and 33 warnings** now, every remaining one justified in `LINT.md` |
 
 ## What the build proves
 
@@ -21,7 +21,7 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
   DEX and packaging. The debug APK is 9.7 MB; the unsigned release bundle is 6.5 MB.
 - `:app:testDebugUnitTest` runs **56 tests, all passing**.
 - `:app:lintDebug` reports **no errors**. Lint analyses the compiled app rather than the sources: API
-  levels, accessibility, resources, manifest. What is left is 34 warnings, itemised in `LINT.md`.
+  levels, accessibility, resources, manifest. What is left is 33 warnings, itemised in `LINT.md`.
 - `tools/check_ui_tokens.py`, `tools/check_resources.py`, `tools/check_kotlin_syntax.py` and
   `tools/check_view_bindings.py` pass.
 

@@ -28,12 +28,12 @@ The first run found **4 errors and 130 warnings**, and every one of the four err
 * **Warnings are findings too.** They do not fail the build, but they are not decoration: the ones
   below are either fixed or listed with the reason they are not.
 
-## Where it stands — run 43963762223 on `b47feef`
+## Where it stands — run 43980342167 on `e6713ae`
 
 | | First run | Now |
 | --- | --- | --- |
 | Errors | 4 | **0** |
-| Warnings | 130 | **34** |
+| Warnings | 130 | **33** |
 | Information | 1 | 1 |
 
 ### Errors, all fixed
@@ -44,7 +44,7 @@ The first run found **4 errors and 130 warnings**, and every one of the four err
 | `IncludeLayoutParam` | `activity_main.xml` | margins on `<include>` were ignored without width/height, so the ad slot kept a double gutter |
 | `NewApi` ×2 | `values/themes.xml`, `values-night` | `windowLightNavigationBar` is API 27, `minSdk` is 26; moved to `values-v27`, and 26 now gets a dark bar instead of white icons on white |
 
-### Warnings, fixed (96 of 130)
+### Warnings, fixed (97 of 130)
 
 Dead resources (42: 37 strings, 3 dimens, a colour and `activity_section.xml`), `UseKtx`-adjacent
 `ApplySharedPref` (2, declined with reasons), `Autofill` (14 fields opted out — none is identity data),
@@ -52,7 +52,8 @@ Dead resources (42: 37 strings, 3 dimens, a colour and `activity_section.xml`), 
 backgrounds duplicating `windowBackground`), `ContentDescription` (2), `LabelFor` (2), `ExifInterface`,
 `StaticFieldLeak` (a genuine Activity leak — see below), `SetTextI18n` (2), `MonochromeLauncherIcon` (2),
 `DataExtractionRules`, `ObsoleteSdkInt`, `UseCompatTextViewDrawableXml` (5),
-`UseCompatTextViewDrawableApis`, `DisableBaselineAlignment` (2).
+`UseCompatTextViewDrawableApis`, `DisableBaselineAlignment` (2), and `OldTargetApi` — fixed by raising
+`targetSdk` to 36 rather than by arguing with it.
 
 The leak is worth naming: `RoomFinanceRepository` is a process-lifetime singleton and seven call sites
 built it from an `Activity`. Whichever ran first pinned that Activity, and its views, for the life of the
@@ -67,16 +68,19 @@ process. The constructor normalises to the application context now.
 | `UselessParent` | 2 | removing a wrapper changes the hierarchy of the home screen, which no device has rendered yet |
 | `ButtonStyle` | 2 | the buttons in `activity_account_detail` are filled on purpose; borderless is the convention, not the requirement |
 | `MergeRootFrame` | 1 | `view_ad_slot` needs its id and its own layout params; `<merge>` cannot carry either |
-| `OldTargetApi` | 1 | **not a style question — see below** |
+
 | `KtxExtensionAvailable` | 1 | information; tied to the `UseKtx` pass |
 
-## The one warning that matters commercially
+## `OldTargetApi` — resolved
 
-`OldTargetApi` says `targetSdk` is 35 while 36 is available. Google Play requires new uploads and updates
-to target a recent API level, and 36 became the requirement in 2026. Raising it is not a one-line edit:
-**targetSdk 36 forces edge-to-edge**, which changes every screen's insets behaviour — and insets here have
-never been seen on a device. It is deferred until there is a device pass to verify it against, and it is
-recorded in `RELEASE.md` as a blocker for the first upload if Play's console refuses 35.
+It was the one warning with commercial consequence: Play stopped accepting uploads below API 36, so
+`targetSdk` 35 blocked release regardless of how the app ran. It is 36 now.
+
+Lint's own signal disappeared with the bump and raised nothing new, which is the useful part: nothing in
+this codebase depended on a 35-era behaviour. That matches the audit done by hand — edge-to-edge was
+already implemented, no screen intercepts back, and nothing declares an orientation or resizability
+restriction for Android 16 to ignore. `RELEASE.md` §5b records what changed and what a device still has
+to confirm.
 
 ## Reading a result when the log is unreachable
 
