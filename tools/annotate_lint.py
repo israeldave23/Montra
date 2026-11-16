@@ -26,7 +26,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 DEFAULT_MAX_ANNOTATIONS = 40
-RESOURCE = re.compile(r"`R\.[a-z]+\.[\w.]+`")
+RESOURCE = re.compile(r"`(R\.[a-z]+\.[\w.]+)`")  # group 1 = the name itself
 SEVERITY_ORDER = {"Fatal": 0, "Error": 1, "Warning": 2, "Information": 3}
 
 
@@ -108,7 +108,7 @@ def summarise(issues: list[dict[str, str]]) -> None:
             names = []
             for issue in items:
                 found = RESOURCE.search(issue["message"])
-                if found:
+                if found and found.group(1) not in names:
                     names.append(found.group(1))
             if names:
                 lines.append("          all: " + ", ".join(names))
@@ -194,5 +194,23 @@ def main(argv: list[str]) -> int:
     return 0
 
 
+def run(argv: list[str]) -> int:
+    """Reports, never judges.
+
+    This step failed a build once while merely describing lint's findings. A reporting tool must not be
+    able to do that: the gate is the separate "fail the job when lint found errors" step, and anything
+    that goes wrong here arrives as a warning annotation instead of a red job.
+    """
+    try:
+        return main(argv)
+    except Exception as error:  # noqa: BLE001 - the whole point is to survive anything
+        print(f"::warning::annotate_lint could not read the report: {type(error).__name__}: {error}")
+        return 0
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    # Lint messages carry non-ASCII (the minus sign, curly quotes, middots). A pipe under a C locale
+    # would otherwise raise UnicodeEncodeError partway through the table.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.exit(run(sys.argv[1:]))
