@@ -107,6 +107,9 @@ dependencies {
     // viewModelScope and the stateIn/WhileSubscribed pattern the screens now use.
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
+    // android.media.ExifInterface cannot read HEIF/AVIF orientation and its behaviour differs across
+    // OEM builds; the androidx class reads what the picker actually hands over. Same API shape.
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("com.google.android.material:material:1.13.0")
 
     implementation("androidx.room:room-runtime:2.8.5")

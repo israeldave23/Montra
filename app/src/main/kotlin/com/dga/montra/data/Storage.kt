@@ -1,5 +1,6 @@
 package com.dga.montra.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import java.io.File
@@ -81,7 +82,15 @@ internal object Storage {
         }
     }
 
-    /** Copies every entry, then clears the old file, so a rename can never be half-applied. */
+    /**
+     * Copies every entry, then clears the old file, so a rename can never be half-applied.
+     *
+     * Both writes are synchronous on purpose, which is why ApplySharedPref is suppressed rather than
+     * followed: apply() returns nothing, and the decision to delete the legacy file rests on commit()
+     * having actually succeeded. This is a one-time migration that runs before the UI, so the main
+     * thread cost lint is warning about is a single file write at startup, not a scroll hitch.
+     */
+    @SuppressLint("ApplySharedPref")
     private fun copyPreferences(context: Context, legacyName: String, newName: String) {
         val legacy = context.getSharedPreferences(legacyName, Context.MODE_PRIVATE)
         val values = legacy.all

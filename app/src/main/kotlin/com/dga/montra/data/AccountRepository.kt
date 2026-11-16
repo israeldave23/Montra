@@ -1,5 +1,6 @@
 package com.dga.montra.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
 import com.dga.montra.domain.*
@@ -113,6 +114,11 @@ class AccountRepository(context: Context) {
         }
     }
 
+    // Synchronous on purpose, and lint's advice is declined knowingly rather than ignored: this runs
+    // once, while migrating the pre-Room ledger, and the plaintext key is removed in the same editor.
+    // The pair has to land together before the migration is considered done, and a failure here is the
+    // one case where I want to know on the spot instead of a background thread swallowing it.
+    @SuppressLint("ApplySharedPref")
     private fun saveEncrypted(raw: String) {
         preferences.edit().putString("accounts_encrypted", encrypt(raw))
             .remove("accounts").commit()

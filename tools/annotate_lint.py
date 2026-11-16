@@ -102,7 +102,28 @@ def summarise(issues: list[dict[str, str]]) -> None:
 
     for line in lines:
         print(line)
-    print("::notice title=lint worklist::" + escape_data("\n".join(lines)))
+
+    # GitHub truncates a long annotation message - this one was cut off after two thirds of the issue
+    # groups, silently losing the rest. Chunking keeps every group inside one of several notices.
+    for number, chunk in enumerate(chunks(lines), start=1):
+        title = "lint worklist" if number == 1 else f"lint worklist ({number})"
+        print(f"::notice title={title}::" + escape_data("\n".join(chunk)))
+
+
+def chunks(lines: list[str], budget: int = 1500) -> list[list[str]]:
+    """Splits the table into notices small enough that GitHub does not trim them."""
+    out: list[list[str]] = []
+    current: list[str] = []
+    size = 0
+    for line in lines:
+        if current and size + len(line) > budget:
+            out.append(current)
+            current, size = [], 0
+        current.append(line)
+        size += len(line) + 1
+    if current:
+        out.append(current)
+    return out
 
 
 def annotation(issue: dict[str, str]) -> str:
