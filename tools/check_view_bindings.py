@@ -9,9 +9,13 @@ Rules:
   1. `findViewById` may only appear in the allowlist below.
   2. An `*Adapter.kt` file must not inflate a layout by resource id; it inflates the binding.
   3. `removeAllViews()` is how a list gets rebuilt by hand; a ListAdapter submits instead.
+  4. A `private lateinit var` must be assigned somewhere. `lateinit var binding` is the reason this
+     rule lives here: a field the screen forgot to initialise compiles clean and throws
+     `UninitializedPropertyAccessException` on the first frame that reads it.
 """
 
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,6 +48,14 @@ def main() -> int:
             problems.append(
                 f"{path.relative_to(ROOT)}: adapter inflates a layout by id; inflate its binding"
             )
+
+        for match in re.finditer(r"private lateinit var (\w+):", text):
+            name = match.group(1)
+            if not re.search(rf"^\s*{re.escape(name)} = ", text, re.M):
+                problems.append(
+                    f"{path.relative_to(ROOT)}: lateinit {name} is never assigned "
+                    f"(compiles, then throws at runtime)"
+                )
 
         if "removeAllViews()" in text and path.name != "Ads.kt":
             problems.append(

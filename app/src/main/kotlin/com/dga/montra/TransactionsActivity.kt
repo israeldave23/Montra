@@ -6,9 +6,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
@@ -126,12 +124,6 @@ class TransactionsActivity : AppActivity() {
                 }
                 .onFailure { toast(R.string.storage_error) }
         }
-    }
-
-    private fun formattedLabel(tx: com.dga.montra.domain.Transaction): String {
-        val sign = if (tx.type == com.dga.montra.domain.TransactionType.EXPENSE ||
-            tx.type == com.dga.montra.domain.TransactionType.TRANSFER_OUT) "−" else "+"
-        return "$sign${Money(tx.amount.minorUnits, tx.amount.currencyCode).format()}  ·  ${tx.categoryId}\n${tx.note.ifBlank { tx.type.name }}\n${java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(tx.timestampMillis))}"
     }
 
     private fun showTransactionDetails(tx: Transaction) {

@@ -59,7 +59,7 @@ mismatch should not cost a full compile to discover.
   build from `ApplicationInfo.FLAG_DEBUGGABLE` instead, which also works for any build type you add.
 * **`buildFeatures.viewBinding = true`** is on, and `tools/check_view_bindings.py` keeps it that way:
   no `findViewById` outside the four helpers that take a root, no adapter inflating a layout by id,
-  no `removeAllViews()`. Screen code names a field, and the id is checked by the compiler.
+  no `removeAllViews()`, and no `lateinit` field left unassigned. Screen code names a field, and the id is checked by the compiler.
 
 ## Release checklist
 

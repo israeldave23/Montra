@@ -10,7 +10,7 @@ tree-sitter-kotlin` and skips itself cleanly when the grammar is absent.
 | `check_resources.py` | Every `@type/name` and `R.type.name` resolves **in its own namespace**; `getString` argument counts match the format string; no duplicate resource names; no unbalanced Kotlin braces; no CJK characters; light/night colour parity; unused resources reported as warnings |
 | `annotate_build_errors.py` | Turns Gradle output into `::error` annotations (file + line), collapsing one cause repeated across files |
 | `report_test_failures.py` | Turns JUnit XML into `::error` annotations so a red run names the class and method even where the log blob is unreachable |
-| `check_view_bindings.py` | No `findViewById` outside the four root-taking helpers, no adapter inflating a layout by id, no `removeAllViews()` list rebuilding |
+| `check_view_bindings.py` | No `findViewById` outside the four root-taking helpers, no adapter inflating a layout by id, no `removeAllViews()`, and no `lateinit` field left unassigned |
 | `check_kotlin_syntax.py` | Every `.kt` file parses with a real Kotlin grammar — catches a duplicated `}` that balances but does not compile. Syntax only: unresolved references still need the SDK on a classpath |
 
 ```bash

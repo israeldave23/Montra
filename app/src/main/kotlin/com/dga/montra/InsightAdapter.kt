@@ -4,8 +4,6 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
-import android.widget.TextView
 import com.dga.montra.databinding.ItemInsightRowBinding
 import com.dga.montra.databinding.ItemInsightSummaryBinding
 import androidx.recyclerview.widget.DiffUtil

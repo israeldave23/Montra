@@ -43,6 +43,17 @@ class MainActivity : AppActivity() {
         repository = RoomFinanceRepository.get(this)
         balanceView = binding.balance
         summaryView = binding.balanceSummary
+        binding.homeAccounts.layoutManager = LinearLayoutManager(this)
+        accountAdapter = AccountRowAdapter(onOpen = { accountId ->
+            startActivity(
+                Intent(this, AccountDetailActivity::class.java)
+                    .putExtra(AccountDetailActivity.EXTRA_ACCOUNT_ID, accountId)
+            )
+        })
+        binding.homeAccounts.adapter = accountAdapter
+        binding.recentTransactions.layoutManager = LinearLayoutManager(this)
+        recentAdapter = RecentTransactionAdapter()
+        binding.recentTransactions.adapter = recentAdapter
         binding.addAccountButton.setOnClickListener {
             FinanceDialogs.addAccount(this, repository)
         }
