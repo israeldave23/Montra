@@ -21,10 +21,12 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from pathlib import Path
+import re
 import sys
 import xml.etree.ElementTree as ET
 
 DEFAULT_MAX_ANNOTATIONS = 40
+RESOURCE = re.compile(r"`R\.[a-z]+\.[\w.]+`")
 SEVERITY_ORDER = {"Fatal": 0, "Error": 1, "Warning": 2, "Information": 3}
 
 
@@ -99,6 +101,17 @@ def summarise(issues: list[dict[str, str]]) -> None:
             lines.append(f"          {where} - {issue['message'][:120]}")
         if len(items) > 3:
             lines.append(f"          ... and {len(items) - 3} more")
+
+        # UnusedResources is the one group where the *names* are the worklist and the locations are
+        # merely where they were declared, so every name is listed instead of the first three.
+        if items[0]["id"] == "UnusedResources":
+            names = []
+            for issue in items:
+                found = RESOURCE.search(issue["message"])
+                if found:
+                    names.append(found.group(1))
+            if names:
+                lines.append("          all: " + ", ".join(names))
 
     for line in lines:
         print(line)

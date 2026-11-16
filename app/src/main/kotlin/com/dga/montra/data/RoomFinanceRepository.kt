@@ -1,5 +1,6 @@
 package com.dga.montra.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.room.Room
 import com.dga.montra.db.AccountEntity
@@ -22,9 +23,16 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 
-class RoomFinanceRepository private constructor(private val context: Context) {
+class RoomFinanceRepository private constructor(context: Context) {
+    /**
+     * The singleton outlives every screen, and seven call sites hand it an Activity. Whichever one
+     * arrived first would otherwise pin that Activity - and everything it holds - for the life of the
+     * process. Normalised once, here, so no future caller can reintroduce it.
+     */
+    private val appContext: Context = context.applicationContext
+
     private val db = Room.databaseBuilder(
-        context.applicationContext,
+        appContext,
         FinanceDatabase::class.java,
         Storage.DATABASE
     ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
@@ -32,17 +40,17 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     private val dao: FinanceDao = db.financeDao()
 
     private suspend fun migrateLegacyIfNeeded() {
-        if (context.getSharedPreferences(Storage.PREFS_MIGRATION, Context.MODE_PRIVATE)
+        if (appContext.getSharedPreferences(Storage.PREFS_MIGRATION, Context.MODE_PRIVATE)
                 .getBoolean("room_v1_done", false)) return
         if (dao.accounts().isEmpty()) {
-            val legacy = AccountRepository(context)
+            val legacy = AccountRepository(appContext)
             val legacyAccounts = legacy.all()
             val legacyTxs = legacy.allTransactions()
             val accountIds = legacyAccounts.mapTo(hashSetOf()) { it.id }
             require(legacyTxs.all { it.accountId in accountIds }) { "Legacy transaction references missing account" }
             dao.importLegacy(legacyAccounts.map { it.toEntity() }, legacyTxs.map { it.toEntity() })
         }
-        check(context.getSharedPreferences(Storage.PREFS_MIGRATION, Context.MODE_PRIVATE)
+        check(appContext.getSharedPreferences(Storage.PREFS_MIGRATION, Context.MODE_PRIVATE)
             .edit().putBoolean("room_v1_done", true).commit()) { "Could not persist migration marker" }
     }
 
@@ -378,6 +386,9 @@ class RoomFinanceRepository private constructor(private val context: Context) {
         private const val FUNDS_ATTEMPTS = 3
         private const val GOAL_NAME_LIMIT = 100
 
+        // Static on purpose. Safe because the only Context the instance can hold is the application
+        // one - appContext above - which never outlives the process it belongs to.
+        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var INSTANCE: RoomFinanceRepository? = null
 

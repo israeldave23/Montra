@@ -47,6 +47,11 @@
   <string name="show_balance">Show balance</string>
   <string name="save_feedback_transfer">Transfer saved</string>
   <string name="amount_required">Enter an amount greater than zero.</string>
+  <!-- Sign and value are one string so the sign can move with the locale, and so the digits are
+       never assembled by hand. The minus is U+2212, not a hyphen. -->
+  <string name="amount_positive">+%1$s</string>
+  <string name="amount_negative">−%1$s</string>
+  <string name="amount_hint">Amount</string>
   <string name="account_required">Select an account.</string>
   <string name="storage_error">Could not load accounts. Tap to retry.</string>
   <string name="save_error">Could not save account. Try again.</string>

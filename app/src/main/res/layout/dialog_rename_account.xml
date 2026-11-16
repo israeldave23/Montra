@@ -7,6 +7,7 @@
     android:padding="@dimen/space_24">
 
     <EditText
+        android:importantForAutofill="no"
         android:id="@+id/account_rename_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

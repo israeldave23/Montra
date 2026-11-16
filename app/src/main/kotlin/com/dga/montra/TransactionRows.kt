@@ -30,7 +30,10 @@ internal fun ItemTransactionRowBinding.bindTransaction(tx: Transaction, showDate
     transactionDate.visibility = if (showDate) View.VISIBLE else View.GONE
 
     transactionAmount.apply {
-        text = (if (expense) "−" else "+") + Money(tx.amount.minorUnits, tx.amount.currencyCode).format()
+        text = context.getString(
+            if (expense) R.string.amount_negative else R.string.amount_positive,
+            Money(tx.amount.minorUnits, tx.amount.currencyCode).format()
+        )
         setTextColor(context.getColor(if (expense) R.color.m3_negative else R.color.m3_positive))
         setTypeface(typeface, Typeface.BOLD)
     }

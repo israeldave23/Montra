@@ -33,6 +33,8 @@
             android:paddingEnd="@dimen/space_12" />
 
         <EditText
+            android:hint="@string/amount_hint"
+            android:importantForAutofill="no"
             android:id="@+id/budget_edit_amount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

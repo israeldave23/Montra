@@ -177,10 +177,10 @@ class AccountDetailActivity : AppActivity() {
         activityAdapter.submitList(TransactionListAdapter.itemsFor(transactions))
     }
 
-    private fun signedMoney(minorUnits: Long, currency: String): String {
-        val sign = if (minorUnits < 0L) "−" else "+"
-        return sign + Money(Math.abs(minorUnits), currency).format()
-    }
+    private fun signedMoney(minorUnits: Long, currency: String): String = getString(
+        if (minorUnits < 0L) R.string.amount_negative else R.string.amount_positive,
+        Money(Math.abs(minorUnits), currency).format()
+    )
 
     private fun showMenu(anchor: View) {
         val balance = current ?: return
