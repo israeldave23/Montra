@@ -86,8 +86,16 @@ class BudgetProgressTest {
     @Test
     fun `days left counts the rest of the month`() {
         val today = LocalDate.of(2026, 11, 12)
+
+        // Convention: today is spent, the last day of the month is not. Nov 13..30 is 18 days.
         assertEquals(18, month.daysLeft(today))
-        assertEquals(30, YearMonth.of(2026, 12).daysLeft(today))
+
+        // A month that has not started yet has lost nothing, so all of its days are still ahead.
+        // This assertion used to say 30 for a 31-day December, which contradicted the 18 above:
+        // it excluded a "current day" that a future month does not have.
+        assertEquals(31, YearMonth.of(2026, 12).daysLeft(today))
+        assertEquals(28, YearMonth.of(2027, 2).daysLeft(today))
+
         assertEquals(0, YearMonth.of(2026, 10).daysLeft(today))
         assertEquals(0, month.daysLeft(LocalDate.of(2026, 11, 30)))
     }
