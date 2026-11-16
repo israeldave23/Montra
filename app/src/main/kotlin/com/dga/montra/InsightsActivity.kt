@@ -9,17 +9,21 @@ import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.databinding.ActivityInsightsBinding
 import com.dga.montra.domain.CurrencyInsight
+import com.dga.montra.ui.InsightsViewModel
+import com.dga.montra.ui.UiState
+import com.dga.montra.ui.viewModelFactory
 import com.dga.montra.domain.MonthlyInsight
 import com.dga.montra.domain.Money
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 
 /**
  * Monthly insight: where the money went, how it compares with last month, and what the pace implies
@@ -41,8 +45,9 @@ class InsightsActivity : SectionActivity(4) {
     private lateinit var nextButton: View
     private lateinit var adapter: InsightAdapter
 
-    private var month: YearMonth = YearMonth.now()
-    private var observation: Job? = null
+    private val viewModel: InsightsViewModel by viewModels { viewModelFactory { InsightsViewModel(repo) } }
+
+    private val month: YearMonth get() = viewModel.currentMonth
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -69,32 +74,34 @@ class InsightsActivity : SectionActivity(4) {
         bindBottomNavigation(binding.root, tab)
         renderMonthControls()
         render(MonthlyInsight(month, emptyList()))
+        collectState()
     }
 
     override fun onStart() {
         super.onStart()
-        observe()
-    }
-
-    override fun onStop() {
-        observation?.cancel()
-        super.onStop()
+        renderMonthControls()
     }
 
     private fun shiftMonth(months: Long) {
-        val target = month.plusMonths(months)
-        if (target > YearMonth.now()) return
-        month = target
+        if (!viewModel.shiftMonth(months)) return
         renderMonthControls()
-        observe()
     }
 
-    private fun observe() {
-        observation?.cancel()
-        observation = lifecycleScope.launch {
-            repo.observeInsight(month)
-                .catch { snackbar(R.string.storage_error) }
-                .collect { render(it) }
+    /**
+     * Renders what the view model holds. Collection stops when the screen is not started, so nothing
+     * queries the database behind a screen the user cannot see.
+     */
+    private fun collectState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is UiState.Ready -> render(state.value)
+                        UiState.Failed -> snackbar(R.string.storage_error)
+                        UiState.Loading -> Unit
+                    }
+                }
+            }
         }
     }
 

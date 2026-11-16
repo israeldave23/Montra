@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
@@ -12,8 +15,9 @@ import com.dga.montra.databinding.ActivityMainBinding
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.DashboardState
 import com.dga.montra.domain.Money
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
+import com.dga.montra.ui.MainViewModel
+import com.dga.montra.ui.UiState
+import com.dga.montra.ui.viewModelFactory
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -22,7 +26,9 @@ class MainActivity : AppActivity() {
 
     private var latestDashboard: DashboardState? = null
     private lateinit var repository: RoomFinanceRepository
-    private var dashboardJob: Job? = null
+    private val viewModel: MainViewModel by viewModels {
+        viewModelFactory { MainViewModel(RoomFinanceRepository.get(applicationContext)) }
+    }
     private lateinit var balanceView: TextView
     private lateinit var summaryView: TextView
     private lateinit var accountAdapter: AccountRowAdapter
@@ -74,31 +80,29 @@ class MainActivity : AppActivity() {
             latestDashboard?.let { render(it) }
         }
         refreshProfileHeader()
+        collectState()
     }
 
     override fun onResume() {
         super.onResume()
         refreshProfileHeader()
-        observeHome()
     }
 
-    override fun onStop() {
-        dashboardJob?.cancel()
-        super.onStop()
-    }
-
-    private fun observeHome() {
-        dashboardJob?.cancel()
-        dashboardJob = lifecycleScope.launch {
-            try {
-                repository.prepareForObservation()
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                toast(R.string.storage_error)
-                return@launch
+    /**
+     * The screen renders what the view model holds. Collection stops when the screen is not started
+     * and resumes on return, so the numbers are never stale and no query runs in the background.
+     */
+    private fun collectState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.dashboard.collect { state ->
+                    when (state) {
+                        is UiState.Ready -> render(state.value)
+                        UiState.Failed -> toast(R.string.storage_error)
+                        UiState.Loading -> Unit
+                    }
+                }
             }
-            repository.observeDashboard().catch { toast(R.string.storage_error) }.collect { render(it) }
         }
     }
 

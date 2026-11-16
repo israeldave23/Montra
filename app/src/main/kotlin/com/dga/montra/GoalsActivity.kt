@@ -10,7 +10,10 @@ import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
@@ -18,6 +21,9 @@ import com.dga.montra.databinding.ActivityGoalsBinding
 import com.dga.montra.databinding.DialogGoalDetailBinding
 import com.dga.montra.databinding.DialogGoalEditBinding
 import com.dga.montra.databinding.DialogGoalFundsBinding
+import com.dga.montra.ui.GoalsViewModel
+import com.dga.montra.ui.UiState
+import com.dga.montra.ui.viewModelFactory
 import com.dga.montra.domain.Goal
 import com.dga.montra.domain.GoalOrdering
 import com.dga.montra.domain.GoalStatus
@@ -28,8 +34,6 @@ import com.google.android.material.snackbar.Snackbar
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -53,7 +57,7 @@ class GoalsActivity : SectionActivity(3) {
     private lateinit var adapter: GoalAdapter
 
     private var goals: List<Goal> = emptyList()
-    private var observation: Job? = null
+    private val viewModel: GoalsViewModel by viewModels { viewModelFactory { GoalsViewModel(repo) } }
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -78,22 +82,26 @@ class GoalsActivity : SectionActivity(3) {
         actionButton.setOnClickListener { showGoalEditor(null) }
         bindBottomNavigation(binding.root, tab)
         render(emptyList())
+        collectState()
     }
 
-    override fun onStart() {
-        super.onStart()
-        observation = lifecycleScope.launch {
-            repo.observeGoals()
-                .catch { snackbar(R.string.storage_error) }
-                .collect { render(it) }
+    /**
+     * Renders what the view model holds. Collection stops when the screen is not started, so nothing
+     * queries the database behind a screen the user cannot see.
+     */
+    private fun collectState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.goals.collect { state ->
+                    when (state) {
+                        is UiState.Ready -> render(state.value)
+                        UiState.Failed -> snackbar(R.string.storage_error)
+                        UiState.Loading -> Unit
+                    }
+                }
+            }
         }
     }
-
-    override fun onStop() {
-        observation?.cancel()
-        super.onStop()
-    }
-
     private fun render(items: List<Goal>) {
         goals = GoalOrdering.sorted(items, LocalDate.now(), ZoneId.systemDefault())
         adapter.submitList(goals)

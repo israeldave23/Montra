@@ -9,7 +9,10 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,13 +20,14 @@ import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.databinding.ActivityTransactionsBinding
 import com.dga.montra.databinding.DialogAddTransactionBinding
-import com.dga.montra.domain.Money
+import com.dga.montra.ui.TransactionsViewModel
+import com.dga.montra.ui.UiState
+import com.dga.montra.ui.viewModelFactory
 import com.dga.montra.domain.Transaction
+import com.dga.montra.domain.TransactionFilter
 import com.dga.montra.domain.TransactionType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -36,9 +40,9 @@ class TransactionsActivity : AppActivity() {
     private lateinit var adapter: TransactionListAdapter
     private var activeTouchHelper: ItemTouchHelper? = null
     private lateinit var query: EditText
-    private var selectedFilter = com.dga.montra.domain.TransactionFilter.ALL
-    private var requestVersion = 0
-    private var observation: Job? = null
+    private val viewModel: TransactionsViewModel by viewModels {
+        viewModelFactory { TransactionsViewModel(RoomFinanceRepository.get(applicationContext)) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,55 +79,43 @@ class TransactionsActivity : AppActivity() {
         }).also { it.attachToRecyclerView(list) }
         query = binding.transactionSearch
         binding.transactionFilters.setOnCheckedStateChangeListener { _, checkedIds ->
-            selectedFilter = when (checkedIds.firstOrNull()) {
-                R.id.filter_income -> com.dga.montra.domain.TransactionFilter.INCOME
-                R.id.filter_expense -> com.dga.montra.domain.TransactionFilter.EXPENSE
-                R.id.filter_transfer -> com.dga.montra.domain.TransactionFilter.TRANSFER
-                else -> com.dga.montra.domain.TransactionFilter.ALL
-            }
-            load(query.text.toString())
+            viewModel.selectFilter(when (checkedIds.firstOrNull()) {
+                R.id.filter_income -> TransactionFilter.INCOME
+                R.id.filter_expense -> TransactionFilter.EXPENSE
+                R.id.filter_transfer -> TransactionFilter.TRANSFER
+                else -> TransactionFilter.ALL
+            })
         }
         query.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { load(s.toString()) }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { viewModel.search(s.toString()) }
             override fun afterTextChanged(s: Editable?) = Unit
         })
-        load("")
+        collectState()
     }
 
-    override fun onStart() {
-        super.onStart()
-        observation = lifecycleScope.launch {
-            try {
-                repository.prepareForObservation()
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                toast(R.string.storage_error)
-                return@launch
-            }
-            repository.observeTransactions().catch { toast(R.string.storage_error) }.collect { load(query.text.toString()) }
-        }
-    }
-
-    override fun onStop() {
-        observation?.cancel()
-        super.onStop()
-    }
-
-    private fun load(text: String) {
-        val version = ++requestVersion
-        val filter = selectedFilter
+    /**
+     * Renders what the view model holds. Collection stops when the screen is not started, so nothing
+     * queries the database behind a screen the user cannot see.
+     */
+    private fun collectState() {
         lifecycleScope.launch {
-            runCatching { repository.searchTransactions(text).filter { filter.matches(it.type) } }
-                .onSuccess { transactions ->
-                    if (version != requestVersion) return@onSuccess
-                    emptyView.visibility = if (transactions.isEmpty()) View.VISIBLE else View.GONE
-                    list.visibility = if (transactions.isEmpty()) View.GONE else View.VISIBLE
-                    adapter.submitList(TransactionListAdapter.itemsFor(transactions))
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is UiState.Ready -> renderTransactions(state.value)
+                        UiState.Failed -> toast(R.string.storage_error)
+                        UiState.Loading -> Unit
+                    }
                 }
-                .onFailure { toast(R.string.storage_error) }
+            }
         }
+    }
+
+    private fun renderTransactions(transactions: List<Transaction>) {
+        emptyView.visibility = if (transactions.isEmpty()) View.VISIBLE else View.GONE
+        list.visibility = if (transactions.isEmpty()) View.GONE else View.VISIBLE
+        adapter.submitList(TransactionListAdapter.itemsFor(transactions))
     }
 
     private fun showTransactionDetails(tx: Transaction) {
@@ -239,7 +231,6 @@ class TransactionsActivity : AppActivity() {
                     }.onSuccess {
                         dialog.dismiss()
                         toast(R.string.transaction_updated, short = true)
-                        load(query.text.toString())
                     }.onFailure { toast(R.string.transaction_error) }
                 }
             }
@@ -251,17 +242,15 @@ class TransactionsActivity : AppActivity() {
         lifecycleScope.launch {
             runCatching { repository.deleteTransaction(tx.id) }
                 .onSuccess {
-                    load(query.text.toString())
                     Snackbar.make(binding.root, R.string.transaction_deleted, Snackbar.LENGTH_LONG)
                         .setAction(R.string.undo) {
                             lifecycleScope.launch {
                                 runCatching { repository.addTransaction(tx) }
-                                    .onSuccess { load(query.text.toString()) }
                                     .onFailure { toast(R.string.transaction_error) }
                             }
                         }.show()
                 }
-                .onFailure { toast(R.string.storage_error); load(query.text.toString()) }
+                .onFailure { toast(R.string.storage_error) }
         }
     }
 

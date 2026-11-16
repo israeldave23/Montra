@@ -5,7 +5,10 @@ import android.view.View
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.ads.Ads
@@ -13,14 +16,14 @@ import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.databinding.ActivityAccountDetailBinding
 import com.dga.montra.databinding.DialogRenameAccountBinding
 import com.dga.montra.domain.AccountBalance
+import com.dga.montra.ui.AccountDetailViewModel
+import com.dga.montra.ui.UiState
+import com.dga.montra.ui.viewModelFactory
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -50,8 +53,8 @@ class AccountDetailActivity : AppActivity() {
 
     private var accountId: String? = null
     private var current: AccountBalance? = null
-    private var observation: Job? = null
     private var reportedMissing = false
+    private var viewModel: AccountDetailViewModel? = null
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -92,26 +95,33 @@ class AccountDetailActivity : AppActivity() {
         accountId = intent.getStringExtra(EXTRA_ACCOUNT_ID)
         if (accountId == null) {
             showMissingAccount()
+        } else {
+            startObservation()
         }
     }
 
-    override fun onStart() {
-        super.onStart()
+    /**
+     * Created once the account id is known: the view model is per account, and holds the two flows
+     * the screen used to combine by hand on every start.
+     */
+    private fun startObservation() {
         val id = accountId ?: return
-        observation?.cancel()
-        observation = lifecycleScope.launch {
-            combine(
-                repo.observeAccount(id),
-                repo.observeAccountTransactions(id)
-            ) { balance, transactions -> balance to transactions }
-                .catch { snackbar(R.string.storage_error) }
-                .collect { (balance, transactions) -> render(balance, transactions) }
+        if (viewModel != null) return
+        val model: AccountDetailViewModel by viewModels {
+            viewModelFactory { AccountDetailViewModel(repo, id) }
         }
-    }
-
-    override fun onStop() {
-        observation?.cancel()
-        super.onStop()
+        viewModel = model
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.state.collect { state ->
+                    when (state) {
+                        is UiState.Ready -> render(state.value.first, state.value.second)
+                        UiState.Failed -> snackbar(R.string.storage_error)
+                        UiState.Loading -> Unit
+                    }
+                }
+            }
+        }
     }
 
     private fun render(balance: AccountBalance?, transactions: List<Transaction>) {

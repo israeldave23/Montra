@@ -7,12 +7,18 @@ import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.databinding.ActivityBudgetBinding
 import com.dga.montra.databinding.DialogBudgetEditBinding
+import com.dga.montra.ui.BudgetViewModel
+import com.dga.montra.ui.UiState
+import com.dga.montra.ui.viewModelFactory
 import com.dga.montra.domain.Budget
 import com.dga.montra.domain.BudgetOrdering
 import com.dga.montra.domain.BudgetProgress
@@ -26,8 +32,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -51,9 +55,11 @@ class BudgetActivity : SectionActivity(2) {
     private lateinit var actionButton: Button
     private lateinit var adapter: BudgetAdapter
 
-    private var month: YearMonth = YearMonth.now()
     private var budgets: List<BudgetProgress> = emptyList()
-    private var observation: Job? = null
+    private val viewModel: BudgetViewModel by viewModels { viewModelFactory { BudgetViewModel(repo) } }
+
+    /** The month the view model is showing; the screen labels it and files new budgets under it. */
+    private val month: YearMonth get() = viewModel.currentMonth
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -76,22 +82,32 @@ class BudgetActivity : SectionActivity(2) {
         actionButton.setOnClickListener { showEditor(null) }
         bindBottomNavigation(binding.root, tab)
         render(emptyList())
+        collectState()
     }
 
-    override fun onStart() {
-        super.onStart()
-        month = YearMonth.now()
-        renderMonthLabel()
-        observation = lifecycleScope.launch {
-            repo.observeBudgets(month)
-                .catch { snackbar(R.string.storage_error) }
-                .collect { render(it) }
+    /**
+     * Renders what the view model holds. Collection stops when the screen is not started, so nothing
+     * queries the database behind a screen the user cannot see.
+     */
+    private fun collectState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is UiState.Ready -> render(state.value)
+                        UiState.Failed -> snackbar(R.string.storage_error)
+                        UiState.Loading -> Unit
+                    }
+                }
+            }
         }
     }
-
-    override fun onStop() {
-        observation?.cancel()
-        super.onStop()
+    override fun onStart() {
+        super.onStart()
+        // Sitting on the screen across midnight, or across a month boundary, must not show last
+        // month's budgets as if they were this one's.
+        viewModel.refreshMonth()
+        renderMonthLabel()
     }
 
     private fun render(items: List<BudgetProgress>) {
