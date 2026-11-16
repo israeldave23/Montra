@@ -150,7 +150,9 @@ class BudgetActivity : SectionActivity(2) {
         monthLabel.text = when {
             month != YearMonth.from(today) -> label
             days <= 0 -> getString(R.string.budget_month_last_day, label)
-            else -> getString(R.string.budget_month_label, label, days)
+            else -> resources.getQuantityString(
+                R.plurals.budget_month_label, days, label, days
+            )
         }
     }
 
