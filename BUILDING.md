@@ -45,8 +45,9 @@ Every push and pull request:
    `tools/check_kotlin_syntax.py`, `tools/check_view_bindings.py`.
 4. **Unit tests**: `gradle :app:testDebugUnitTest`.
 5. **APK**: `gradle :app:assembleDebug`, uploaded as the `montra-debug-apk` artifact (14 days).
-6. **Release**: `gradle :app:assembleRelease` unsigned, so R8 and resource shrinking run; the R8
-   mapping is uploaded as `montra-release-mapping`.
+6. **Release**: `gradle :app:assembleRelease :app:bundleRelease` unsigned, so R8 and resource
+   shrinking run and the Play-format bundle is produced; artifacts `montra-release-mapping` and
+   `montra-release-aab-unsigned`.
 
 The gates run *before* the build on purpose: they are seconds, the build is minutes, and a format-arg
 mismatch should not cost a full compile to discover.

@@ -38,8 +38,8 @@ want CI-built signed artifacts:
 
 ## 2. R8 and resource shrinking
 
-`isMinifyEnabled = true` and `isShrinkResources = true` for release. CI runs `assembleRelease`
-unsigned on every push, so a keep rule that stops being enough is a red build rather than a crash in
+`isMinifyEnabled = true` and `isShrinkResources = true` for release. CI runs `assembleRelease` and
+`bundleRelease` unsigned on every push (the bundle is what Play takes, and it shares the R8 output), so a keep rule that stops being enough is a red build rather than a crash in
 a shipped APK, and `mapping.txt` is uploaded as an artifact — **keep it**: without the matching
 mapping a release stack trace cannot be de-obfuscated.
 
