@@ -10,7 +10,7 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 | 0 — Build system and CI | **Done** | `.github/workflows/android.yml` compiles, tests and packages on every push; artifact `montra-debug-apk` |
 | 1 — Material dialogs | **Done** | 17 `AlertDialog.Builder` sites are `MaterialAlertDialogBuilder` |
 | 2 — View binding and RecyclerView feeds | **Done** | 0 `findViewById` outside four root-taking helpers; home feed submits to `ListAdapter`s |
-| 3 — ViewModel and StateFlow | **Not started** | Activities own their own state and cancel their own jobs |
+| 3 — ViewModel and StateFlow | **Done** | Six screen view models; screens render `UiState`; `GoalsActivity` is 142 lines, down from 505 |
 | 4 — Release readiness | **Not started** | See `BUILDING.md` release checklist |
 
 ## What the build proves
@@ -41,6 +41,17 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 - Profile: display name, avatar image, theme, base currency, export, backup, restore.
 - Design system enforced by linters (`DESIGN_SYSTEM.md`).
 
+## How a screen is built
+
+- A view model owns the query and exposes `StateFlow<UiState<T>>` — `Loading`, `Ready`, `Failed`.
+  `WhileSubscribed(5_000)` stops the query when the screen is not visible and keeps a rotation from
+  re-running it.
+- `UiState.Failed` is a value, not a thrown exception with a toast in the middle of the stream.
+- The activity collects once with `repeatOnLifecycle(STARTED)` and renders; it owns no query, no
+  cancellation and no job.
+- Dialog surfaces live next to what they act on: `FinanceDialogs` for accounts and transactions,
+  `GoalDialogs` for goals (extensions on the screen, so call sites stay `showGoalEditor()`).
+
 ## Architecture
 
 - One `app` module, Kotlin DSL, AGP 8.9.1, Kotlin 2.0.21, minSdk 26, compileSdk 36.
@@ -52,8 +63,6 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 
 ## Known issues
 
-- **Activities own their observation.** A configuration change cancels and restarts the flow, and
-  `GoalsActivity` is 490 lines doing the work of a view model. Phase 3 fixes both.
 - **Theme parent is Material 2.** `Base.Theme.App` derives from
   `Theme.MaterialComponents.DayNight.NoActionBar` after a launch crash with the Material 3 parent.
   The chips still use `Widget.Material3.*` styles, which is a mixed family. The crash stack is
@@ -65,8 +74,6 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 
 ## Next steps
 
-1. Phase 3: `ViewModel` + `StateFlow` per screen; shrink `GoalsActivity` by moving formatting and
-   validation into the view model.
-2. Record the launch crash trace and restore the Material 3 theme parent.
-3. Device pass over ads, insets and night mode.
-4. Phase 4: signing, R8 with the ad SDK, `app-ads.txt`, Play data-safety answers.
+1. Record the launch crash trace and restore the Material 3 theme parent.
+2. Device pass over ads, insets, night mode, backup and restore.
+3. Phase 4: signing, R8 with the ad SDK, `app-ads.txt`, Play data-safety answers.

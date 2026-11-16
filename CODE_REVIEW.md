@@ -205,7 +205,7 @@ review.
 | --- | --- | --- |
 | P0-1 FileProvider never declared | **Closed** | `<provider>` in `AndroidManifest.xml`; authority matches `ProfileActivity.FILE_PROVIDER_AUTHORITY` |
 | P0-1b `cache-path path="."` exposes the whole cache | **Open** | `res/xml/file_provider_paths.xml` still grants the whole cache directory |
-| P0-2 backup/restore loses the WAL and overwrites a live database | **Open — still the worst defect in the app** | `ProfileActivity.backupToUri` copies only the `.db`; `restoreFromUri` overwrites it without closing Room, deleting `-wal`/`-shm`, or validating the file |
+| P0-2 backup/restore loses the WAL and overwrites a live database | **Closed** | `RoomFinanceRepository.checkpointForBackup` + `data/BackupBundle` (zip + manifest, header check, schema refusal, confirmation, close-and-restart); six unit tests |
 | P0-3 no Gradle build, no Room compiler | **Closed, verified** | CI run compiles, runs 50 tests and uploads the APK |
 | P0-4 amounts entered as `Float` | **Closed** | Budgets, goals and transactions all carry `Money`/minor units; no `Float` in `domain/` |
 
