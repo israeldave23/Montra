@@ -48,8 +48,19 @@
                 <TextView android:textAppearance="@style/TextAppearance.App.Body" android:id="@+id/recent_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:background="@drawable/action_tile_background" android:padding="@dimen/space_16" android:text="@string/recent_activity_empty" android:textColor="@color/m3_on_surface_variant" />
                 <androidx.recyclerview.widget.RecyclerView android:id="@+id/recent_transactions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:nestedScrollingEnabled="false" android:overScrollMode="never" />
     <!-- The scroll body is already inset by screen_h_padding; zero the slot's own gutter so
-         the ad lines up with the cards above it instead of sitting 48dp in. -->
-    <include layout="@layout/view_ad_slot" android:layout_marginStart="0dp" android:layout_marginEnd="0dp" />
+         the ad lines up with the cards above it instead of sitting 48dp in.
+
+         Every layout param is repeated here on purpose. Layout params declared on <include> are only
+         honoured when the tag also carries layout_width and layout_height; with margins alone they
+         are dropped and the included root's own margins win - which is how this slot was quietly
+         getting a double gutter. Vertical spacing is restated so nothing depends on merge semantics. -->
+    <include layout="@layout/view_ad_slot"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ad_banner_height"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginTop="@dimen/ad_slot_gap"
+        android:layout_marginBottom="@dimen/ad_slot_gap" />
             </LinearLayout>
        </LinearLayout>
       </LinearLayout>

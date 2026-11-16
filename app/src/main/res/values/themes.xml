@@ -46,9 +46,16 @@
         <item name="android:navigationBarColor">@color/m3_surface</item>
     </style>
 
+    <!--
+      Light scheme, API 26 only: from 27 on, values-v27/themes.xml replaces this whole style.
+
+      windowLightNavigationBar is API 27, and on 26 a light navigation bar still draws white icons -
+      white on white. So for that one API level the bar takes the dark on-surface role instead, and
+      values-v27 puts the surface back once dark icons exist.
+    -->
     <style name="Theme.App" parent="Base.Theme.App">
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:navigationBarColor">@color/m3_on_surface</item>
     </style>
 
     <style name="AppWindowAnimation">

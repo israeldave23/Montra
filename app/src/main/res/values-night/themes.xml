@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Only what the dark scheme changes; roles come from Base.Theme.App via values-night/colors.xml. -->
+    <!-- Night mode outranks the version qualifier, so this style covers every API level in the dark
+         scheme; there is no values-night-v27 and no API 27 attribute is needed here, because dark
+         icons are the thing night mode actively does not want. -->
     <style name="Theme.App" parent="Base.Theme.App">
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:navigationBarColor">@color/m3_surface</item>
     </style>
 </resources>

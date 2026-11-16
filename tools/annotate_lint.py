@@ -74,18 +74,35 @@ def read_issues(report: Path) -> list[dict[str, str]]:
 
 
 def summarise(issues: list[dict[str, str]]) -> None:
-    counts: "OrderedDict[str, int]" = OrderedDict()
-    for issue in issues:
-        key = f"{issue['severity']} {issue['id']}"
-        counts[key] = counts.get(key, 0) + 1
+    """A grouped worklist, printed and also emitted as one notice annotation.
 
+    The stdout copy is for anyone reading the log. The notice exists because annotations are the only
+    channel this environment can read: a run here found 136 issues, the per-issue annotations cap out
+    long before that, and 96 findings vanished into a truncated log tail. One grouped notice always
+    fits, so the whole shape of the problem survives regardless of the cap.
+    """
     by_severity: "OrderedDict[str, int]" = OrderedDict()
+    grouped: "OrderedDict[str, list[dict[str, str]]]" = OrderedDict()
     for issue in issues:
         by_severity[issue["severity"]] = by_severity.get(issue["severity"], 0) + 1
+        grouped.setdefault(f"{issue['severity']} {issue['id']}", []).append(issue)
 
-    print("lint summary: " + (", ".join(f"{k} {v}" for k, v in by_severity.items()) or "no issues"))
-    for key, count in sorted(counts.items(), key=lambda kv: (SEVERITY_ORDER.get(kv[0].split()[0], 9), -kv[1])):
-        print(f"  {count:>4}  {key}")
+    lines = ["lint summary: " + (", ".join(f"{k} {v}" for k, v in by_severity.items()) or "no issues")]
+    for key, items in sorted(
+        grouped.items(), key=lambda kv: (SEVERITY_ORDER.get(kv[0].split()[0], 9), -len(kv[1]))
+    ):
+        lines.append(f"  {len(items):>4}  {key}")
+        for issue in items[:3]:
+            where = issue["file"] or "(no location)"
+            if issue["line"]:
+                where += ":" + issue["line"]
+            lines.append(f"          {where} - {issue['message'][:120]}")
+        if len(items) > 3:
+            lines.append(f"          ... and {len(items) - 3} more")
+
+    for line in lines:
+        print(line)
+    print("::notice title=lint worklist::" + escape_data("\n".join(lines)))
 
 
 def annotation(issue: dict[str, str]) -> str:

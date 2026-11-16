@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  API 27 introduced dark navigation-bar icons, so from 27 on the light scheme can put the surface
+  colour back and let the icons go dark with it.
+
+  A style declared in a qualified folder replaces the unqualified one outright rather than merging
+  into it, which is why both items are repeated here. Night mode outranks the version qualifier, so
+  the dark scheme never resolves to this file: values-night supplies it at every API level.
+-->
+<resources>
+    <style name="Theme.App" parent="Base.Theme.App">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:navigationBarColor">@color/m3_surface</item>
+    </style>
+</resources>

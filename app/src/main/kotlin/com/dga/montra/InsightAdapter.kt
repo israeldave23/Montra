@@ -111,5 +111,14 @@ private object Diff : DiffUtil.ItemCallback<Any>() {
         else -> false
     }
 
-    override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean = oldItem == newItem
+    // The type test is not ceremony. Written as a bare `oldItem == newItem`, the comparison dispatches
+    // on the static type Any, so it means Object.equals and lint cannot tell whether the rows override
+    // it - a row type that later loses its data-class status would silently bind as unchanged. Narrowed
+    // like this, the comparison runs against the actual data class and a mixed pair is never "the
+    // same content".
+    override fun areContentsTheSame(oldItem: Any, newItem: Any): Boolean = when {
+        oldItem is InsightSummaryRow && newItem is InsightSummaryRow -> oldItem == newItem
+        oldItem is InsightCategoryRow && newItem is InsightCategoryRow -> oldItem == newItem
+        else -> false
+    }
 }
