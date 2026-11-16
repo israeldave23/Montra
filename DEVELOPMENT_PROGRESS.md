@@ -10,7 +10,7 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 | 0 — Build system and CI | **Done** | `.github/workflows/android.yml` compiles, tests and packages on every push; artifact `montra-debug-apk` |
 | 1 — Material dialogs | **Done** | 17 `AlertDialog.Builder` sites are `MaterialAlertDialogBuilder` |
 | 2 — View binding and RecyclerView feeds | **Done** | 0 `findViewById` outside four root-taking helpers; home feed submits to `ListAdapter`s |
-| 3 — ViewModel and StateFlow | **Done** | Six screen view models; screens render `UiState`; `GoalsActivity` is 142 lines, down from 505 |
+| 3 — ViewModel and StateFlow | **Done** | Six screen view models; screens render `UiState`; `GoalsActivity` is 136 lines, down from 505 |
 | 4 — Release readiness | **Not started** | See `BUILDING.md` release checklist |
 
 ## What the build proves
