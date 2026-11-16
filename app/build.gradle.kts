@@ -76,6 +76,27 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+
+    // Android Lint runs on every push (see .github/workflows/android.yml). It is the only check here
+    // that understands Android itself - API-level violations, missing accessibility labels,
+    // unused resources, manifest problems - and until this phase it had never been executed on this
+    // codebase, so its first run is expected to find real defects.
+    //
+    // There is no lint-baseline.xml on purpose. A baseline records today's findings and then hides
+    // them, along with every later occurrence of the same issue: the errors below would become a
+    // green build with no fix. Findings get fixed or suppressed one at a time, with a reason.
+    lint {
+        // Errors fail the build, so a new one cannot land. Warnings are annotated by
+        // tools/annotate_lint.py and are still fixed rather than ignored - they just do not block.
+        abortOnError = true
+        warningsAsErrors = false
+        // Room and view binding emit generated sources; linting them reports their code as ours.
+        checkGeneratedSources = false
+        // The ad and UMP SDKs are prebuilt AARs - their lint findings are not actionable here.
+        checkDependencies = false
+        xmlReport = true
+        htmlReport = true
+    }
 }
 
 dependencies {

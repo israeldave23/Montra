@@ -82,6 +82,38 @@ jobs:
         if: steps.assemble.outcome == 'failure'
         run: exit 1
 
+      # The Python gates read files. Lint reads the compiled app: API-level violations, accessibility,
+      # unused resources, manifest and resource-linkage problems. It had never been run on this
+      # codebase before this step existed. It sits after the debug build so compilation is up to date
+      # and the step pays only for analysis.
+      - name: Android Lint (static analysis)
+        id: lint
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gradle :app:lintDebug --no-daemon --stacktrace 2>&1 | tee gradle-lint.log
+
+      # Always runs: the report is written even when lint fails the task, and it is the only copy of
+      # the findings that this environment can read.
+      - name: Annotate lint findings
+        if: always()
+        run: python3 tools/annotate_lint.py app/build/reports/lint-results-debug.xml
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: montra-lint-report
+          path: |
+            app/build/reports/lint-results-debug.html
+            app/build/reports/lint-results-debug.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail the job when lint found errors
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
+
       # Shrinking is only safe while it is exercised. This builds the release variant unsigned - R8
       # and resource shrinking both run - so a keep rule that stops working is a red build instead of
       # a crash in a published APK. It also proves the release manifest and resources link.
