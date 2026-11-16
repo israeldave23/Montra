@@ -130,7 +130,13 @@
   <string name="profile_backup_database">Backup database</string>
   <string name="profile_backup_success">Backup saved</string>
   <string name="profile_restore_database">Restore database</string>
-  <string name="profile_restore_success">Restored. Restart the app to apply.</string>
+  <string name="profile_restore_success">Backup restored</string>
+  <string name="profile_restore_confirm_title">Replace all data?</string>
+  <string name="profile_restore_confirm_message">This backup replaces every account, transaction, budget and goal on this device. There is no undo.</string>
+  <string name="profile_restore_confirm_action">Replace</string>
+  <string name="profile_restore_invalid">That file is not a Montra backup.</string>
+  <string name="profile_restore_newer">That backup was made by a newer version of Montra.</string>
+  <string name="profile_restore_failed">Could not restore the backup. Your existing data is unchanged.</string>
   <string name="profile_error">Could not complete operation.</string>
   <string name="profile_export_success">Exported transactions to CSV</string>
   <!-- Goals screen -->

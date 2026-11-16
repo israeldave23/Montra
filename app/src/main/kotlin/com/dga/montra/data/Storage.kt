@@ -13,8 +13,10 @@ import java.io.File
  */
 internal object Storage {
     const val DATABASE = "montra.db"
-    const val TEMP_RESTORE = "montra_restore.db"
+    const val TEMP_RESTORE_ARCHIVE = "montra_restore.zip"
+    const val TEMP_RESTORE_DB = "montra_restore.db"
     const val EXPORT_PREFIX = "montra_transactions"
+    const val BACKUP_PREFIX = "montra_backup"
 
     const val PREFS_SETTINGS = "montra_settings"
     const val PREFS_PROFILE = "montra_profile"

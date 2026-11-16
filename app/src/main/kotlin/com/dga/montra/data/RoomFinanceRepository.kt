@@ -325,6 +325,20 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     suspend fun prepareForObservation() = withContext(Dispatchers.IO) { migrateLegacyIfNeeded() }
 
     /**
+     * Flushes the write-ahead log into the database file.
+     *
+     * Room writes in WAL mode, so a committed transaction can sit in `montra.db-wal` and not be in
+     * `montra.db` at all. A backup that copies the database without this step is missing whatever
+     * the user did most recently — which is exactly what a user restores from.
+     */
+    suspend fun checkpointForBackup() = withContext(Dispatchers.IO) {
+        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").use { cursor ->
+            cursor.moveToFirst()
+        }
+        Unit
+    }
+
+    /**
      * Everything the dashboard draws, from one pass over accounts and transactions. Archived
      * accounts stay in [DashboardState.accounts] but are excluded from the totals and the count.
      */
@@ -371,6 +385,18 @@ class RoomFinanceRepository private constructor(private val context: Context) {
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: RoomFinanceRepository(context).also { INSTANCE = it }
             }
+
+        /**
+         * Drops the connection so the database file can be replaced by a restore.
+         *
+         * Restore calls this last, and the process must exit straight afterwards: every screen holds
+         * a flow over this connection and would fail on the next query. Nothing else should call it.
+         */
+        fun closeForRestore() {
+            val instance = INSTANCE
+            INSTANCE = null
+            runCatching { instance?.db?.close() }
+        }
     }
 }
 

@@ -14,17 +14,17 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.dga.montra.ads.Ads
+import com.dga.montra.data.BackupBundle
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.data.Storage
 import com.dga.montra.databinding.ActivityProfileBinding
 import com.dga.montra.databinding.DialogEditProfileBinding
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
+import com.dga.montra.db.FinanceDatabase
 import com.dga.montra.domain.TransactionCategories
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -291,10 +291,11 @@ class ProfileActivity : AppActivity() {
     }
 
     private fun backupDatabase() {
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/octet-stream"
-            putExtra(Intent.EXTRA_TITLE, DATABASE_NAME)
+            type = "application/zip"
+            putExtra(Intent.EXTRA_TITLE, "${Storage.BACKUP_PREFIX}_$stamp.zip")
         }
         Ads.suppressNextAppOpen()
         startActivityForResult(intent, REQUEST_BACKUP)
@@ -309,23 +310,122 @@ class ProfileActivity : AppActivity() {
         startActivityForResult(intent, REQUEST_RESTORE)
     }
 
-    private fun backupToUri(uri: Uri) {
-        val dbFile = getDatabasePath(DATABASE_NAME)
-        FileInputStream(dbFile).use { input ->
+    /**
+     * Writes one zip holding the database and a manifest.
+     *
+     * The checkpoint is what makes the copy complete: without it the newest transactions are still
+     * in the `-wal` file and the backup is quietly stale.
+     */
+    private suspend fun backupToUri(uri: Uri) {
+        val archive = withContext(Dispatchers.IO) {
+            RoomFinanceRepository.get(this@ProfileActivity).checkpointForBackup()
+            val file = File(cacheDir, "${Storage.BACKUP_PREFIX}.zip")
+            BackupBundle.write(
+                target = file,
+                database = getDatabasePath(DATABASE_NAME),
+                manifest = BackupBundle.Manifest(
+                    formatVersion = BackupBundle.FORMAT_VERSION,
+                    schemaVersion = FinanceDatabase.VERSION,
+                    createdAtMillis = System.currentTimeMillis()
+                )
+            )
+            file
+        }
+        withContext(Dispatchers.IO) {
             contentResolver.openOutputStream(uri, "w")?.use { output ->
-                input.copyTo(output)
+                archive.inputStream().use { it.copyTo(output) }
             } ?: throw IllegalStateException("Could not open backup destination")
         }
+        archive.delete()
         runOnUiThread { toast(R.string.profile_backup_success) }
     }
 
-    private fun restoreFromUri(uri: Uri) {
-        val temp = File(cacheDir, Storage.TEMP_RESTORE)
-        contentResolver.openInputStream(uri)!!.use { input ->
-            FileOutputStream(temp).use { output -> input.copyTo(output) }
+    /**
+     * Validates the picked file before offering to replace anything.
+     *
+     * Nothing is written over the database here: the archive is checked (manifest, format version,
+     * schema version, SQLite header) and the user is asked to confirm. Only then does
+     * [applyRestore] touch the live file.
+     */
+    private suspend fun restoreFromUri(uri: Uri) {
+        val staged = withContext(Dispatchers.IO) {
+            val file = File(cacheDir, Storage.TEMP_RESTORE_ARCHIVE)
+            contentResolver.openInputStream(uri)?.use { input ->
+                file.outputStream().use { output -> input.copyTo(output) }
+            } ?: return@withContext null
+            file
         }
-        temp.copyTo(getDatabasePath(DATABASE_NAME), overwrite = true)
-        runOnUiThread { toast(R.string.profile_restore_success) }
+        if (staged == null) {
+            toast(R.string.profile_error)
+            return
+        }
+
+        val manifest = withContext(Dispatchers.IO) { BackupBundle.readManifest(staged) }
+        val problem = when {
+            manifest == null || manifest.formatVersion > BackupBundle.FORMAT_VERSION ->
+                R.string.profile_restore_invalid
+            manifest.schemaVersion > FinanceDatabase.VERSION -> R.string.profile_restore_newer
+            else -> 0
+        }
+        if (problem != 0) {
+            staged.delete()
+            toast(problem)
+            return
+        }
+
+        val database = withContext(Dispatchers.IO) {
+            val file = File(cacheDir, Storage.TEMP_RESTORE_DB)
+            if (BackupBundle.extractDatabase(staged, file)) file else null
+        }
+        staged.delete()
+        if (database == null) {
+            toast(R.string.profile_restore_invalid)
+            return
+        }
+        confirmRestore(database)
+    }
+
+    private fun confirmRestore(database: File) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.profile_restore_confirm_title)
+            .setMessage(R.string.profile_restore_confirm_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.profile_restore_confirm_action) { _, _ -> applyRestore(database) }
+            .show()
+    }
+
+    /**
+     * Replaces the database and restarts the process.
+     *
+     * The connection has to be closed first: overwriting a file SQLite still has open leaves the app
+     * reading the old pages, and the stale `-wal`/`-shm` beside the new file is how a database ends
+     * up "malformed". The restart is part of the fix, not a convenience — every screen in memory is
+     * holding flows over the connection that was just closed.
+     */
+    private fun applyRestore(database: File) {
+        lifecycleScope.launch {
+            val applied = withContext(Dispatchers.IO) {
+                runCatching {
+                    RoomFinanceRepository.closeForRestore()
+                    val target = getDatabasePath(DATABASE_NAME)
+                    File("${target.path}-wal").delete()
+                    File("${target.path}-shm").delete()
+                    target.parentFile?.mkdirs()
+                    database.copyTo(target, overwrite = true)
+                    database.delete()
+                    target
+                }
+            }
+            if (applied.isSuccess) restartIntoApp() else toast(R.string.profile_restore_failed)
+        }
+    }
+
+    private fun restartIntoApp() {
+        toast(R.string.profile_restore_success)
+        val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+        Runtime.getRuntime().exit(0)
     }
 
     private fun initials(name: String): String =
