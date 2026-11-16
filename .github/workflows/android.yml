@@ -48,22 +48,38 @@ jobs:
           python3 tools/check_kotlin_syntax.py
 
       # continue-on-error so the failure is annotated (readable from the API and inline on a PR)
-      # instead of only existing inside a log blob.
+      # instead of only existing inside a log blob. `set -o pipefail` keeps tee from hiding the code.
       - name: Unit tests
         id: unit_tests
         continue-on-error: true
-        run: gradle :app:testDebugUnitTest --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle :app:testDebugUnitTest --no-daemon --stacktrace 2>&1 | tee gradle-test.log
 
-      - name: Annotate failing tests
+      - name: Annotate test and compile failures
         if: steps.unit_tests.outcome == 'failure'
-        run: python3 tools/report_test_failures.py
+        run: |
+          python3 tools/annotate_build_errors.py gradle-test.log
+          python3 tools/report_test_failures.py || true
 
       - name: Fail the job when tests failed
         if: steps.unit_tests.outcome == 'failure'
         run: exit 1
 
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        id: assemble
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gradle :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-build.log
+
+      - name: Annotate compile failures
+        if: steps.assemble.outcome == 'failure'
+        run: python3 tools/annotate_build_errors.py gradle-build.log
+
+      - name: Fail the job when the build failed
+        if: steps.assemble.outcome == 'failure'
+        run: exit 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

@@ -8,6 +8,7 @@ tree-sitter-kotlin` and skips itself cleanly when the grammar is absent.
 | --- | --- |
 | `check_ui_tokens.py` | The design system itself: no raw text sizes/weights in layouts, no raw dp/sp except `0dp`, no hex colours outside `colors.xml`, only `@color/m3_*` roles, raw dimens only in `dimens.xml`, type-scale sizes from `@dimen/text_*` |
 | `check_resources.py` | Every `@type/name` and `R.type.name` resolves **in its own namespace**; `getString` argument counts match the format string; no duplicate resource names; no unbalanced Kotlin braces; no CJK characters; light/night colour parity; unused resources reported as warnings |
+| `annotate_build_errors.py` | Turns Gradle output into `::error` annotations (file + line), collapsing one cause repeated across files |
 | `report_test_failures.py` | Turns JUnit XML into `::error` annotations so a red run names the class and method even where the log blob is unreachable |
 | `check_kotlin_syntax.py` | Every `.kt` file parses with a real Kotlin grammar — catches a duplicated `}` that balances but does not compile. Syntax only: unresolved references still need the SDK on a classpath |
 

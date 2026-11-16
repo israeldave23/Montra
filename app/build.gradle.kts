@@ -39,9 +39,10 @@ android {
         jvmTarget = "17"
     }
 
-    // No ViewBinding/Compose generation: nothing in this module uses them, and the token linters
-    // assume layouts are read by hand.
     buildFeatures {
+        // Layouts are inflated through generated binding classes: a wrong id or a wrong widget type
+        // is a compile error instead of a null at runtime. The token linters still read the XML.
+        viewBinding = true
         buildConfig = false
     }
 
