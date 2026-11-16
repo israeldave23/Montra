@@ -47,8 +47,20 @@ jobs:
           pip install --quiet tree-sitter tree-sitter-kotlin
           python3 tools/check_kotlin_syntax.py
 
+      # continue-on-error so the failure is annotated (readable from the API and inline on a PR)
+      # instead of only existing inside a log blob.
       - name: Unit tests
+        id: unit_tests
+        continue-on-error: true
         run: gradle :app:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Annotate failing tests
+        if: steps.unit_tests.outcome == 'failure'
+        run: python3 tools/report_test_failures.py
+
+      - name: Fail the job when tests failed
+        if: steps.unit_tests.outcome == 'failure'
+        run: exit 1
 
       - name: Assemble debug APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace

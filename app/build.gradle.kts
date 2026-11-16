@@ -67,9 +67,17 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:24.6.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
+    // JUnit 5 rather than 6: the platform 2.x line is not certified against Gradle 8.11, and these
+    // tests use nothing that 5.x lacks.
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    // Without this a failing suite prints one line; with it the class and method are in the log.
+    testLogging {
+        events("failed", "skipped")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
