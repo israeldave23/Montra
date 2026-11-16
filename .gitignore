@@ -8,3 +8,7 @@ local.properties
 *.keystore
 .DS_Store
 keystore.properties
+
+# Python bytecode from the tools/ gates
+__pycache__/
+*.pyc
