@@ -77,6 +77,13 @@ no redirects. AdMob reports its status under *Sites → app-ads.txt*; verificati
 and is required for demand from buyers who check it. `google.com` covers AdMob's own demand; keep the
 line until the account stops serving through Google.
 
+## 3b. Privacy policy
+
+Play requires a hosted policy URL for any app that shows ads. `PRIVACY.md` is a draft that matches this
+codebase — local-only data, AdMob, the consent gate, no accounts — written to be published rather
+than archived. Review it, fill in the date and contact address, and host it on the same developer
+domain as `app-ads.txt`.
+
 ## 4. Play Console answers
 
 These must match the code. Re-read `ADS.md` and `data/AdPrefs.kt` before changing them.
@@ -138,6 +145,7 @@ gradle :app:testDebugUnitTest    # 56 tests
 - [ ] Backup → restore round trip on a device: transactions added just before the backup are there
       after the restore, and the app comes back on its own
 - [ ] `app-ads.txt` served and verified in AdMob
+- [ ] `PRIVACY.md` published and its URL entered in the listing
 - [ ] Screenshots, feature graphic, description
 - [ ] Data-safety answers match section 4
 - [ ] `mapping.txt` archived for the version being uploaded
