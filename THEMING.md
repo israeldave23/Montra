@@ -54,6 +54,12 @@ navigation icons), `values-v27/themes.xml` (light, 27+, where the light-bar attr
 qualified folder replaces the unqualified one wholesale rather than merging, which is why the small
 `Theme.App` block is repeated rather than inherited.
 
+`android:statusBarColor` and `android:navigationBarColor` in these themes only matter on **26 to 34**.
+From 35 the platform ignores both once an app is edge-to-edge, and the bar areas show whatever the app
+draws behind them — which here is the window background, applied as inset padding by `AppActivity`. The
+API-26 dark navigation bar in `values/themes.xml` is therefore a fallback for the oldest supported
+release, not the current design.
+
 It binds the full role set: `colorPrimary`, `colorOnPrimary`,
 `colorPrimaryContainer`, `colorOnPrimaryContainer`, the secondary and tertiary families,
 `colorError`/`colorOnError`/`colorErrorContainer`, `android:colorBackground`/`colorOnBackground`,

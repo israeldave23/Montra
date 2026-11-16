@@ -12,6 +12,7 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 | 2 — View binding and RecyclerView feeds | **Done** | 0 `findViewById` outside four root-taking helpers; home feed submits to `ListAdapter`s |
 | 3 — ViewModel and StateFlow | **Done** | Six screen view models; screens render `UiState`; `GoalsActivity` is 136 lines, down from 505 |
 | 4 — Release readiness | **Mostly done** | R8 + bundle verified in CI, `app-ads.txt`, Play answers and a privacy-policy draft; the keystore and the upload need a human (see `RELEASE.md`) |
+| 6 — targetSdk 36 | **Done** | `targetSdk` 36 with the three Android 16 behaviour changes checked in code: edge-to-edge already handled, back never intercepted, no orientation lock. See `RELEASE.md` §5b |
 | 5 — Android Lint | **Done** | Lint runs on every push: 4 errors and 130 warnings on the first run, **0 errors and 34 warnings** now, every remaining one justified in `LINT.md` |
 
 ## What the build proves
@@ -33,7 +34,9 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 - **R8 shrinking is verified as a build, not as a running app.** CI minifies the release variant and
   uploads `mapping.txt`, which proves the rules link. It cannot prove a reflective call survives — Room,
   AdMob and UMP would only show that at runtime.
-- **Lint's 34 remaining warnings are known and listed**, not hidden: see `LINT.md`.
+- **Lint's remaining warnings are known and listed**, not hidden: see `LINT.md`.
+- **Nothing has run under Android 16.** Targeting 36 changes platform behaviour on 16+ devices only, and
+  the insets and keyboard handling that make it correct are reasoned, not observed.
 
 ## Completed features
 

@@ -136,16 +136,35 @@ gradle :app:assembleRelease      # APK, for sideloading and the R8 check
 gradle :app:testDebugUnitTest    # 56 tests
 ```
 
-## 5b. targetSdk 36 is a likely blocker
+## 5b. targetSdk 36 — done, and what it changed
 
-`targetSdk` is **35**; Google Play requires a recent API level for new uploads, and 36 is that level in
-2026. Play's console will say whether 35 is still accepted — check before the first upload rather than
-after.
+`targetSdk` is **36**. Play stopped accepting uploads targeting less than 36, so 35 was a blocker; it is
+now the same value `compileSdk` uses, and `app/module.toml` matches.
 
-Raising it is not a version bump. **targetSdk 36 forces edge-to-edge**, so the system draws behind the
-status and navigation bars and every screen's insets handling becomes load-bearing. Those insets have
-never been seen on a device. The order that works: device pass on 35, fix what it finds, then raise to 36
-and re-check the insets on the same device.
+Three of the Android 16 behaviour changes were checked against this codebase rather than assumed:
+
+* **Edge-to-edge can no longer be opted out of.** `AppActivity` has drawn edge-to-edge since Phase 3 and
+  applies system-bar and cutout insets as padding, so 36 changes nothing here — it only removes the
+  escape hatch this app never used.
+* **`onBackPressed` is not called and `KEYCODE_BACK` is not dispatched.** Nothing in the app overrides
+  either, and no screen intercepts back; the default finish is what every screen wants. Dialogs cancel
+  through the framework. This is safe today and is only safe while it stays true.
+* **Orientation and resizability restrictions are ignored on large screens.** The app declares neither,
+  so tablets now get the same single-column layout in landscape. It scrolls; it has not been seen.
+
+The keyboard is the part edge-to-edge makes the app's problem: with the window no longer resized, IME
+insets are applied by hand in `AppActivity`, and `TransactionsActivity` — the only screen with a text
+field — asks for `adjustResize`.
+
+**One check for a human, on the uploaded bundle.** Play also requires 16 KB page-size support for apps
+targeting 15+, and the only native code in this APK comes from the ad SDK. Confirm it on the artifact
+rather than trusting the SDK release notes:
+
+```
+unzip -o montra.aab 'base/lib/*' -d /tmp/aab && find /tmp/aab -name '*.so' -exec readelf -lW {} \; | grep LOAD
+```
+
+Every `LOAD` segment should show an align of `0x4000`.
 
 ## 6. Before the first upload
 

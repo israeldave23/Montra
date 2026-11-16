@@ -19,7 +19,7 @@ mirror, not the source of truth.
 | AGP | 8.9.1 | First line that supports `compileSdk 36` |
 | Kotlin | 2.0.21 | Pairs with KSP 2.0.21-1.0.28 |
 | KSP | 2.0.21-1.0.28 | Room's annotation processor |
-| compileSdk / minSdk / targetSdk | 36 / 26 / 35 | `targetSdk 35` is what forces the edge-to-edge handling in `AppActivity` |
+| compileSdk / minSdk / targetSdk | 36 / 26 / 36 | `targetSdk 36` enforces edge-to-edge with no opt-out, which is why everything in `AppActivity` exists |
 
 ## Locally
 

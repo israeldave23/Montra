@@ -16,9 +16,14 @@ import com.dga.montra.data.Settings
  * The parts every screen needs and none of them should restate: the theme (applied once, by
  * `AppCompatDelegate`), edge-to-edge insets applied once, and one toast helper.
  *
- * Insets are handled here because `targetSdk 35` enforces edge-to-edge: the status and navigation
- * bars overlay the content, and `fitsSystemWindows` is the wrong tool for a bottom bar that should
- * paint behind the gesture area while its content stays above it.
+ * Insets are handled here because `targetSdk 36` enforces edge-to-edge with no opt-out left: on
+ * Android 16 the platform stops fitting the window to the system bars, whatever the app asks for.
+ * `fitsSystemWindows` is the wrong tool for a bottom bar that should paint behind the gesture area
+ * while its content stays above it, so every screen gets one inset listener from this base class.
+ *
+ * Target 36 also stops calling `onBackPressed` and stops dispatching `KEYCODE_BACK` on Android 16.
+ * Nothing in this app intercepts back - screens rely on the default finish, and dialogs cancel through
+ * the framework - so predictive back needs no work here. That stays true only while it stays true.
  *
  * This used to be an `Activity`, and applying the scheme meant calling
  * `resources.updateConfiguration` — deprecated, and wrong for anything created from the Activity
@@ -75,14 +80,20 @@ abstract class AppActivity : AppCompatActivity() {
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
+            val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
             val ownsBottomInset = bottomBar == null
+            // An open keyboard sits on top of the navigation bar, so it takes over the bottom inset
+            // entirely - the whole screen lifts above it, bottom bar included. Without edge-to-edge the
+            // window would have been resized for us; with it, this is the app's job.
+            val bottom = if (keyboard > 0) keyboard else if (ownsBottomInset) bars.bottom else 0
             view.updatePadding(
                 left = baseLeft + bars.left,
                 top = baseTop + bars.top,
                 right = baseRight + bars.right,
-                bottom = baseBottom + if (ownsBottomInset) bars.bottom else 0
+                bottom = baseBottom + bottom
             )
-            bottomBar?.updatePadding(bottom = barBaseBottom + bars.bottom)
+            // The bar's own surface still reaches the screen edge when no keyboard is in the way.
+            bottomBar?.updatePadding(bottom = barBaseBottom + if (keyboard > 0) 0 else bars.bottom)
             insets
         }
     }

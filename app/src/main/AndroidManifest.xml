@@ -23,7 +23,12 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/admob_application_id" />
 
-        <activity android:name=".TransactionsActivity" android:exported="false" />
+        <!-- The only screen with a text field: ask for insets instead of panning the window, so the
+             search box and the list both stay above the keyboard under edge-to-edge. -->
+        <activity
+            android:name=".TransactionsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".BudgetActivity" android:exported="false" />
         <activity android:name=".GoalsActivity" android:exported="false" />

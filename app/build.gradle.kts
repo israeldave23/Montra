@@ -23,7 +23,11 @@ android {
     defaultConfig {
         applicationId = "com.dga.montra"
         minSdk = 26
-        targetSdk = 35
+        // 36 since Android 16 made this the Play requirement, and it changes behaviour rather than just
+        // a number: edge-to-edge is enforced with no opt-out, and onBackPressed stops being called.
+        // AppActivity already draws edge-to-edge and nothing in this app intercepts back, so the
+        // consequences are handled in code rather than deferred. See RELEASE.md.
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
