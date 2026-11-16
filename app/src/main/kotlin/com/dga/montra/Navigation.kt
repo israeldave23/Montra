@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.view.View
 import android.widget.TextView
+import androidx.core.widget.TextViewCompat
 
 fun Activity.bindBottomNavigation(root: View, selected: Int) {
     val items = listOf(R.id.nav_home, R.id.nav_activity, R.id.nav_budget, R.id.nav_goals, R.id.nav_insights)
@@ -13,7 +14,10 @@ fun Activity.bindBottomNavigation(root: View, selected: Int) {
             isPressed = false
             isSelected = index == selected
             setTextColor(getColor(if (isSelected) R.color.m3_on_primary_container else R.color.m3_on_surface_variant))
-            compoundDrawableTintList = android.content.res.ColorStateList.valueOf(currentTextColor)
+            TextViewCompat.setCompoundDrawableTintList(
+                this,
+                android.content.res.ColorStateList.valueOf(currentTextColor)
+            )
             contentDescription = getString(listOf(R.string.nav_home_description, R.string.nav_activity_description, R.string.nav_budget_description, R.string.nav_goals_description, R.string.nav_insights_description)[index])
             setOnClickListener {
                 if (index != selected) {

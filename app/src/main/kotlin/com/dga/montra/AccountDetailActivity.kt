@@ -142,9 +142,13 @@ class AccountDetailActivity : AppActivity() {
         } else {
             balance.currentBalance.format()
         }
-        countView.text = getString(R.string.account_row_activity, balance.transactionCount)
+        countView.text = resources.getQuantityString(
+                R.plurals.account_row_activity, balance.transactionCount, balance.transactionCount
+            )
         metaView.text = if (hidden) {
-            getString(R.string.account_row_activity, balance.transactionCount)
+            resources.getQuantityString(
+                R.plurals.account_row_activity, balance.transactionCount, balance.transactionCount
+            )
         } else {
             getString(
                 R.string.account_meta,
@@ -155,7 +159,9 @@ class AccountDetailActivity : AppActivity() {
         val statusLabel = if (balance.isArchived) {
             getString(R.string.account_archived)
         } else {
-            getString(R.string.account_row_activity, balance.transactionCount)
+            resources.getQuantityString(
+                R.plurals.account_row_activity, balance.transactionCount, balance.transactionCount
+            )
         }
         nameView.contentDescription = getString(
             R.string.account_row_description,

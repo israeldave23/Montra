@@ -47,7 +47,6 @@
     <color name="m3_negative">#B3261E</color>
     <color name="m3_highlight">#F5C86B</color>
     <color name="m3_on_highlight">#2A1E00</color>
-    <color name="m3_icon_accent">#7A5200</color>
     <color name="m3_on_hero_raised">#2EFFFFFF</color>
     <color name="m3_on_hero_outline">#66FFFFFF</color>
     <color name="m3_ripple">#2614508C</color>

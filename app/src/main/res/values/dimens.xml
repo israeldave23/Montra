@@ -9,7 +9,6 @@
     <!-- Size -->
     <dimen name="icon_size">24dp</dimen>
     <dimen name="icon_badge_size">40dp</dimen>
-    <dimen name="avatar_size">48dp</dimen>
     <dimen name="profile_avatar_size">92dp</dimen>
     <dimen name="touch_target">48dp</dimen>
     <dimen name="nav_bar_height">76dp</dimen>
@@ -31,7 +30,6 @@
     <dimen name="space_24">24dp</dimen>
     <dimen name="space_32">32dp</dimen>
     <dimen name="space_48">48dp</dimen>
-    <dimen name="space_64">64dp</dimen>
     <dimen name="space_96">96dp</dimen>
 
     <!-- Type scale. Sizes live here; weights live in values/type.xml. -->
@@ -43,5 +41,4 @@
     <dimen name="text_24">24sp</dimen>
     <dimen name="text_30">30sp</dimen>
     <dimen name="text_36">36sp</dimen>
-    <dimen name="text_48">48sp</dimen>
 </resources>

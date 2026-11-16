@@ -131,9 +131,13 @@ class BudgetActivity : SectionActivity(2) {
             .sortedBy { it.key }
             .joinToString("  ·  ") { (currency, minor) -> Money(minor, currency).format() }
         val counts = if (summary.overCount > 0) {
-            getString(R.string.budget_summary_detail, summary.count, summary.overCount)
+            resources.getQuantityString(
+                R.plurals.budget_summary_detail, summary.count, summary.count, summary.overCount
+            )
         } else {
-            getString(R.string.budget_summary_detail_ok, summary.count)
+            resources.getQuantityString(
+                R.plurals.budget_summary_detail_ok, summary.count, summary.count
+            )
         }
         summaryDetail.text = listOf(getString(R.string.budget_summary_spent, spent), counts)
             .joinToString("  ·  ")

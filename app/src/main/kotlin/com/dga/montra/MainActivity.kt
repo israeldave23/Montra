@@ -183,7 +183,9 @@ class MainActivity : AppActivity() {
             item.currentBalance.format()
         }
         val meta = if (item.hasActivity) {
-            getString(R.string.account_row_activity, item.transactionCount)
+            resources.getQuantityString(
+                R.plurals.account_row_activity, item.transactionCount, item.transactionCount
+            )
         } else {
             getString(R.string.account_row_no_activity)
         }

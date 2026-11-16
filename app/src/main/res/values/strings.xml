@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <string name="profile_title">Profile</string>
-  <string name="profile_back">Back</string>
   <string name="profile_display_name">Display name</string>
   <string name="profile_name_help">Used for your profile initials.</string>
   <string name="profile_default_name">Your profile</string>
@@ -15,7 +14,6 @@
   <string name="see_all">See all</string>
   <string name="recent_activity">Recent activity</string>
   <string name="quick_actions">Quick actions</string>
-  <string name="home_description">Money at a glance</string>
   <string name="nav_home_description">Open dashboard</string>
   <string name="nav_activity_description">Open activity</string>
   <string name="nav_budget_description">Open budget</string>
@@ -65,9 +63,7 @@
   <string name="transaction_date">Date</string>
   <string name="edit_transaction">Edit transaction</string>
   <string name="transaction_updated">Transaction updated</string>
-  <string name="transaction_date_default">Today</string>
   <string name="transaction_account">Account</string>
-  <string name="view_activity">View transaction activity</string>
   <string name="search_transactions">Search transactions</string>
   <string name="filter_all">All</string>
   <string name="filter_income">Income</string>
@@ -146,11 +142,11 @@
   <string name="profile_export_success">Exported transactions to CSV</string>
   <!-- Goals screen -->
   <string name="goal_summary_saved">Total saved</string>
-  <string name="goal_summary_completed">%1$d of %2$d complete</string>
+  <string name="goal_summary_completed" tools:ignore="PluralsCandidate">%1$d of %2$d complete</string>
   <string name="goal_summary_detail">%1$s · %2$s</string>
   <string name="goal_remaining_amount">%1$s to go</string>
   <string name="goal_amount_progress">%1$s of %2$s</string>
-  <string name="goal_percent">%1$d%%</string>
+  <string name="goal_percent" tools:ignore="PluralsCandidate">%1$d%%</string>
   <string name="goal_due_date">Due %1$s</string>
   <string name="goal_overdue_since">Overdue since %1$s</string>
   <string name="goal_no_date">No target date</string>
@@ -190,9 +186,17 @@
   <string name="budget_body">No budgets this month yet. Set a limit and we will track what is left.</string>
   <string name="budget_empty_hint">Limits never move money. They only compare your plan with what you actually spent.</string>
   <string name="budget_summary_label">Total limits</string>
-  <string name="budget_summary_detail">%1$d budgets · %2$d over limit</string>
+  <!-- Counted, so it declines: a single budget or transaction otherwise reads "1 budgets". -->
+  <plurals name="budget_summary_detail">
+    <item quantity="one">%1$d budget · %2$d over limit</item>
+    <item quantity="other">%1$d budgets · %2$d over limit</item>
+  </plurals>
   <string name="budget_summary_spent">Spent %1$s</string>
-  <string name="budget_summary_detail_ok">%1$d budgets · all within limit</string>
+  <!-- Counted, so it declines: a single budget or transaction otherwise reads "1 budgets". -->
+  <plurals name="budget_summary_detail_ok">
+    <item quantity="one">%1$d budget · all within limit</item>
+    <item quantity="other">%1$d budgets · all within limit</item>
+  </plurals>
   <string name="budget_month_label">%1$s · %2$d days left</string>
   <string name="budget_month_last_day">%1$s · last day</string>
   <string name="budget_state_over">Over</string>
@@ -201,7 +205,7 @@
   <string name="budget_state_on_track">On track</string>
   <string name="budget_remaining">%1$s left</string>
   <string name="budget_over_by">%1$s over</string>
-  <string name="budget_used_percent">%1$d%% used</string>
+  <string name="budget_used_percent" tools:ignore="PluralsCandidate">%1$d%% used</string>
   <string name="budget_spent_of_limit">%1$s of %2$s spent</string>
   <string name="budget_row_description">%1$s. %2$s spent of %3$s. %4$s.</string>
   <string name="budget_more_actions">Budget actions</string>
@@ -235,7 +239,7 @@
   <string name="insights_daily_average">Daily average %1$s</string>
   <string name="insights_projected">Projected %1$s for the month</string>
   <string name="insights_top_category">Biggest category: %1$s</string>
-  <string name="insights_share_of_spending">%1$d%% of spending</string>
+  <string name="insights_share_of_spending" tools:ignore="PluralsCandidate">%1$d%% of spending</string>
   <string name="insights_row_description">%1$s. %2$s. %3$d percent of spending.</string>
   <string name="insights_income_line">Income %1$s</string>
   <string name="insights_net_line">Net %1$s</string>
@@ -246,7 +250,11 @@
   <string name="account_archived">Archived</string>
   <string name="account_archived_hint">Archived accounts keep their history but are left out of your balance and cannot receive new transactions.</string>
   <string name="account_masked_amount">••••</string>
-  <string name="account_row_activity">%1$d transactions</string>
+  <!-- Counted, so it declines: a single budget or transaction otherwise reads "1 budgets". -->
+  <plurals name="account_row_activity">
+    <item quantity="one">%1$d transaction</item>
+    <item quantity="other">%1$d transactions</item>
+  </plurals>
   <string name="account_row_no_activity">No activity yet</string>
   <string name="account_row_description">%1$s, %2$s, %3$s</string>
     <string name="account_more_actions">Account actions</string>
@@ -265,7 +273,7 @@
   <string name="account_archived_done">Account archived</string>
   <string name="account_unarchived">Account restored</string>
   <string name="account_unarchive">Unarchive</string>
-  <string name="account_archived_count">%1$d archived</string>
+  <string name="account_archived_count" tools:ignore="PluralsCandidate">%1$d archived</string>
   <string name="account_archive">Archive</string>
   <string name="account_not_found_body">This account no longer exists. It may have been deleted.</string>
   <string name="transaction_needs_account">Add an account before recording a transaction.</string>
@@ -284,39 +292,6 @@
   <string name="profile_photo_error">Could not use that image. Try another one.</string>
   <string name="profile_photo_remove_title">Remove profile photo?</string>
   <string name="profile_photo_remove_message">Your initials will be shown instead.</string>
-    <string name="ok">OK</string>
-    <string name="budget_summary_total">Total budgeted</string>
-    <string name="budget_summary_days_left">%1$d days left in %2$s</string>
-    <string name="budget_spent_over_limit">%1$s over %2$s</string>
-    <string name="budget_spent_at_limit">Spent full %1$s</string>
-    <string name="budget_days_left_note">%1$d days left</string>
-    <string name="budget_days_left_zero">Month ended</string>
-    <string name="budget_limit">Monthly limit</string>
-    <string name="edit_budget">Edit budget</string>
-    <string name="goal_new_action">New goal</string>
-    <string name="goal_summary_label">Saved across goals</string>
-    <string name="goal_remaining">%1$s remaining</string>
-    <string name="goal_completed">Completed</string>
-    <string name="goal_overdue">Overdue</string>
-    <string name="goal_monthly_needed">%1$s per month to reach on time</string>
-    <string name="goal_saved_amount">Amount saved</string>
-    <string name="goal_target_invalid">Enter a target amount greater than zero.</string>
-    <string name="goal_name_invalid">Enter a valid name.</string>
-    <string name="goal_name_required">Name is required.</string>
-    <string name="goal_detail_title">Goal details</string>
-    <string name="goal_add_funds">Add funds</string>
-    <string name="goal_withdraw_funds">Withdraw funds</string>
-    <string name="goal_edit">Edit goal</string>
-    <string name="goal_delete">Delete goal</string>
-    <string name="goal_due_hint">Target date (optional)</string>
-    <string name="goal_pick_date">Pick date</string>
-    <string name="insight_prev_month">Previous month</string>
-    <string name="insight_next_month">Next month</string>
-    <string name="account_opened">Opened %1$s</string>
-    <string name="account_activity_count">%1$d transactions</string>
-    <string name="account_menu">Account options</string>
-    <string name="budget_currency_locked">Currency is fixed for this budget.</string>
-    <string name="budget_category_locked">Category is fixed for this budget.</string>
     <string name="profile_ad_privacy">Ad privacy options</string>
     <string name="profile_reward_title">Remove ads for 24 hours</string>
     <string name="profile_reward_body">Watch one short video and every ad disappears for a day.</string>
