@@ -258,7 +258,7 @@ class ProfileActivity : AppActivity() {
                     sb.append(tx.amount.currencyCode).append(',')
                     sb.appendLine(escapeCsv(tx.note))
                 }
-                val file = File(Storage.sharedDir(this), "${Storage.EXPORT_PREFIX}_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())}.csv")
+                val file = File(Storage.sharedDir(this@ProfileActivity), "${Storage.EXPORT_PREFIX}_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.ROOT).format(Date())}.csv")
                 file.writeText(sb.toString())
                 val uri = FileProvider.getUriForFile(this@ProfileActivity, FILE_PROVIDER_AUTHORITY, file)
                 val intent = Intent(Intent.ACTION_SEND).apply {
