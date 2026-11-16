@@ -37,6 +37,7 @@ class AccountDetailActivity : AppActivity() {
     private val repo by lazy { RoomFinanceRepository.get(this) }
 
     private lateinit var list: RecyclerView
+    private lateinit var activityAdapter: TransactionListAdapter
     private lateinit var emptyView: TextView
     private lateinit var nameView: TextView
     private lateinit var statusView: TextView
@@ -72,7 +73,8 @@ class AccountDetailActivity : AppActivity() {
         menuButton = binding.accountMenu
 
         list.layoutManager = LinearLayoutManager(this)
-        list.adapter = TransactionListAdapter(emptyList())
+        activityAdapter = TransactionListAdapter()
+        list.adapter = activityAdapter
 
         binding.accountBack.setOnClickListener { finish() }
         menuButton.setOnClickListener { showMenu(it) }
@@ -163,7 +165,7 @@ class AccountDetailActivity : AppActivity() {
         val empty = transactions.isEmpty()
         emptyView.visibility = if (empty) View.VISIBLE else View.GONE
         list.visibility = if (empty) View.GONE else View.VISIBLE
-        list.adapter = TransactionListAdapter(transactions)
+        activityAdapter.submitList(TransactionListAdapter.itemsFor(transactions))
     }
 
     private fun signedMoney(minorUnits: Long, currency: String): String {

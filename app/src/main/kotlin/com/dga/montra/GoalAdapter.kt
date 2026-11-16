@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.dga.montra.databinding.ItemGoalRowBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -23,17 +24,10 @@ class GoalAdapter(
     private val onMenu: (Goal, View) -> Unit
 ) : ListAdapter<Goal, GoalAdapter.Holder>(GoalDiff) {
 
-    class Holder(view: View) : RecyclerView.ViewHolder(view) {
-        val name: TextView = view.findViewById(R.id.goal_row_name)
-        val status: TextView = view.findViewById(R.id.goal_row_status)
-        val amount: TextView = view.findViewById(R.id.goal_row_amount)
-        val progress: ProgressBar = view.findViewById(R.id.goal_row_progress)
-        val meta: TextView = view.findViewById(R.id.goal_row_meta)
-        val menu: View = view.findViewById(R.id.goal_row_menu)
-    }
+    class Holder(val binding: ItemGoalRowBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
-        Holder(LayoutInflater.from(parent.context).inflate(R.layout.item_goal_row, parent, false))
+        Holder(ItemGoalRowBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val goal = getItem(position)
@@ -43,25 +37,25 @@ class GoalAdapter(
         val percent = goal.progressPercent()
         val meta = metaText(context, goal, status, zone)
 
-        holder.name.text = goal.name
-        holder.status.text = context.getString(status.labelRes())
-        holder.status.backgroundTintList = ColorStateList.valueOf(context.getColor(status.colorRes()))
-        holder.status.setTextColor(context.getColor(status.textColorRes()))
+        holder.binding.goalRowName.text = goal.name
+        holder.binding.goalRowStatus.text = context.getString(status.labelRes())
+        holder.binding.goalRowStatus.backgroundTintList = ColorStateList.valueOf(context.getColor(status.colorRes()))
+        holder.binding.goalRowStatus.setTextColor(context.getColor(status.textColorRes()))
 
-        holder.amount.text = context.getString(
+        holder.binding.goalRowAmount.text = context.getString(
             R.string.goal_amount_progress,
             goal.saved.format(),
             goal.target.format()
         )
-        holder.progress.progressTintList = ColorStateList.valueOf(context.getColor(status.colorRes()))
-        holder.progress.max = 100
-        holder.progress.progress = percent
-        holder.progress.contentDescription = context.getString(
+        holder.binding.goalRowProgress.progressTintList = ColorStateList.valueOf(context.getColor(status.colorRes()))
+        holder.binding.goalRowProgress.max = 100
+        holder.binding.goalRowProgress.progress = percent
+        holder.binding.goalRowProgress.contentDescription = context.getString(
             R.string.goal_amount_progress,
             goal.saved.format(),
             goal.target.format()
         )
-        holder.meta.text = meta
+        holder.binding.goalRowMeta.text = meta
 
         holder.itemView.contentDescription = context.getString(
             R.string.goal_row_description,
@@ -72,7 +66,7 @@ class GoalAdapter(
             meta
         )
         holder.itemView.setOnClickListener { onOpen(goal) }
-        holder.menu.setOnClickListener { onMenu(goal, holder.menu) }
+        holder.binding.goalRowMenu.setOnClickListener { onMenu(goal, holder.binding.goalRowMenu) }
     }
 }
 

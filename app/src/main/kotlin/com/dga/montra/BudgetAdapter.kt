@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.dga.montra.databinding.ItemBudgetRowBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -22,18 +23,10 @@ class BudgetAdapter(
     private val onMenu: (BudgetProgress, View) -> Unit
 ) : ListAdapter<BudgetProgress, BudgetAdapter.Holder>(BudgetDiff) {
 
-    class Holder(view: View) : RecyclerView.ViewHolder(view) {
-        val icon: android.widget.ImageView = view.findViewById(R.id.budget_row_icon)
-        val category: TextView = view.findViewById(R.id.budget_row_category)
-        val state: TextView = view.findViewById(R.id.budget_row_state)
-        val amount: TextView = view.findViewById(R.id.budget_row_amount)
-        val meta: TextView = view.findViewById(R.id.budget_row_meta)
-        val progress: ProgressBar = view.findViewById(R.id.budget_row_progress)
-        val menu: View = view.findViewById(R.id.budget_row_menu)
-    }
+    class Holder(val binding: ItemBudgetRowBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
-        Holder(LayoutInflater.from(parent.context).inflate(R.layout.item_budget_row, parent, false))
+        Holder(ItemBudgetRowBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val item = getItem(position)
@@ -44,25 +37,25 @@ class BudgetAdapter(
         val limit = item.limit.format()
         val percent = item.usedPercent()
 
-        holder.icon.setImageResource(categoryIconRes(item.budget.categoryId))
-        holder.icon.contentDescription = categoryLabel(item.budget.categoryId)
-        holder.category.text = categoryLabel(item.budget.categoryId)
-        holder.state.text = stateLabel
-        holder.state.backgroundTintList = ColorStateList.valueOf(context.getColor(state.colorRes()))
-        holder.state.setTextColor(context.getColor(state.textColorRes()))
+        holder.binding.budgetRowIcon.setImageResource(categoryIconRes(item.budget.categoryId))
+        holder.binding.budgetRowIcon.contentDescription = categoryLabel(item.budget.categoryId)
+        holder.binding.budgetRowCategory.text = categoryLabel(item.budget.categoryId)
+        holder.binding.budgetRowState.text = stateLabel
+        holder.binding.budgetRowState.backgroundTintList = ColorStateList.valueOf(context.getColor(state.colorRes()))
+        holder.binding.budgetRowState.setTextColor(context.getColor(state.textColorRes()))
 
-        holder.amount.text = context.getString(R.string.budget_spent_of_limit, spent, limit)
-        holder.progress.progressTintList = ColorStateList.valueOf(context.getColor(state.colorRes()))
-        holder.progress.max = 100
-        holder.progress.progress = percent
-        holder.progress.contentDescription = context.getString(
+        holder.binding.budgetRowAmount.text = context.getString(R.string.budget_spent_of_limit, spent, limit)
+        holder.binding.budgetRowProgress.progressTintList = ColorStateList.valueOf(context.getColor(state.colorRes()))
+        holder.binding.budgetRowProgress.max = 100
+        holder.binding.budgetRowProgress.progress = percent
+        holder.binding.budgetRowProgress.contentDescription = context.getString(
             R.string.budget_row_description,
             categoryLabel(item.budget.categoryId),
             spent,
             limit,
             stateLabel
         )
-        holder.meta.text = metaText(context, item, percent)
+        holder.binding.budgetRowMeta.text = metaText(context, item, percent)
 
         holder.itemView.contentDescription = context.getString(
             R.string.budget_row_description,
@@ -71,8 +64,8 @@ class BudgetAdapter(
             limit,
             stateLabel
         )
-        holder.itemView.setOnClickListener { onMenu(item, holder.menu) }
-        holder.menu.setOnClickListener { onMenu(item, holder.menu) }
+        holder.itemView.setOnClickListener { onMenu(item, holder.binding.budgetRowMenu) }
+        holder.binding.budgetRowMenu.setOnClickListener { onMenu(item, holder.binding.budgetRowMenu) }
     }
 }
 

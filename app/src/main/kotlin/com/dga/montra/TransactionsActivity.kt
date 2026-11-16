@@ -35,7 +35,7 @@ class TransactionsActivity : AppActivity() {
     private lateinit var repository: RoomFinanceRepository
     private lateinit var list: RecyclerView
     private lateinit var emptyView: android.widget.TextView
-    private var currentItems = listOf<Transaction>()
+    private lateinit var adapter: TransactionListAdapter
     private var activeTouchHelper: ItemTouchHelper? = null
     private lateinit var query: EditText
     private var selectedFilter = com.dga.montra.domain.TransactionFilter.ALL
@@ -52,16 +52,27 @@ class TransactionsActivity : AppActivity() {
         binding.transactionsBack.setOnClickListener { finish() }
         list = binding.transactionList
         list.layoutManager = LinearLayoutManager(this)
+        adapter = TransactionListAdapter(
+            onClick = { tx ->
+                if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) {
+                    showTransactionDetails(tx)
+                } else {
+                    showEditTransactionDialog(tx)
+                }
+            },
+            onDelete = { tx -> confirmDelete(tx) }
+        )
+        list.adapter = adapter
         emptyView = binding.transactionEmpty
         activeTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
             override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-                val tx = currentItems.getOrNull(viewHolder.bindingAdapterPosition) ?: return 0
+                val tx = adapter.transactionAt(viewHolder.bindingAdapterPosition) ?: return 0
                 return if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) 0 else super.getSwipeDirs(recyclerView, viewHolder)
             }
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
-                currentItems.getOrNull(position)?.let { deleteWithUndo(it) }
+                adapter.transactionAt(position)?.let { deleteWithUndo(it) }
             }
         }).also { it.attachToRecyclerView(list) }
         query = binding.transactionSearch
@@ -109,13 +120,9 @@ class TransactionsActivity : AppActivity() {
             runCatching { repository.searchTransactions(text).filter { filter.matches(it.type) } }
                 .onSuccess { transactions ->
                     if (version != requestVersion) return@onSuccess
-                    currentItems = transactions
-                    emptyView.visibility = if (transactions.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-                    list.visibility = if (transactions.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
-                    list.adapter = TransactionListAdapter(transactions, { tx ->
-                        if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) showTransactionDetails(tx)
-                        else showEditTransactionDialog(tx)
-                    }, { tx -> confirmDelete(tx) })
+                    emptyView.visibility = if (transactions.isEmpty()) View.VISIBLE else View.GONE
+                    list.visibility = if (transactions.isEmpty()) View.GONE else View.VISIBLE
+                    adapter.submitList(TransactionListAdapter.itemsFor(transactions))
                 }
                 .onFailure { toast(R.string.storage_error) }
         }

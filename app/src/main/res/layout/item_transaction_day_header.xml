@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The day divider in the activity list. It is its own row type rather than a header hidden inside
+  the transaction row, so the adapter does not have to rebuild a view to show or hide it and the
+  diff never has to rebind a transaction only because the day above it moved.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/transaction_day_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/space_16"
+    android:paddingBottom="@dimen/space_8"
+    android:textAppearance="@style/TextAppearance.App.Meta"
+    android:textColor="@color/m3_on_surface_variant" />

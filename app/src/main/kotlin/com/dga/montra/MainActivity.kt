@@ -1,21 +1,21 @@
 package com.dga.montra
 
 import android.content.Intent
-import com.dga.montra.databinding.ActivityMainBinding
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.catch
 import android.os.Bundle
-import android.widget.Button
+import android.view.View
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
-import com.dga.montra.domain.Money
+import com.dga.montra.databinding.ActivityMainBinding
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.DashboardState
+import com.dga.montra.domain.Money
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
-
 
 class MainActivity : AppActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -25,6 +25,8 @@ class MainActivity : AppActivity() {
     private var dashboardJob: Job? = null
     private lateinit var balanceView: TextView
     private lateinit var summaryView: TextView
+    private lateinit var accountAdapter: AccountRowAdapter
+    private lateinit var recentAdapter: RecentTransactionAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -109,12 +111,9 @@ class MainActivity : AppActivity() {
             }
         }
         renderAccounts(state.accounts)
-        val recent = binding.recentTransactions
         val items = state.recentTransactions
-        binding.recentEmpty.visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-        recent.removeAllViews()
-        val adapter = TransactionAdapter(this, items)
-        items.indices.forEach { index -> recent.addView(adapter.getView(index, null, recent)) }
+        binding.recentEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        recentAdapter.submitList(items)
         // Hidden balances are masked before formatting, so the exact amount never reaches a view.
         balanceView.text = when {
             hidden -> getString(R.string.masked_balance)
@@ -147,25 +146,23 @@ class MainActivity : AppActivity() {
      * opens that account — never an arbitrary first account.
      */
     private fun renderAccounts(accounts: List<AccountBalance>) {
-        val section = binding.homeAccountsSection
-        val empty = binding.homeAccountsEmpty
-        val container = binding.homeAccounts
-        val count = binding.homeAccountsCount
+        val empty = accounts.isEmpty()
+        binding.homeAccountsSection.visibility = if (empty) View.GONE else View.VISIBLE
+        binding.homeAccountsEmpty.visibility = if (empty) View.VISIBLE else View.GONE
+        if (empty) {
+            accountAdapter.submitList(emptyList())
+            return
+        }
 
-        container.removeAllViews()
-        section.visibility = if (accounts.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
-        empty.visibility = if (accounts.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-        if (accounts.isEmpty()) return
-
-        count.text = resources.getQuantityString(R.plurals.account_count, accounts.size, accounts.size)
-        accounts.forEach { item -> container.addView(accountRow(item, container)) }
+        binding.homeAccountsCount.text =
+            resources.getQuantityString(R.plurals.account_count, accounts.size, accounts.size)
+        accountAdapter.submitList(accounts.map(::accountRow))
     }
 
-    private fun accountRow(item: AccountBalance, parent: android.view.ViewGroup): android.view.View {
-        val row = layoutInflater.inflate(R.layout.item_account_row, parent, false)
-        val hidden = settings.balanceHidden
+    /** Masks the balance before formatting, so a hidden amount never reaches a view. */
+    private fun accountRow(item: AccountBalance): AccountRowContent {
         val name = item.account.name
-        val balanceText = if (hidden) {
+        val balanceText = if (settings.balanceHidden) {
             getString(R.string.account_masked_amount)
         } else {
             item.currentBalance.format()
@@ -176,27 +173,15 @@ class MainActivity : AppActivity() {
             getString(R.string.account_row_no_activity)
         }
         val status = if (item.isArchived) getString(R.string.account_archived) else meta
-
-        row.findViewById<TextView>(R.id.account_row_initial).text = avatarInitials(name)
-        row.findViewById<TextView>(R.id.account_row_name).text = name
-        row.findViewById<TextView>(R.id.account_row_meta).text =
-            "${item.currencyCode}  ·  $meta"
-        row.findViewById<TextView>(R.id.account_row_balance).text = balanceText
-        row.findViewById<TextView>(R.id.account_row_badge).visibility =
-            if (item.isArchived) android.view.View.VISIBLE else android.view.View.GONE
-        row.contentDescription = getString(
-            R.string.account_row_description,
-            name,
-            balanceText,
-            status
+        return AccountRowContent(
+            id = item.account.id,
+            initials = avatarInitials(name),
+            name = name,
+            meta = "${item.currencyCode}  ·  $meta",
+            balance = balanceText,
+            archived = item.isArchived,
+            description = getString(R.string.account_row_description, name, balanceText, status)
         )
-        row.setOnClickListener {
-            startActivity(
-                Intent(this, AccountDetailActivity::class.java)
-                    .putExtra(AccountDetailActivity.EXTRA_ACCOUNT_ID, item.account.id)
-            )
-        }
-        return row
     }
 
     private fun avatarInitials(name: String): String = ProfileAvatar.initialsFor(name, defaultInitial())

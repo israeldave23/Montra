@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.dga.montra.databinding.ItemInsightRowBinding
+import com.dga.montra.databinding.ItemInsightSummaryBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -43,9 +45,9 @@ class InsightAdapter : ListAdapter<Any, RecyclerView.ViewHolder>(Diff) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return if (viewType == TYPE_SUMMARY) {
-            SummaryHolder(inflater.inflate(R.layout.item_insight_summary, parent, false))
+            SummaryHolder(ItemInsightSummaryBinding.inflate(inflater, parent, false))
         } else {
-            CategoryHolder(inflater.inflate(R.layout.item_insight_row, parent, false))
+            CategoryHolder(ItemInsightRowBinding.inflate(inflater, parent, false))
         }
     }
 
@@ -56,47 +58,38 @@ class InsightAdapter : ListAdapter<Any, RecyclerView.ViewHolder>(Diff) {
         }
     }
 
-    private class SummaryHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val currency: TextView = view.findViewById(R.id.insight_summary_currency)
-        private val expense: TextView = view.findViewById(R.id.insight_summary_expense)
-        private val flow: TextView = view.findViewById(R.id.insight_summary_flow)
-        private val change: TextView = view.findViewById(R.id.insight_summary_change)
-        private val average: TextView = view.findViewById(R.id.insight_summary_average)
-        private val top: TextView = view.findViewById(R.id.insight_summary_top)
-
+    private class SummaryHolder(
+        private val binding: ItemInsightSummaryBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(row: InsightSummaryRow) {
             val context = itemView.context
-            currency.text = row.currencyCode
-            expense.text = row.expense
-            flow.text = row.flow
-            change.text = row.change
-            average.text = row.average
-            top.text = row.top
-            top.visibility = if (row.top.isBlank()) View.GONE else View.VISIBLE
+            binding.insightSummaryCurrency.text = row.currencyCode
+            binding.insightSummaryExpense.text = row.expense
+            binding.insightSummaryFlow.text = row.flow
+            binding.insightSummaryChange.text = row.change
+            binding.insightSummaryAverage.text = row.average
+            binding.insightSummaryTop.text = row.top
+            binding.insightSummaryTop.visibility = if (row.top.isBlank()) View.GONE else View.VISIBLE
             itemView.contentDescription = row.description
-            expense.setTextColor(context.getColor(R.color.m3_on_surface))
+            binding.insightSummaryExpense.setTextColor(context.getColor(R.color.m3_on_surface))
         }
     }
 
-    private class CategoryHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val icon: android.widget.ImageView = view.findViewById(R.id.insight_row_icon)
-        private val name: TextView = view.findViewById(R.id.insight_category)
-        private val amount: TextView = view.findViewById(R.id.insight_amount)
-        private val share: TextView = view.findViewById(R.id.insight_share)
-        private val progress: ProgressBar = view.findViewById(R.id.insight_progress)
-
+    private class CategoryHolder(
+        private val binding: ItemInsightRowBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(row: InsightCategoryRow) {
             val context = itemView.context
-            icon.setImageResource(categoryIconRes(row.categoryId))
-            icon.contentDescription = row.name
-            name.text = row.name
-            amount.text = row.amount
-            share.text = row.share
-            progress.progressTintList =
+            binding.insightRowIcon.setImageResource(categoryIconRes(row.categoryId))
+            binding.insightRowIcon.contentDescription = row.name
+            binding.insightCategory.text = row.name
+            binding.insightAmount.text = row.amount
+            binding.insightShare.text = row.share
+            binding.insightProgress.progressTintList =
                 ColorStateList.valueOf(context.getColor(R.color.m3_primary))
-            progress.max = 100
-            progress.progress = row.percent
-            progress.contentDescription = row.description
+            binding.insightProgress.max = 100
+            binding.insightProgress.progress = row.percent
+            binding.insightProgress.contentDescription = row.description
             itemView.contentDescription = row.description
         }
     }

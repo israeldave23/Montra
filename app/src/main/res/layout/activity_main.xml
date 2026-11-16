@@ -24,7 +24,7 @@
             <TextView android:textAppearance="@style/TextAppearance.App.SectionTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/accounts_title" android:textColor="@color/m3_on_surface" />
             <TextView android:textAppearance="@style/TextAppearance.App.Meta" android:id="@+id/home_accounts_count" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/m3_on_surface_variant" />
         </LinearLayout>
-        <LinearLayout android:id="@+id/home_accounts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:orientation="vertical" />
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/home_accounts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:nestedScrollingEnabled="false" android:overScrollMode="never" />
     </LinearLayout>
     <TextView android:textAppearance="@style/TextAppearance.App.Body" android:id="@+id/home_accounts_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/screen_h_padding" android:layout_marginEnd="@dimen/screen_h_padding" android:layout_marginTop="@dimen/space_24" android:background="@drawable/action_tile_background" android:padding="@dimen/space_16" android:text="@string/home_accounts_empty" android:textColor="@color/m3_on_surface_variant" android:visibility="gone" />
     <TextView android:textAppearance="@style/TextAppearance.App.Body" android:id="@+id/monthly_summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/screen_h_padding" android:layout_marginEnd="@dimen/screen_h_padding" android:layout_marginTop="@dimen/space_24" android:textColor="@color/m3_on_surface" />
@@ -46,7 +46,7 @@
                     <Button android:textAppearance="@style/TextAppearance.App.Label" android:id="@+id/view_activity_button" android:layout_width="wrap_content" android:layout_height="@dimen/touch_target" android:background="@android:color/transparent" android:text="@string/see_all" android:textAllCaps="false" android:textColor="@color/m3_primary" />
                 </LinearLayout>
                 <TextView android:textAppearance="@style/TextAppearance.App.Body" android:id="@+id/recent_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:background="@drawable/action_tile_background" android:padding="@dimen/space_16" android:text="@string/recent_activity_empty" android:textColor="@color/m3_on_surface_variant" />
-                <LinearLayout android:id="@+id/recent_transactions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:orientation="vertical" />
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/recent_transactions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:nestedScrollingEnabled="false" android:overScrollMode="never" />
     <!-- The scroll body is already inset by screen_h_padding; zero the slot's own gutter so
          the ad lines up with the cards above it instead of sitting 48dp in. -->
     <include layout="@layout/view_ad_slot" android:layout_marginStart="0dp" android:layout_marginEnd="0dp" />

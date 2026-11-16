@@ -101,14 +101,15 @@ so an unknown category still renders. No screen contains a text glyph as a contr
 3. Every icon: `style="@style/Widget.App.Icon*"`, `android:contentDescription` unless decorative.
 4. Every card: `@drawable/action_tile_background`; every pill: `@dimen/control_radius` shape.
    Dialogs use `MaterialAlertDialogBuilder`, never `android.app.AlertDialog.Builder`.
-5. Run both gates:
+5. Run the gates:
    ```bash
    python3 tools/check_ui_tokens.py
    python3 tools/check_resources.py
+   python3 tools/check_view_bindings.py
    ```
 6. Anything visual that appears twice belongs in `values/widgets.xml` or `type.xml`, not in a layout.
 7. If the screen shows a banner, `<include layout="@layout/view_ad_slot" />` and call
-   `Ads.attachBanner(findViewById(R.id.ad_slot))` — never build an `AdView` by hand (`ADS.md`).
+   `Ads.attachBanner(binding.root)` — never build an `AdView` by hand (`ADS.md`).
 
 ## What the linters reject
 

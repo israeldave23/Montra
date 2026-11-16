@@ -41,8 +41,8 @@ Every push and pull request:
 
 1. JDK 17 (temurin), platform 36 and build-tools 36 installed.
 2. Gradle 8.11.1 installed by `gradle/actions/setup-gradle` (no wrapper jar needed).
-3. **Design-system gates**: `tools/check_ui_tokens.py`, `tools/check_resources.py`,
-   `tools/check_kotlin_syntax.py`.
+3. **Gates**: `tools/check_ui_tokens.py`, `tools/check_resources.py`,
+   `tools/check_kotlin_syntax.py`, `tools/check_view_bindings.py`.
 4. **Unit tests**: `gradle :app:testDebugUnitTest`.
 5. **APK**: `gradle :app:assembleDebug`, uploaded as the `montra-debug-apk` artifact (14 days).
 
@@ -57,9 +57,9 @@ mismatch should not cost a full compile to discover.
   not after.
 * **`buildFeatures.buildConfig = false`.** Nothing reads `BuildConfig`; `AdConfig` detects a debug
   build from `ApplicationInfo.FLAG_DEBUGGABLE` instead, which also works for any build type you add.
-* **ViewBinding.** Not enabled. `module.toml` has no switch for it, and enabling it in Gradle while
-  the other toolchain does not would split the two builds. When the 189 `findViewById` calls are
-  worth removing, enable it *here* and mirror the flag.
+* **`buildFeatures.viewBinding = true`** is on, and `tools/check_view_bindings.py` keeps it that way:
+  no `findViewById` outside the four helpers that take a root, no adapter inflating a layout by id,
+  no `removeAllViews()`. Screen code names a field, and the id is checked by the compiler.
 
 ## Release checklist
 

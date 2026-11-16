@@ -191,3 +191,24 @@ Script compared every `R.type.name` in Kotlin and every `@type/name` in XML agai
 * **Unused string resources: 21** (listed above) — a direct index of features that are still stubs.
 
 The UI token linter (`tools/check_ui_tokens.py`) passes by inspection, but it is not wired into any build or CI, so it protects nothing today.
+
+---
+
+## Status update — after Phases 0–2
+
+The review above was written against `8ee2ce2`, when the repository had no build description at all.
+Since then the app compiles, tests and packages on every push (see `DEVELOPMENT_PROGRESS.md`), and
+some findings are closed. Nothing here was re-reviewed in full; this is a status list, not a new
+review.
+
+| Finding | Status | Evidence |
+| --- | --- | --- |
+| P0-1 FileProvider never declared | **Closed** | `<provider>` in `AndroidManifest.xml`; authority matches `ProfileActivity.FILE_PROVIDER_AUTHORITY` |
+| P0-1b `cache-path path="."` exposes the whole cache | **Open** | `res/xml/file_provider_paths.xml` still grants the whole cache directory |
+| P0-2 backup/restore loses the WAL and overwrites a live database | **Open — still the worst defect in the app** | `ProfileActivity.backupToUri` copies only the `.db`; `restoreFromUri` overwrites it without closing Room, deleting `-wal`/`-shm`, or validating the file |
+| P0-3 no Gradle build, no Room compiler | **Closed, verified** | CI run compiles, runs 50 tests and uploads the APK |
+| P0-4 amounts entered as `Float` | **Closed** | Budgets, goals and transactions all carry `Money`/minor units; no `Float` in `domain/` |
+
+Also closed since the review: the missing `FileProvider` path is exercised by export/backup, the
+theme crash that `ed0d0ee` worked around is *not* root-caused (see `DEVELOPMENT_PROGRESS.md`), and
+`findViewById` is now a build failure (`tools/check_view_bindings.py`).

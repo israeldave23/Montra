@@ -37,10 +37,11 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      - name: Design-system and resource gates
+      - name: Design-system, resource and binding gates
         run: |
           python3 tools/check_ui_tokens.py
           python3 tools/check_resources.py
+          python3 tools/check_view_bindings.py
 
       - name: Kotlin syntax gate
         run: |
