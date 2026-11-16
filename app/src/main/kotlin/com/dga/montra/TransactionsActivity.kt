@@ -4,27 +4,28 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ItemTouchHelper
-import com.google.android.material.snackbar.Snackbar
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Button
-import android.widget.AdapterView
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
-import android.app.AlertDialog
-import kotlinx.coroutines.launch
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
-import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class TransactionsActivity : AppActivity() {
     private lateinit var repository: RoomFinanceRepository
@@ -133,7 +134,7 @@ class TransactionsActivity : AppActivity() {
             if (tx.note.isNotBlank()) append("Note: ${tx.note}\n")
             append("Account: ${tx.accountId}")
         }
-        val builder = AlertDialog.Builder(this).setTitle(R.string.transaction_details).setMessage(lines)
+        val builder = MaterialAlertDialogBuilder(this).setTitle(R.string.transaction_details).setMessage(lines)
             .setPositiveButton(android.R.string.ok, null)
         if (tx.type != com.dga.montra.domain.TransactionType.TRANSFER_OUT && tx.type != com.dga.montra.domain.TransactionType.TRANSFER_IN) {
             builder.setNeutralButton(R.string.edit) { _, _ -> showEditTransactionDialog(tx) }
@@ -214,7 +215,7 @@ class TransactionsActivity : AppActivity() {
                 cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show()
         }
 
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.edit_transaction).setView(content)
+        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.edit_transaction).setView(content)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -265,7 +266,7 @@ class TransactionsActivity : AppActivity() {
             toast(R.string.transfer_delete_unavailable)
             return
         }
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.delete_transaction_title)
             .setMessage(R.string.delete_transaction_message)
             .setNegativeButton(R.string.cancel, null)

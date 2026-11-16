@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -9,6 +8,8 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
@@ -19,16 +20,16 @@ import com.dga.montra.domain.BudgetSummary
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.TransactionCategories
 import com.dga.montra.domain.daysLeft
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
-import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 /**
  * Monthly spending plan: one limit per category, with the money actually spent counted from
@@ -192,7 +193,7 @@ class BudgetActivity : SectionActivity(2) {
         amountInput.hint = getString(R.string.budget_limit_hint, currency)
 
         val titleRes = if (existing == null) R.string.budget_new_title else R.string.budget_edit_title
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(titleRes)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)
@@ -249,7 +250,7 @@ class BudgetActivity : SectionActivity(2) {
     }
 
     private fun confirmDelete(budget: Budget) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.budget_delete_title)
             .setMessage(
                 getString(

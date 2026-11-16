@@ -1,7 +1,6 @@
 package com.dga.montra
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -13,15 +12,16 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
+import com.dga.montra.data.Storage
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -29,8 +29,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.io.path.copyTo
-import com.dga.montra.data.Storage
-import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProfileActivity : AppActivity() {
     private lateinit var avatar: TextView
@@ -202,7 +203,7 @@ class ProfileActivity : AppActivity() {
     }
 
     private fun confirmRemovePhoto() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.profile_photo_remove_title)
             .setMessage(R.string.profile_photo_remove_message)
             .setNegativeButton(R.string.cancel, null)
@@ -219,7 +220,7 @@ class ProfileActivity : AppActivity() {
         val field = input.findViewById<EditText>(R.id.profile_name_input)
         field.setText(settings.displayName)
         field.setSelection(field.length())
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.profile_edit_title).setView(input)
+        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.profile_edit_title).setView(input)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {

@@ -1,11 +1,12 @@
 package com.dga.montra
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.ads.Ads
@@ -13,13 +14,13 @@ import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.AccountBalance
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
 
 /**
  * One account: its real current balance (opening balance plus every transaction), its own activity,
@@ -193,7 +194,7 @@ class AccountDetailActivity : AppActivity() {
         val input = content.findViewById<EditText>(R.id.account_rename_input)
         input.setText(balance.account.name)
         input.setSelection(input.text.length)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.rename_account)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)
@@ -229,7 +230,7 @@ class AccountDetailActivity : AppActivity() {
     }
 
     private fun confirmArchive(balance: AccountBalance) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.account_archive_title)
             .setMessage(getString(R.string.account_archive_message, balance.account.name))
             .setNegativeButton(R.string.cancel, null)
@@ -261,7 +262,7 @@ class AccountDetailActivity : AppActivity() {
     }
 
     private fun confirmDelete(balance: AccountBalance) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.delete_account)
             .setMessage(R.string.delete_account_message)
             .setNegativeButton(R.string.cancel, null)

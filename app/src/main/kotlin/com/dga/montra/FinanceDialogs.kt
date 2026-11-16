@@ -1,7 +1,5 @@
 package com.dga.montra
 
-import androidx.activity.ComponentActivity
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.view.View
 import android.widget.AdapterView
@@ -11,6 +9,9 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
 import com.dga.montra.ads.Ads
 import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.data.Settings
@@ -19,14 +20,14 @@ import com.dga.montra.domain.Category
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 /**
  * The three dialogs that create money: an account, a transaction, a transfer.
@@ -63,7 +64,7 @@ internal object FinanceDialogs {
         prefs.lastCurrency?.let { code ->
             currency.setSelection(Money.currencies.indexOf(code).coerceAtLeast(0))
         }
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_account)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)
@@ -249,7 +250,7 @@ internal object FinanceDialogs {
             ).show()
         }
 
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_transaction)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)
@@ -348,7 +349,7 @@ internal object FinanceDialogs {
         fromSpinner.setSelection(accounts.indexOfFirst { it.id == preferred }.coerceAtLeast(0))
         toSpinner.setSelection((fromSpinner.selectedItemPosition + 1) % accounts.size)
 
-        val dialog = AlertDialog.Builder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_transfer)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)

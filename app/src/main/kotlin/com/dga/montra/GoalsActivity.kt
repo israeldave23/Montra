@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -12,6 +11,8 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dga.montra.data.RoomFinanceRepository
@@ -20,15 +21,15 @@ import com.dga.montra.domain.GoalOrdering
 import com.dga.montra.domain.GoalStatus
 import com.dga.montra.domain.GoalSummary
 import com.dga.montra.domain.Money
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Calendar
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Calendar
-import androidx.lifecycle.lifecycleScope
 
 /**
  * Savings goals: what you are putting money aside for, how far along you are, whether you are on
@@ -141,7 +142,7 @@ class GoalsActivity : SectionActivity(3) {
             visibility = if (plan.isBlank()) View.GONE else View.VISIBLE
         }
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setView(content)
             .setNegativeButton(R.string.close, null)
             .create()
@@ -255,7 +256,7 @@ class GoalsActivity : SectionActivity(3) {
             refreshDate()
         }
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (existing == null) R.string.new_goal else R.string.goal_edit_title)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)
@@ -383,7 +384,7 @@ class GoalsActivity : SectionActivity(3) {
         })
 
         val titleRes = if (mode == FundsMode.ADD) R.string.add_funds else R.string.goal_withdraw
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(titleRes)
             .setView(content)
             .setNegativeButton(R.string.cancel, null)
@@ -442,7 +443,7 @@ class GoalsActivity : SectionActivity(3) {
     }
 
     private fun confirmDelete(goal: Goal) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.goal_delete_title)
             .setMessage(getString(R.string.goal_delete_message, goal.name))
             .setNegativeButton(R.string.cancel, null)

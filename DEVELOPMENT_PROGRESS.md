@@ -6,9 +6,9 @@ Phase 3 — Financial Core and Database (incomplete)
 ## Audit findings
 - Project uses one `app` module with Kotlin stdlib only.
 - UI uses native Android Views, not Jetpack Compose.
-- No Gradle Kotlin DSL/version catalog, Hilt, Room, Navigation Compose, ViewModels, StateFlow, WorkManager, or CI configuration exists.
+- Gradle Kotlin DSL build, Room, StateFlow-free activities and a GitHub Actions CI job now exist (see BUILDING.md); Hilt, Navigation Compose, ViewModels and WorkManager do not.
 - Phase 1 and Phase 2 requirements are not complete despite starter dashboard UI.
-- Persistence uses encrypted SharedPreferences JSON, not Room.
+- Persistence uses Room (v4, with migrations); SharedPreferences hold settings only.
 - Accounts and basic expense/income/refund creation exist.
 - No edit/delete/search/filter/splits/transfers/tags/attachments or account management.
 - Android backup is disabled.

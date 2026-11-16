@@ -58,6 +58,7 @@ hero, so each usage still sets `android:textColor` from an `m3_*` role.
 | `Widget.App.Icon.OnAccentBadge` | tinted `colorOnTertiaryContainer` (the single amber accent badge) |
 | `BottomNavigationItem` | nav label, inherits `TextAppearance.App.LabelSmall` + touch target |
 | `TextAppearance.App.*` | the type scale above |
+| `MaterialAlertDialogBuilder` | every dialog. Platform `AlertDialog.Builder` ignores the theme — no M3 radii, no night scheme, no correct typography |
 | `layout/view_ad_slot.xml` | the one ad slot: `@dimen/ad_banner_height` tall, `screen_h_padding` gutter, `GONE` until `Ads` fills it — see `ADS.md` |
 
 `Base.Theme.App` holds every theme role once. `Theme.App` exists twice — `values/` and `values-night/`
@@ -99,6 +100,7 @@ so an unknown category still renders. No screen contains a text glyph as a contr
 2. Every text view: one `TextAppearance.App.*` plus an `m3_*` `textColor`.
 3. Every icon: `style="@style/Widget.App.Icon*"`, `android:contentDescription` unless decorative.
 4. Every card: `@drawable/action_tile_background`; every pill: `@dimen/control_radius` shape.
+   Dialogs use `MaterialAlertDialogBuilder`, never `android.app.AlertDialog.Builder`.
 5. Run both gates:
    ```bash
    python3 tools/check_ui_tokens.py
