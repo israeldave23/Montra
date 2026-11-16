@@ -18,6 +18,14 @@ internal object Storage {
     const val EXPORT_PREFIX = "montra_transactions"
     const val BACKUP_PREFIX = "montra_backup"
 
+    /**
+     * The one cache directory the FileProvider exposes: exports and backups the user chose to share.
+     * Everything else in the cache stays unreachable from a share intent, which is why the provider's
+     * paths file no longer names the cache root.
+     */
+    fun sharedDir(context: Context): File =
+        File(context.cacheDir, "shared").apply { mkdirs() }
+
     const val PREFS_SETTINGS = "montra_settings"
     const val PREFS_PROFILE = "montra_profile"
     const val PREFS_ACCOUNTS = "montra_accounts"

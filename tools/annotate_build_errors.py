@@ -32,6 +32,9 @@ WITH_LINE = re.compile(
 )
 AAPT_MARKER = re.compile(r"^AAPT:\s*error:\s*(?P<message>.+)$")
 BARE_ERROR = re.compile(r"^error:\s*(?P<message>.+)$")
+# R8: "Missing class com.foo.Bar (referenced from: java.lang.Object[])" - a keep rule that stopped
+# being enough, which only shows up in a minified build.
+MISSING_CLASS = re.compile(r"^Missing class (?P<message>.+)$")
 FAILED_TASK = re.compile(r"^Execution failed for task '(?P<task>.+?)'\.")
 WHAT_WENT_WRONG = re.compile(r"^\* What went wrong:")
 
@@ -62,6 +65,10 @@ def parse(line: str) -> tuple[str, str, str] | None:
     bare = AAPT_MARKER.match(text) or BARE_ERROR.match(text)
     if bare:
         return "", "", bare.group("message").strip()
+
+    missing = MISSING_CLASS.match(text)
+    if missing:
+        return "", "", "Missing class " + missing.group("message").strip()
     return None
 
 

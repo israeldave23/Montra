@@ -152,17 +152,21 @@ exports or deeper reports), mediation, and an ad-free purchase flow (tier droppe
 
 ## Verification status — read this before shipping
 
-The code is statically checked only: `check_ui_tokens.py`, `check_resources.py`, XML parsing and
-Kotlin bracket balance all pass. **This repository has no JDK or Gradle in the working environment,
-so nothing here has been compiled or run.** The first real build must confirm:
+The app compiles, runs its 56 unit tests and produces both a debug and a minified release build on
+every push (see `DEVELOPMENT_PROGRESS.md`). **Nothing has run on a device**, so the ad behaviour below
+is still unverified; it needs a phone, not a compiler.
 
-1. `play-services-ads:24.6.0` and `user-messaging-platform:4.0.0` resolve (both are current stable;
-   bump to 25.x once a build environment exists to test the upgrade).
-2. Test banners render in debug on a device.
-3. The interstitial appears on the fourth saved transaction, not before.
-4. The app-open ad appears when returning from background — never on a cold start, never wrapped
+Verified by the build:
+1. `play-services-ads:24.6.0` and `user-messaging-platform:4.0.0` resolve and link.
+2. The release build shrinks with R8 and still links the ads classes the manifest and `Ads` use.
+
+Still to check on a device:
+1. Test banners render in debug.
+2. The interstitial appears on the fourth saved transaction, not before.
+3. The app-open ad appears when returning from background — never on a cold start, never wrapped
    around a rotation.
-5. Consent form appears for an EEA test device (`ConsentDebugSettings` with `DEBUG_GEOGRAPHY_EEA`
+4. The consent form appears for an EEA test device (`ConsentDebugSettings` with `DEBUG_GEOGRAPHY_EEA`
    during QA only).
-6. Rewarded video grants 24 hours: the profile card switches to "No ads until …", the home banner
+5. Rewarded video grants 24 hours: the profile card switches to "No ads until …", the home banner
    disappears when you go back, and no interstitial appears on the next saves.
+6. Real unit IDs load in a release build (the debug build serves Google's test units by design).

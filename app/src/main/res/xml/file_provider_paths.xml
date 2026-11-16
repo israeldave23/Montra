@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only files the user asked us to export live here; nothing else in the cache is reachable through a
+  share intent. The previous entry was the whole cache directory, which let any app the user shared
+  to read database backups, imported photos and restore staging files it was never given.
+-->
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="cache" path="." />
+    <cache-path name="shared" path="shared/" />
 </paths>

@@ -45,16 +45,17 @@ Every push and pull request:
    `tools/check_kotlin_syntax.py`, `tools/check_view_bindings.py`.
 4. **Unit tests**: `gradle :app:testDebugUnitTest`.
 5. **APK**: `gradle :app:assembleDebug`, uploaded as the `montra-debug-apk` artifact (14 days).
+6. **Release**: `gradle :app:assembleRelease` unsigned, so R8 and resource shrinking run; the R8
+   mapping is uploaded as `montra-release-mapping`.
 
 The gates run *before* the build on purpose: they are seconds, the build is minutes, and a format-arg
 mismatch should not cost a full compile to discover.
 
 ## Things that are deliberately off
 
-* **`minifyEnabled = false`** in release. Turning R8 on requires running it against the AdMob and
-  Play Services SDKs first — they ship their own consumer rules, but the reflection in Room's
-  generated code and the ad adapters needs a real device test. Do that before the first Play upload,
-  not after.
+* **R8 is on for release** (`minifyEnabled` + `shrinkResources`). CI builds the release variant
+  unsigned on every push so the rules are exercised, and uploads `mapping.txt`. What is kept and why
+  is in `RELEASE.md`; the rules are in `app/proguard-rules.pro`.
 * **`buildFeatures.buildConfig = false`.** Nothing reads `BuildConfig`; `AdConfig` detects a debug
   build from `ApplicationInfo.FLAG_DEBUGGABLE` instead, which also works for any build type you add.
 * **`buildFeatures.viewBinding = true`** is on, and `tools/check_view_bindings.py` keeps it that way:
@@ -63,8 +64,11 @@ mismatch should not cost a full compile to discover.
 
 ## Release checklist
 
+`RELEASE.md` is the checklist: signing, R8 and its mapping file, `app-ads.txt`, the Play Console
+answers, and the first-upload list. The short version:
+
 - [ ] `gradle wrapper --gradle-version 8.11.1` and commit the jar so `./gradlew` works everywhere
-- [ ] Signing config (`*.jks` is git-ignored — keep it in CI secrets or a keystore file outside git)
-- [ ] R8 on, tested on a device: ads load, Room queries return, no `ClassNotFoundException`
-- [ ] `app-ads.txt` published (see `ADS.md`)
-- [ ] Play data-safety and content-rating answers match the ads integration
+- [ ] Keystore created outside the repo, `keystore.properties` filled in
+- [ ] `gradle :app:bundleRelease` succeeds and the bundle opens on a clean device
+- [ ] `app-ads.txt` served from the listing's developer domain
+- [ ] Play data-safety and content-rating answers match `RELEASE.md` §4

@@ -82,6 +82,32 @@ jobs:
         if: steps.assemble.outcome == 'failure'
         run: exit 1
 
+      # Shrinking is only safe while it is exercised. This builds the release variant unsigned - R8
+      # and resource shrinking both run - so a keep rule that stops working is a red build instead of
+      # a crash in a published APK. It also proves the release manifest and resources link.
+      - name: Assemble release (R8, unsigned)
+        id: release
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee gradle-release.log
+
+      - name: Annotate release failures
+        if: steps.release.outcome == 'failure'
+        run: python3 tools/annotate_build_errors.py gradle-release.log
+
+      - name: Fail the job when the release build failed
+        if: steps.release.outcome == 'failure'
+        run: exit 1
+
+      - name: Upload R8 mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: montra-release-mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
