@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
  * They are extensions on [GoalsActivity] rather than functions on an object so they can use the
  * activity's repository, snackbars and currency, and so the screen's call sites stay `showGoalEditor()`
  * rather than `GoalDialogs.showEditor(this, ...)`. The screen itself is left with rendering and state,
- * which is what a screen should be: the dialogs were 320 of its 505 lines.
+ * which is what a screen should be: these dialogs were 351 of its 505 lines.
  */
 private object GoalMenu {
     const val ADD = 1
