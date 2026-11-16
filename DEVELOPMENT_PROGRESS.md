@@ -12,12 +12,15 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
 | 2 — View binding and RecyclerView feeds | **Done** | 0 `findViewById` outside four root-taking helpers; home feed submits to `ListAdapter`s |
 | 3 — ViewModel and StateFlow | **Done** | Six screen view models; screens render `UiState`; `GoalsActivity` is 136 lines, down from 505 |
 | 4 — Release readiness | **Mostly done** | R8 + bundle verified in CI, `app-ads.txt`, Play answers and a privacy-policy draft; the keystore and the upload need a human (see `RELEASE.md`) |
+| 5 — Android Lint | **Done** | Lint runs on every push: 4 errors and 130 warnings on the first run, **0 errors and 34 warnings** now, every remaining one justified in `LINT.md` |
 
 ## What the build proves
 
 - `:app:assembleDebug` succeeds: Kotlin compilation, Room/KSP code generation, resource linking,
-  DEX and packaging. The debug APK is ~10.1 MB.
-- `:app:testDebugUnitTest` runs **50 tests in 10 classes, all passing**.
+  DEX and packaging. The debug APK is 9.7 MB; the unsigned release bundle is 6.5 MB.
+- `:app:testDebugUnitTest` runs **56 tests, all passing**.
+- `:app:lintDebug` reports **no errors**. Lint analyses the compiled app rather than the sources: API
+  levels, accessibility, resources, manifest. What is left is 34 warnings, itemised in `LINT.md`.
 - `tools/check_ui_tokens.py`, `tools/check_resources.py`, `tools/check_kotlin_syntax.py` and
   `tools/check_view_bindings.py` pass.
 
@@ -27,7 +30,10 @@ The run is the source of truth: `Android / Build debug APK` on `arena/de08cb0a-m
   ad fills, insets, animations and the Room queries at runtime are untested.
 - **Ads are untested end to end.** Debug builds use Google's test unit IDs; consent flow, banner
   fill, interstitial caps and the rewarded window need a real device.
-- **R8 is off** in release, so nothing is known about shrinking the ad SDK or Room.
+- **R8 shrinking is verified as a build, not as a running app.** CI minifies the release variant and
+  uploads `mapping.txt`, which proves the rules link. It cannot prove a reflective call survives — Room,
+  AdMob and UMP would only show that at runtime.
+- **Lint's 34 remaining warnings are known and listed**, not hidden: see `LINT.md`.
 
 ## Completed features
 

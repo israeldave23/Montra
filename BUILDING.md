@@ -45,7 +45,9 @@ Every push and pull request:
    `tools/check_kotlin_syntax.py`, `tools/check_view_bindings.py`.
 4. **Unit tests**: `gradle :app:testDebugUnitTest`.
 5. **APK**: `gradle :app:assembleDebug`, uploaded as the `montra-debug-apk` artifact (14 days).
-6. **Release**: `gradle :app:assembleRelease :app:bundleRelease` unsigned, so R8 and resource
+6. **Lint**: `gradle :app:lintDebug`. Errors fail the job; the report is annotated onto the check run and
+   uploaded as `montra-lint-report`. There is no baseline — see `LINT.md`.
+7. **Release**: `gradle :app:assembleRelease :app:bundleRelease` unsigned, so R8 and resource
    shrinking run and the Play-format bundle is produced; artifacts `montra-release-mapping` and
    `montra-release-aab-unsigned`.
 

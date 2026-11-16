@@ -136,6 +136,17 @@ gradle :app:assembleRelease      # APK, for sideloading and the R8 check
 gradle :app:testDebugUnitTest    # 56 tests
 ```
 
+## 5b. targetSdk 36 is a likely blocker
+
+`targetSdk` is **35**; Google Play requires a recent API level for new uploads, and 36 is that level in
+2026. Play's console will say whether 35 is still accepted — check before the first upload rather than
+after.
+
+Raising it is not a version bump. **targetSdk 36 forces edge-to-edge**, so the system draws behind the
+status and navigation bars and every screen's insets handling becomes load-bearing. Those insets have
+never been seen on a device. The order that works: device pass on 35, fix what it finds, then raise to 36
+and re-check the insets on the same device.
+
 ## 6. Before the first upload
 
 - [ ] Keystore created, `keystore.properties` filled in locally, **not** committed

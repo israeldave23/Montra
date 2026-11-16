@@ -47,14 +47,29 @@ lighter than the dark background so the card still reads as a raised surface.
 
 ## Role mapping
 
-`Theme.App` (in both `values/themes.xml` and `values-night/themes.xml`, parent
-`Theme.Material3.DayNight.NoActionBar`) binds the full role set: `colorPrimary`, `colorOnPrimary`,
+`Theme.App` binds the full role set. It is declared in three places, all of which descend from
+`Base.Theme.App`: `values/themes.xml` (light, API 26 — a dark nav bar, because 26 cannot draw dark
+navigation icons), `values-v27/themes.xml` (light, 27+, where the light-bar attribute exists) and
+`values-night/themes.xml` (both, because night mode outranks the version qualifier). A style in a
+qualified folder replaces the unqualified one wholesale rather than merging, which is why the small
+`Theme.App` block is repeated rather than inherited.
+
+It binds the full role set: `colorPrimary`, `colorOnPrimary`,
 `colorPrimaryContainer`, `colorOnPrimaryContainer`, the secondary and tertiary families,
 `colorError`/`colorOnError`/`colorErrorContainer`, `android:colorBackground`/`colorOnBackground`,
 `colorSurface`/`colorOnSurface`, `colorSurfaceVariant`/`colorOnSurfaceVariant`, `colorOutline`,
 `colorOutlineVariant`, `colorInverseSurface`/`colorInverseOnSurface`, `colorScrim`, plus
 `android:colorPrimary`/`android:colorAccent` for platform widgets and
 `android:windowLightStatusBar`/`windowLightNavigationBar` per scheme.
+
+**Known mismatch, still open.** The parent is `Theme.MaterialComponents.DayNight.NoActionBar`, not the
+Material 3 parent the palette suggests, and four filter chips in `activity_transactions.xml` use
+`@style/Widget.Material3.Chip.Filter` regardless. That is two component families in one theme. The
+role attributes this theme defines by name are what keeps the chips rendering at all; the open question
+is whether they render correctly, which needs a device. Either the parent goes back to Material 3 (and
+the launch crash that moved it away needs a logcat first — the base commit is titled "Fix Crash"), or
+the chips move to `Widget.MaterialComponents.Chip.Filter` and the app is consistently Material 2.
+Deciding blind is worse than either.
 
 That means Material widgets (dialogs, snackbars, buttons, ripples, text cursors) pick up the palette
 without per-screen overrides, and `?attr/colorOnSurfaceVariant` style references stay correct in dark
