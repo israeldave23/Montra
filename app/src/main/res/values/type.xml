@@ -5,51 +5,51 @@
       styles, so weight and size cannot drift screen to screen. Colour stays per-use, because the same
       role appears on plain surfaces and on the hero.
     -->
-    <style name="TextAppearance.App.Display" parent="TextAppearance.Material3.DisplaySmall">
+    <style name="TextAppearance.App.Display" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textSize">@dimen/text_36</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
-    <style name="TextAppearance.App.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+    <style name="TextAppearance.App.Headline" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textSize">@dimen/text_24</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
-    <style name="TextAppearance.App.Title" parent="TextAppearance.Material3.TitleLarge">
+    <style name="TextAppearance.App.Title" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textSize">@dimen/text_20</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="TextAppearance.App.SectionTitle" parent="TextAppearance.Material3.TitleMedium">
+    <style name="TextAppearance.App.SectionTitle" parent="TextAppearance.MaterialComponents.Subtitle1">
         <item name="android:textSize">@dimen/text_18</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="TextAppearance.App.Subtitle" parent="TextAppearance.Material3.TitleMedium">
+    <style name="TextAppearance.App.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle1">
         <item name="android:textSize">@dimen/text_16</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+    <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textSize">@dimen/text_16</item>
     </style>
-    <style name="TextAppearance.App.Body" parent="TextAppearance.Material3.BodyMedium">
+    <style name="TextAppearance.App.Body" parent="TextAppearance.MaterialComponents.Body2">
         <item name="android:textSize">@dimen/text_14</item>
     </style>
-    <style name="TextAppearance.App.Label" parent="TextAppearance.Material3.LabelLarge">
+    <style name="TextAppearance.App.Label" parent="TextAppearance.MaterialComponents.Button">
         <item name="android:textSize">@dimen/text_14</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="TextAppearance.App.Meta" parent="TextAppearance.Material3.BodySmall">
+    <style name="TextAppearance.App.Meta" parent="TextAppearance.MaterialComponents.Caption">
         <item name="android:textSize">@dimen/text_12</item>
     </style>
-    <style name="TextAppearance.App.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+    <style name="TextAppearance.App.LabelSmall" parent="TextAppearance.MaterialComponents.Caption">
         <item name="android:textSize">@dimen/text_12</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0.02</item>
     </style>
-    <style name="TextAppearance.App.Initial" parent="TextAppearance.Material3.TitleLarge">
+    <style name="TextAppearance.App.Initial" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textSize">@dimen/text_20</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="TextAppearance.App.InitialLarge" parent="TextAppearance.Material3.HeadlineSmall">
+    <style name="TextAppearance.App.InitialLarge" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textSize">@dimen/text_30</item>
         <item name="android:textStyle">bold</item>
     </style>
