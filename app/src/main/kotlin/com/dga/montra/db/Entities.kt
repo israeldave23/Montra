@@ -36,7 +36,9 @@ data class TransactionEntity(
     val type: String,
     val categoryId: String,
     val note: String,
-    val timestampMillis: Long
+    val timestampMillis: Long,
+    val paymentMethod: String = "CASH",
+    val billingDateMillis: Long? = null
 )
 
 @Entity(tableName = "budgets", indices = [Index(value = ["month", "categoryId"], unique = true)])

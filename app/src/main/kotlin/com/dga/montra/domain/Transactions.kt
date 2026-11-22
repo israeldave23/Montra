@@ -4,6 +4,14 @@ import java.util.UUID
 
 enum class TransactionType { EXPENSE, INCOME, REFUND, ADJUSTMENT, TRANSFER_OUT, TRANSFER_IN }
 
+/** How the transaction was settled; stored locally, never uploaded. */
+enum class PaymentMethod {
+    CASH,
+    DEBIT_CARD,
+    CREDIT_CARD,
+    OTHER
+}
+
 data class Category(val id: String, val name: String, val isIncome: Boolean = false) {
     override fun toString(): String = name
 }
@@ -15,7 +23,9 @@ data class Transaction(
     val type: TransactionType,
     val categoryId: String,
     val note: String = "",
-    val timestampMillis: Long = System.currentTimeMillis()
+    val timestampMillis: Long = System.currentTimeMillis(),
+    val paymentMethod: PaymentMethod = PaymentMethod.CASH,
+    val billingDateMillis: Long? = null
 ) {
     init {
         require(amount.minorUnits >= 0) { "Transaction amount must be non-negative" }

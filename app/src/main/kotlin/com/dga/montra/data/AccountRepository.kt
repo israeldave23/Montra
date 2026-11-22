@@ -72,7 +72,9 @@ class AccountRepository(context: Context) {
             json.put(JSONObject().put("id", t.id).put("accountId", t.accountId)
                 .put("minorUnits", t.amount.minorUnits).put("currency", t.amount.currencyCode)
                 .put("type", t.type.name).put("categoryId", t.categoryId)
-                .put("note", t.note).put("time", t.timestampMillis))
+                .put("note", t.note).put("time", t.timestampMillis)
+                .put("paymentMethod", t.paymentMethod.name)
+                .put("billingDateMillis", t.billingDateMillis ?: -1))
         }
         saveTransactions(json.toString())
     }
@@ -90,10 +92,14 @@ class AccountRepository(context: Context) {
             val item = json.getJSONObject(index)
             val currency = item.getString("currency")
             require(currency in Money.currencies) { "Unsupported transaction currency" }
+            val paymentMethod = PaymentMethod.valueOf(item.optString("paymentMethod", "CASH"))
+            val billingDateMillis = item.optLong("billingDateMillis", -1L)
             Transaction(item.getString("id"), item.getString("accountId"),
                 Money(item.getLong("minorUnits"), currency),
                 TransactionType.valueOf(item.getString("type")),
-                item.getString("categoryId"), item.getString("note"), item.getLong("time"))
+                item.getString("categoryId"), item.getString("note"), item.getLong("time"),
+                paymentMethod,
+                if (billingDateMillis >= 0) billingDateMillis else null)
         }
         if (encrypted == null && legacy != null) saveTransactions(raw)
         return transactions

@@ -18,6 +18,7 @@ import com.dga.montra.data.Settings
 import com.dga.montra.domain.Account
 import com.dga.montra.domain.Category
 import com.dga.montra.domain.Money
+import com.dga.montra.domain.PaymentMethod
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -135,6 +136,8 @@ internal object FinanceDialogs {
         val account = content.transactionAccount
         val type = content.transactionType
         val category = content.transactionCategory
+        val paymentMethod = content.transactionPaymentMethod
+        val billingDatePickerBtn = content.transactionBillingDatePicker
         val datePickerBtn = content.transactionDatePicker
         val amount = content.transactionAmount
         val note = content.transactionNote
@@ -148,6 +151,11 @@ internal object FinanceDialogs {
             set(Calendar.SECOND, 0)
         }
         datePickerBtn.text = fmt.format(Date(selectedDate.timeInMillis))
+        val selectedBillingDate = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }
 
         account.adapter = ArrayAdapter(
             activity,
@@ -194,6 +202,36 @@ internal object FinanceDialogs {
         category.setSelection(
             form.categories.indexOfFirst { it.id == form.categoryId }.coerceAtLeast(0)
         )
+
+        paymentMethod.adapter = ArrayAdapter(
+            activity,
+            android.R.layout.simple_spinner_item,
+            arrayOf(
+                activity.getString(R.string.payment_method_cash),
+                activity.getString(R.string.payment_method_debit_card),
+                activity.getString(R.string.payment_method_credit_card),
+                activity.getString(R.string.payment_method_other)
+            )
+        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        paymentMethod.setSelection(PaymentMethod.CASH.ordinal)
+        var paymentMethodChanged = false
+        paymentMethod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                if (!paymentMethodChanged) {
+                    paymentMethodChanged = true
+                    return@onItemSelected
+                }
+                val isCreditCard = position == PaymentMethod.CREDIT_CARD.ordinal
+                billingDatePickerBtn.visibility = if (isCreditCard) View.VISIBLE else View.GONE
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
 
         category.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -250,6 +288,24 @@ internal object FinanceDialogs {
             ).show()
         }
 
+        billingDatePickerBtn.setOnClickListener {
+            DatePickerDialog(
+                activity,
+                { _, year, month, day ->
+                    selectedBillingDate.set(Calendar.YEAR, year)
+                    selectedBillingDate.set(Calendar.MONTH, month)
+                    selectedBillingDate.set(Calendar.DAY_OF_MONTH, day)
+                    selectedBillingDate.set(Calendar.HOUR_OF_DAY, 12)
+                    selectedBillingDate.set(Calendar.MINUTE, 0)
+                    selectedBillingDate.set(Calendar.SECOND, 0)
+                    billingDatePickerBtn.text = fmt.format(Date(selectedBillingDate.timeInMillis))
+                },
+                selectedBillingDate.get(Calendar.YEAR),
+                selectedBillingDate.get(Calendar.MONTH),
+                selectedBillingDate.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.add_transaction)
             .setView(content.root)
@@ -274,6 +330,15 @@ internal object FinanceDialogs {
                 }
                 val transactionType = form.type
                 val categoryId = form.categoryId
+                val selectedPaymentMethod = when (paymentMethod.selectedItemPosition) {
+                    PaymentMethod.DEBIT_CARD.ordinal -> PaymentMethod.DEBIT_CARD
+                    PaymentMethod.CREDIT_CARD.ordinal -> PaymentMethod.CREDIT_CARD
+                    PaymentMethod.OTHER.ordinal -> PaymentMethod.OTHER
+                    else -> PaymentMethod.CASH
+                }
+                val billingDate = if (selectedPaymentMethod == PaymentMethod.CREDIT_CARD) {
+                    selectedBillingDate.timeInMillis
+                } else null
                 confirm.isEnabled = false
                 activity.lifecycleScope.launch {
                     runCatching {
@@ -284,7 +349,9 @@ internal object FinanceDialogs {
                                 type = transactionType,
                                 categoryId = categoryId,
                                 note = note.text.toString().trim(),
-                                timestampMillis = selectedDate.timeInMillis
+                                timestampMillis = selectedDate.timeInMillis,
+                                paymentMethod = selectedPaymentMethod,
+                                billingDateMillis = billingDate
                             )
                         )
                     }.onSuccess {

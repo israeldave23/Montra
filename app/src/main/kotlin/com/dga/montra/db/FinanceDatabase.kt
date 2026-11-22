@@ -16,6 +16,6 @@ abstract class FinanceDatabase : RoomDatabase() {
          * The schema version, named so a backup manifest can record it and a restore can refuse a
          * file written by a newer build. Room reads the annotation value, so this stays a constant.
          */
-        const val VERSION = 4
+        const val VERSION = 5
     }
 }

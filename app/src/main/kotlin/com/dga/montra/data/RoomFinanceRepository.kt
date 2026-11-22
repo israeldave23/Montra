@@ -103,8 +103,18 @@ class RoomFinanceRepository private constructor(context: Context) {
         dao.transfer(outTx, inTx)
     }
 
-    suspend fun updateTransaction(id: String, categoryId: String, note: String, type: TransactionType, ts: Long) = withContext(Dispatchers.IO) {
-        require(dao.updateTransaction(id, categoryId, note, type.name, ts) == 1) { "Transaction not found" }
+    suspend fun updateTransaction(
+        id: String,
+        categoryId: String,
+        note: String,
+        type: TransactionType,
+        ts: Long,
+        paymentMethod: PaymentMethod,
+        billingDateMillis: Long? = null
+    ) = withContext(Dispatchers.IO) {
+        require(
+            dao.updateTransaction(id, categoryId, note, type.name, ts, paymentMethod.name, billingDateMillis) == 1
+        ) { "Transaction not found" }
     }
 
     suspend fun deleteTransaction(id: String) = withContext(Dispatchers.IO) {
@@ -433,7 +443,9 @@ internal fun TransactionEntity.toDomain() = Transaction(
     type = TransactionType.valueOf(type),
     categoryId = categoryId,
     note = note,
-    timestampMillis = timestampMillis
+    timestampMillis = timestampMillis,
+    paymentMethod = PaymentMethod.valueOf(paymentMethod),
+    billingDateMillis = billingDateMillis
 )
 
 internal fun Transaction.toEntity() = TransactionEntity(
@@ -444,7 +456,9 @@ internal fun Transaction.toEntity() = TransactionEntity(
     type = type.name,
     categoryId = categoryId,
     note = note,
-    timestampMillis = timestampMillis
+    timestampMillis = timestampMillis,
+    paymentMethod = paymentMethod.name,
+    billingDateMillis = billingDateMillis
 )
 
 internal fun BudgetEntity.toDomain() = Budget(

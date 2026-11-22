@@ -127,6 +127,10 @@ class TransactionsActivity : AppActivity() {
             append("Type: ${tx.type.name}\n")
             append("Amount: ${tx.amount.format()}\n")
             append("Category: ${catName}\n")
+            append("Payment: ${tx.paymentMethod.name}\n")
+            if (tx.billingDateMillis != null) {
+                append("Billing date: ${java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT).format(java.util.Date(tx.billingDateMillis))}\n")
+            }
             if (tx.note.isNotBlank()) append("Note: ${tx.note}\n")
             append("Account: ${tx.accountId}")
         }
@@ -151,6 +155,8 @@ class TransactionsActivity : AppActivity() {
         val account = content.transactionAccount
         val type = content.transactionType
         val category = content.transactionCategory
+        val paymentMethodSpinner = content.transactionPaymentMethod
+        val billingDatePickerBtn = content.transactionBillingDatePicker
         val datePickerBtn = content.transactionDatePicker
         val amount = content.transactionAmount
         val note = content.transactionNote
@@ -160,6 +166,14 @@ class TransactionsActivity : AppActivity() {
             timeInMillis = tx.timestampMillis
         }
         datePickerBtn.text = fmt.format(java.util.Date(tx.timestampMillis))
+        val billingCal = java.util.Calendar.getInstance().apply {
+            if (tx.billingDateMillis != null) {
+                timeInMillis = tx.billingDateMillis
+            }
+            set(java.util.Calendar.HOUR_OF_DAY, 12)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+        }
 
         val accountLabels = accounts.map { "${it.name} (${it.openingBalance.currencyCode})" }
         account.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, accountLabels)
@@ -181,6 +195,38 @@ class TransactionsActivity : AppActivity() {
         category.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, cats.map { it.name })
         val catIdx = cats.indexOfFirst { it.id == tx.categoryId }
         if (catIdx >= 0) category.setSelection(catIdx)
+
+        paymentMethodSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, arrayOf(
+            getString(R.string.payment_method_cash),
+            getString(R.string.payment_method_debit_card),
+            getString(R.string.payment_method_credit_card),
+            getString(R.string.payment_method_other)
+        ))
+        val initialMethod = when (tx.paymentMethod) {
+            com.dga.montra.domain.PaymentMethod.DEBIT_CARD -> 1
+            com.dga.montra.domain.PaymentMethod.CREDIT_CARD -> 2
+            com.dga.montra.domain.PaymentMethod.OTHER -> 3
+            else -> 0
+        }
+        paymentMethodSpinner.setSelection(initialMethod)
+        billingDatePickerBtn.visibility = if (tx.paymentMethod == com.dga.montra.domain.PaymentMethod.CREDIT_CARD) {
+            android.view.View.VISIBLE
+        } else android.view.View.GONE
+        if (tx.billingDateMillis != null) {
+            billingDatePickerBtn.text = fmt.format(java.util.Date(tx.billingDateMillis))
+        }
+        var paymentMethodChanged = false
+        paymentMethodSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                if (!paymentMethodChanged) {
+                    paymentMethodChanged = true
+                    return@onItemSelected
+                }
+                val isCreditCard = position == com.dga.montra.domain.PaymentMethod.CREDIT_CARD.ordinal
+                billingDatePickerBtn.visibility = if (isCreditCard) android.view.View.VISIBLE else android.view.View.GONE
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
         var initialTypeSelection = true
         type.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
@@ -211,6 +257,20 @@ class TransactionsActivity : AppActivity() {
                 cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show()
         }
 
+        billingDatePickerBtn.setOnClickListener {
+            android.app.DatePickerDialog(this,
+                { _, y, m, d ->
+                    billingCal.set(java.util.Calendar.YEAR, y)
+                    billingCal.set(java.util.Calendar.MONTH, m)
+                    billingCal.set(java.util.Calendar.DAY_OF_MONTH, d)
+                    billingCal.set(java.util.Calendar.HOUR_OF_DAY, 12)
+                    billingCal.set(java.util.Calendar.MINUTE, 0)
+                    billingCal.set(java.util.Calendar.SECOND, 0)
+                    billingDatePickerBtn.text = fmt.format(java.util.Date(billingCal.timeInMillis))
+                },
+                billingCal.get(java.util.Calendar.YEAR), billingCal.get(java.util.Calendar.MONTH), billingCal.get(java.util.Calendar.DAY_OF_MONTH)).show()
+        }
+
         val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.edit_transaction).setView(content.root)
             .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener {
@@ -225,9 +285,21 @@ class TransactionsActivity : AppActivity() {
                     else -> com.dga.montra.domain.TransactionCategories.expense
                 }
                 val catId = newCats[category.selectedItemPosition].id
+                val newPaymentMethod = when (paymentMethodSpinner.selectedItemPosition) {
+                    1 -> com.dga.montra.domain.PaymentMethod.DEBIT_CARD
+                    2 -> com.dga.montra.domain.PaymentMethod.CREDIT_CARD
+                    3 -> com.dga.montra.domain.PaymentMethod.OTHER
+                    else -> com.dga.montra.domain.PaymentMethod.CASH
+                }
+                val newBillingDate = if (newPaymentMethod == com.dga.montra.domain.PaymentMethod.CREDIT_CARD) {
+                    billingCal.timeInMillis
+                } else null
                 lifecycleScope.launch {
                     runCatching {
-                        repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)
+                        repository.updateTransaction(
+                            tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis,
+                            newPaymentMethod, newBillingDate
+                        )
                     }.onSuccess {
                         dialog.dismiss()
                         toast(R.string.transaction_updated, short = true)

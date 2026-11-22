@@ -5,6 +5,7 @@
         <TextView android:textAppearance="@style/TextAppearance.App.Subtitle" android:id="@+id/transaction_category" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/m3_on_surface" />
         <TextView android:textAppearance="@style/TextAppearance.App.Meta" android:id="@+id/transaction_note" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_4" android:textColor="@color/m3_on_surface_variant" />
         <TextView android:textAppearance="@style/TextAppearance.App.Meta" android:id="@+id/transaction_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_4" android:textColor="@color/m3_on_surface_variant" />
+        <TextView android:textAppearance="@style/TextAppearance.App.Meta" android:id="@+id/transaction_payment_method" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_4" android:textColor="@color/m3_on_surface_variant" android:visibility="gone" />
     </LinearLayout>
     <TextView android:textAppearance="@style/TextAppearance.App.Label" android:id="@+id/transaction_amount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/space_16" android:gravity="end" android:textColor="@color/m3_on_surface" />
 </LinearLayout>

@@ -59,8 +59,8 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
     suspend fun transaction(id: String): TransactionEntity?
 
-    @Query("UPDATE transactions SET categoryId = :categoryId, note = :note, type = :type, timestampMillis = :ts WHERE id = :id")
-    suspend fun updateTransaction(id: String, categoryId: String, note: String, type: String, ts: Long): Int
+    @Query("UPDATE transactions SET categoryId = :categoryId, note = :note, type = :type, timestampMillis = :ts, paymentMethod = :paymentMethod, billingDateMillis = :billingDateMillis WHERE id = :id")
+    suspend fun updateTransaction(id: String, categoryId: String, note: String, type: String, ts: Long, paymentMethod: String, billingDateMillis: Long?): Int
 
     @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY timestampMillis DESC")
     suspend fun transactionsForCategory(categoryId: String): List<TransactionEntity>

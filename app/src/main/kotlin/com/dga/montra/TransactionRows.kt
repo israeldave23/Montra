@@ -5,6 +5,7 @@ import android.view.View
 import androidx.recyclerview.widget.DiffUtil
 import com.dga.montra.databinding.ItemTransactionRowBinding
 import com.dga.montra.domain.Money
+import com.dga.montra.domain.PaymentMethod
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import java.text.DateFormat
@@ -28,6 +29,18 @@ internal fun ItemTransactionRowBinding.bindTransaction(tx: Transaction, showDate
 
     transactionDate.text = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(tx.timestampMillis))
     transactionDate.visibility = if (showDate) View.VISIBLE else View.GONE
+
+    val paymentLabel = when (tx.paymentMethod) {
+        PaymentMethod.CASH -> context.getString(R.string.payment_method_cash)
+        PaymentMethod.DEBIT_CARD -> context.getString(R.string.payment_method_debit_card)
+        PaymentMethod.CREDIT_CARD -> context.getString(R.string.payment_method_credit_card)
+        PaymentMethod.OTHER -> context.getString(R.string.payment_method_other)
+    }
+    val billingInfo = if (tx.paymentMethod == PaymentMethod.CREDIT_CARD && tx.billingDateMillis != null) {
+        " · ${context.getString(R.string.transaction_billing_date)}: ${DateFormat.getDateInstance(DateFormat.SHORT).format(Date(tx.billingDateMillis))}"
+    } else ""
+    transactionPaymentMethod.text = "$paymentLabel$billingInfo"
+    transactionPaymentMethod.visibility = View.VISIBLE
 
     transactionAmount.apply {
         text = context.getString(
