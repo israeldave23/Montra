@@ -73,7 +73,7 @@ class BudgetActivity : SectionActivity(2) {
             try {
                 val budgets = repo.budgets()
                 val month = YearMonth.now().toString()
-                val spent = budgets.associateBy({ it.categoryId }) { repo.spentForCategoryMonth(it.categoryId, month) }.toMap()
+                val spent = budgets.associateBy({ it.id }) { repo.spentForCategoryMonth(it.categoryId, it.currencyCode, month) }.toMap()
                 budgetsRow.adapter = BudgetAdapter(this@BudgetActivity, budgets, spent)
                 budgetsCreate.visibility = View.VISIBLE
                 budgetsCreate.setText(R.string.create_budget)
@@ -88,6 +88,7 @@ class BudgetActivity : SectionActivity(2) {
         val categories = TransactionCategories.expense
         val names = categories.map { it.name }
         var selectedCategory = categories.firstOrNull()?.id ?: ""
+        val defaultCurrency = getSharedPreferences("lumen_settings", MODE_PRIVATE).getString("default_currency", "PHP") ?: "PHP"
         AlertDialog.Builder(this)
             .setTitle(R.string.create_budget)
             .setSingleChoiceItems(names.toTypedArray(), 0) { _, selected ->
@@ -101,17 +102,17 @@ class BudgetActivity : SectionActivity(2) {
                     .setTitle(R.string.budget_limit)
                     .setView(input)
                     .setPositiveButton(R.string.save) { _, _ ->
-                        val value = input.text.toString().toFloatOrNullOrZero()
-                        if (value <= 0f) {
-                            input.setError(getString(R.string.amount_required))
+                        val parsed = runCatching { Money.parse(input.text.toString().trim(), defaultCurrency) }.getOrNull()
+                        if (parsed == null || parsed.minorUnits <= 0L) {
+                            input.error = getString(R.string.amount_required)
                             return@setPositiveButton
                         }
                         scope.launch {
                             try {
-                                repo.createBudget(selectedCategory, Money((value * 100).toLong(), "PHP"))
+                                repo.createBudget(selectedCategory, parsed)
                                 observe()
                             } catch (e: Exception) {
-                                input.setError(getString(R.string.planning_error))
+                                input.error = getString(R.string.planning_error)
                             }
                         }
                     }
@@ -136,7 +137,7 @@ class BudgetActivity : SectionActivity(2) {
             categoryView.text = TransactionCategories.expense.firstOrNull { it.id == b.categoryId }?.name ?: b.categoryId.replaceFirstChar { it.uppercase() }
             val limitMoney = Money(b.limitMinorUnits, b.currencyCode)
             val limitMinor = b.limitMinorUnits
-            val categorySpent = spent[b.categoryId] ?: 0L
+            val categorySpent = spent[b.id] ?: 0L
             amountView.text = activity.getString(R.string.progress_amount, Money(categorySpent, b.currencyCode).format(), limitMoney.format())
             bar.max = 100
             bar.progress = if (limitMinor == 0L) 0 else (minOf(categorySpent, limitMinor) * 100 / limitMinor).toInt()
@@ -188,6 +189,7 @@ class GoalsActivity : SectionActivity(3) {
     }
 
     private fun showGoalForm() {
+        val defaultCurrency = getSharedPreferences("lumen_settings", MODE_PRIVATE).getString("default_currency", "PHP") ?: "PHP"
         val nameInput = EditText(this).apply { hint = getString(R.string.goal_name) }
         val targetInput = EditText(this).apply {
             hint = getString(R.string.target_amount)
@@ -208,22 +210,27 @@ class GoalsActivity : SectionActivity(3) {
             .setView(container)
             .setPositiveButton(R.string.save) { _, _ ->
                 val name = nameInput.text.toString().trim()
-                if (name.isEmpty()) {
-                    nameInput.setError(getString(R.string.name_required))
+                if (name.isEmpty() || name.length > 100) {
+                    nameInput.error = getString(R.string.name_required)
                     return@setPositiveButton
                 }
-                val target = targetInput.text.toString().toFloatOrNullOrZero()
-                val saved = savedInput.text.toString().toFloatOrNullOrZero()
-                if (target <= 0f || saved < 0f) {
-                    targetInput.setError(getString(R.string.amount_required))
+                val targetParsed = runCatching { Money.parse(targetInput.text.toString().trim(), defaultCurrency) }.getOrNull()
+                val savedText = savedInput.text.toString().trim().ifEmpty { "0" }
+                val savedParsed = runCatching { Money.parse(savedText, defaultCurrency) }.getOrNull()
+                if (targetParsed == null || targetParsed.minorUnits <= 0L) {
+                    targetInput.error = getString(R.string.amount_required)
+                    return@setPositiveButton
+                }
+                if (savedParsed == null || savedParsed.minorUnits < 0L) {
+                    savedInput.error = getString(R.string.saved_invalid)
                     return@setPositiveButton
                 }
                 scope.launch {
                     try {
-                        repo.createGoal(name, Money((target * 100).toLong(), "PHP"), Money((saved * 100).toLong(), "PHP"))
+                        repo.createGoal(name, targetParsed, savedParsed)
                         observe()
                     } catch (e: Exception) {
-                        targetInput.setError(getString(R.string.planning_error))
+                        targetInput.error = getString(R.string.planning_error)
                     }
                 }
             }
@@ -263,17 +270,17 @@ class GoalsActivity : SectionActivity(3) {
             .setMessage(getString(R.string.add_funds_note))
             .setView(input)
             .setPositiveButton(R.string.add_funds) { _, _ ->
-                val amount = input.text.toString().toFloatOrNullOrZero()
-                if (amount <= 0f) {
-                    input.setError(getString(R.string.amount_required))
+                val parsed = runCatching { Money.parse(input.text.toString().trim(), goal.currencyCode) }.getOrNull()
+                if (parsed == null || parsed.minorUnits <= 0L) {
+                    input.error = getString(R.string.amount_required)
                     return@setPositiveButton
                 }
                 scope.launch {
                     try {
-                        repo.addGoalFunds(goal.id, Money((amount * 100).toLong(), "PHP"))
+                        repo.addGoalFunds(goal.id, parsed)
                         observe()
                     } catch (e: Exception) {
-                        input.setError(getString(R.string.planning_error))
+                        input.error = getString(R.string.planning_error)
                     }
                 }
             }
@@ -304,10 +311,14 @@ class AccountDetailActivity : Activity() {
                 return@launch
             }
             findViewById<TextView>(R.id.account_name).text = account.name
-            findViewById<TextView>(R.id.account_balance).text = account.openingBalance.format()
             val list = findViewById<ListView>(R.id.account_transactions)
             repo.observeAccountTransactions(accountId).collect { txs ->
-                list.adapter = AccountTransactionAdapter(this@AccountDetailActivity, txs.map { it.toDomain() })
+                val domainTxs = txs.map { it.toDomain() }
+                val currentBalanceMinor = domainTxs.fold(account.openingBalance.minorUnits) { acc, tx ->
+                    Math.addExact(acc, tx.signedMinorUnits())
+                }
+                findViewById<TextView>(R.id.account_balance).text = Money(currentBalanceMinor, account.openingBalance.currencyCode).format()
+                list.adapter = AccountTransactionAdapter(this@AccountDetailActivity, domainTxs)
             }
         }
     }
@@ -376,17 +387,26 @@ class InsightsActivity : SectionActivity(4) {
                 val txs = repo.transactions().map { it.toDomain() }.filter {
                     it.type == TransactionType.EXPENSE && it.timestampMillis in start..end
                 }
-                val byCategory = txs.groupBy { it.categoryId }
-                val spentByCategory = byCategory.mapValues { (_, items) -> items.fold(0L) { acc, item -> acc + item.amount.minorUnits } }
+                val settings = getSharedPreferences("lumen_settings", MODE_PRIVATE)
+                val defaultCurrency = settings.getString("default_currency", "PHP") ?: "PHP"
+                val currencies = txs.map { it.amount.currencyCode }.distinct()
+                val activeCurrency = if (defaultCurrency in currencies || currencies.isEmpty()) defaultCurrency else currencies.first()
+                val filteredTxs = txs.filter { it.amount.currencyCode == activeCurrency }
+                val spentByCategory = FinancialCalculations.categorySpending(filteredTxs, activeCurrency)
                 val maxSpent = spentByCategory.values.maxOrNull() ?: 0L
-                insightsRow.adapter = InsightsAdapter(this@InsightsActivity, spentByCategory, maxSpent)
+                insightsRow.adapter = InsightsAdapter(this@InsightsActivity, spentByCategory, maxSpent, activeCurrency)
             } catch (e: Exception) {
                 runOnUiThread { android.widget.Toast.makeText(this@InsightsActivity, R.string.planning_error, android.widget.Toast.LENGTH_LONG).show() }
             }
         }
     }
 
-    private inner class InsightsAdapter(val activity: Activity, val spentByCategory: Map<String, Long>, val maxSpent: Long) : BaseAdapter() {
+    private inner class InsightsAdapter(
+        val activity: Activity,
+        val spentByCategory: Map<String, Long>,
+        val maxSpent: Long,
+        val currencyCode: String
+    ) : BaseAdapter() {
         private val entries = spentByCategory.entries.sortedByDescending { it.value }
 
         override fun getCount() = entries.size
@@ -398,7 +418,7 @@ class InsightsActivity : SectionActivity(4) {
             val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_insight_row, parent, false)
             row.findViewById<TextView>(R.id.insight_category).text = TransactionCategories.expense.firstOrNull { it.id == categoryId }?.name
                 ?: categoryId.replaceFirstChar { it.uppercase() }
-            row.findViewById<TextView>(R.id.insight_amount).text = Money(spent, "PHP").format()
+            row.findViewById<TextView>(R.id.insight_amount).text = Money(spent, currencyCode).format()
             val bar = row.findViewById<ProgressBar>(R.id.insight_progress)
             bar.max = 100
             bar.progress = if (maxSpent == 0L) 0 else (spent * 100 / maxSpent).coerceIn(0, 100).toInt()
@@ -408,4 +428,3 @@ class InsightsActivity : SectionActivity(4) {
     }
 }
 
-fun String.toFloatOrNullOrZero(): Float = toFloatOrNull() ?: 0f

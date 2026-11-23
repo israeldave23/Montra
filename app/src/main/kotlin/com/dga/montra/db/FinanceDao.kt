@@ -92,8 +92,8 @@ interface FinanceDao {
     @Query("UPDATE accounts SET name = :name WHERE id = :id")
     suspend fun renameAccount(id: String, name: String): Int
 
-    @Query("SELECT COALESCE(SUM(minorUnits),0) FROM transactions WHERE categoryId = :categoryId AND timestampMillis >= :startMillis AND timestampMillis <= :endMillis AND type = 'EXPENSE'")
-    suspend fun spentForCategoryMonth(categoryId: String, startMillis: Long, endMillis: Long): Long
+    @Query("SELECT COALESCE(SUM(minorUnits),0) FROM transactions WHERE categoryId = :categoryId AND currencyCode = :currencyCode AND timestampMillis >= :startMillis AND timestampMillis <= :endMillis AND type = 'EXPENSE'")
+    suspend fun spentForCategoryMonth(categoryId: String, currencyCode: String, startMillis: Long, endMillis: Long): Long
 
     @Query("SELECT COUNT(*) FROM transactions WHERE accountId = :id AND type IN ('TRANSFER_IN', 'TRANSFER_OUT')")
     suspend fun transferCount(id: String): Int

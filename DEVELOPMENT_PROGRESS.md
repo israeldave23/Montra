@@ -21,6 +21,11 @@ Phase 3 — Financial Core and Database (incomplete)
 - AES-GCM local payload encryption with Android Keystore.
 - Dashboard totals separated by currency.
 - Overflow checks in dashboard aggregation.
+- Multi-currency support across Budgets, Goals, and Insights (PHP hardcoding removed).
+- Accurate `Money.parse` minor-unit parsing replacing float conversions in Budget and Goal forms.
+- SQLite WAL checkpointing on database backup and connection closing/WAL cleanup on restore.
+- Real-time running balance calculation for Account Detail views.
+- Updated default branding initials and app name to Montra.
 
 ## Pending Phase 3
 - Room schema, DAO, repositories, migrations, schema export, and migration tests.

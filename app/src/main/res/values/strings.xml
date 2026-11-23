@@ -29,7 +29,7 @@
   <string name="budget_title">Budget</string>
   <string name="goals_title">Goals</string>
   <string name="insights_title">Insights</string>
-  <string name="app_name">Lumen Finance</string>
+  <string name="app_name">Montra</string>
   <string name="greeting">Good morning</string>
   <string name="overview">Your financial overview</string>
   <string name="empty_balance">Add an account to see your balance</string>
@@ -101,7 +101,7 @@
     <item quantity="one">%d transaction recorded</item>
     <item quantity="other">%d transactions recorded</item>
   </plurals>
-  <string name="masked_balance">₱ ••••</string>
+  <string name="masked_balance">••••</string>
   <string name="undo">Undo</string>
   <string name="type_expense">Expense</string>
   <string name="type_income">Income</string>
@@ -120,9 +120,9 @@
   <string name="create_budget">Create budget</string>
   <string name="new_goal">New goal</string>
   <string name="goal_name">Goal name</string>
-  <string name="target_amount">Target amount (PHP)</string>
-  <string name="saved_amount">Saved amount (PHP)</string>
-  <string name="budget_limit">Monthly limit (PHP)</string>
+  <string name="target_amount">Target amount</string>
+  <string name="saved_amount">Saved amount</string>
+  <string name="budget_limit">Monthly limit</string>
   <string name="add_funds">Add funds</string>
   <string name="add_funds_note">Updates goal tracking only; account balances are not changed.</string>
   <string name="name_required">Enter a name of 100 characters or fewer.</string>

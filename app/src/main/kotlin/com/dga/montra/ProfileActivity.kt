@@ -221,7 +221,8 @@ class ProfileActivity : Activity() {
         startActivityForResult(intent, REQUEST_RESTORE)
     }
 
-    private fun backupToUri(uri: Uri) {
+    private suspend fun backupToUri(uri: Uri) {
+        RoomFinanceRepository.get(applicationContext).checkpoint()
         val dbFile = getDatabasePath(DATABASE_NAME)
         FileInputStream(dbFile).use { input ->
             contentResolver.openOutputStream(uri, "w")?.use { output ->
@@ -231,12 +232,17 @@ class ProfileActivity : Activity() {
         runOnUiThread { toast(R.string.profile_backup_success) }
     }
 
-    private fun restoreFromUri(uri: Uri) {
+    private suspend fun restoreFromUri(uri: Uri) {
         val temp = File(cacheDir, "lumen_restore.db")
-        contentResolver.openInputStream(uri)!!.use { input ->
+        contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(temp).use { output -> input.copyTo(output) }
-        }
-        temp.copyTo(getDatabasePath(DATABASE_NAME), overwrite = true)
+        } ?: throw IllegalStateException("Could not open restore source")
+        RoomFinanceRepository.get(applicationContext).closeDatabase()
+        val dbFile = getDatabasePath(DATABASE_NAME)
+        temp.copyTo(dbFile, overwrite = true)
+        temp.delete()
+        File(dbFile.path + "-wal").delete()
+        File(dbFile.path + "-shm").delete()
         runOnUiThread { toast(R.string.profile_restore_success) }
     }
 
@@ -244,7 +250,7 @@ class ProfileActivity : Activity() {
 
     private fun initials(name: String): String {
         val trimmed = name.trim()
-        if (trimmed.isEmpty()) return "L"
+        if (trimmed.isEmpty()) return "M"
         val count = minOf(2, trimmed.codePointCount(0, trimmed.length))
         return trimmed.substring(0, trimmed.offsetByCodePoints(0, count)).uppercase()
     }

@@ -105,8 +105,21 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun deleteAccount(id: String) = withContext(Dispatchers.IO) { dao.deleteAccountSafely(id) }
 
+    suspend fun checkpoint() = withContext(Dispatchers.IO) {
+        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").use { cursor ->
+            cursor.moveToFirst()
+        }
+    }
+
+    suspend fun closeDatabase() = withContext(Dispatchers.IO) {
+        INSTANCE = null
+        if (db.isOpen) {
+            db.close()
+        }
+    }
+
     suspend fun createBudget(categoryId: String, limit: Money) = withContext(Dispatchers.IO) {
-        require(limit.currencyCode == "PHP" && limit.minorUnits > 0)
+        require(limit.currencyCode in Money.currencies && limit.minorUnits > 0)
         require(TransactionCategories.expense.any { it.id == categoryId })
         dao.insertBudget(BudgetEntity(java.util.UUID.randomUUID().toString(), java.time.YearMonth.now().toString(), categoryId, limit.minorUnits, limit.currencyCode))
     }
@@ -114,20 +127,20 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     suspend fun budgets(): List<BudgetEntity> = withContext(Dispatchers.IO) {
         dao.budgets(java.time.YearMonth.now().toString())
     }
-    suspend fun spentForCategoryMonth(categoryId: String, month: String): Long = withContext(Dispatchers.IO) {
+    suspend fun spentForCategoryMonth(categoryId: String, currencyCode: String, month: String): Long = withContext(Dispatchers.IO) {
         val ym = java.time.YearMonth.parse(month)
         val start = ym.atDay(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
         val end = ym.atEndOfMonth().atTime(23,59,59).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-        dao.spentForCategoryMonth(categoryId, start, end)
+        dao.spentForCategoryMonth(categoryId, currencyCode, start, end)
     }
 
     suspend fun goals(): List<GoalEntity> = withContext(Dispatchers.IO) { dao.goals() }
 
     suspend fun createGoal(name: String, target: Money, saved: Money) = withContext(Dispatchers.IO) {
         require(name.isNotBlank() && name.trim().length <= 100)
-        require(target.currencyCode == "PHP" && saved.currencyCode == "PHP")
+        require(target.currencyCode in Money.currencies && saved.currencyCode == target.currencyCode)
         require(target.minorUnits > 0 && saved.minorUnits >= 0)
-        dao.insertGoal(GoalEntity(java.util.UUID.randomUUID().toString(), name.trim(), target.minorUnits, saved.minorUnits, "PHP"))
+        dao.insertGoal(GoalEntity(java.util.UUID.randomUUID().toString(), name.trim(), target.minorUnits, saved.minorUnits, target.currencyCode))
     }
 
     suspend fun addGoalFunds(id: String, amount: Money) = withContext(Dispatchers.IO) {
