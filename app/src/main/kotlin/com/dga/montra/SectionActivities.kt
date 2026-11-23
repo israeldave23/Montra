@@ -131,16 +131,24 @@ class BudgetActivity : SectionActivity(2) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val b = budgets[position]
             val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_budget_row, parent, false)
+            val iconView = row.findViewById<android.widget.ImageView>(R.id.budget_icon)
+            iconView?.setImageResource(categoryIconDrawable(b.categoryId))
+            iconView?.imageTintList = android.content.res.ColorStateList.valueOf(categoryColor(b.categoryId))
+            iconView?.backgroundTintList = android.content.res.ColorStateList.valueOf(categoryBgColor(b.categoryId))
             val categoryView = row.findViewById<TextView>(R.id.budget_category)
             val amountView = row.findViewById<TextView>(R.id.budget_amount)
+            val percentView = row.findViewById<TextView>(R.id.budget_percent)
             val bar = row.findViewById<ProgressBar>(R.id.budget_progress)
             categoryView.text = TransactionCategories.expense.firstOrNull { it.id == b.categoryId }?.name ?: b.categoryId.replaceFirstChar { it.uppercase() }
             val limitMoney = Money(b.limitMinorUnits, b.currencyCode)
             val limitMinor = b.limitMinorUnits
             val categorySpent = spent[b.id] ?: 0L
             amountView.text = activity.getString(R.string.progress_amount, Money(categorySpent, b.currencyCode).format(), limitMoney.format())
+            val pct = if (limitMinor == 0L) 0 else ((categorySpent * 100) / limitMinor).toInt()
+            percentView?.text = if (categorySpent > limitMinor) activity.getString(R.string.over_budget) else "$pct%"
+            percentView?.setTextColor(activity.getColor(if (categorySpent > limitMinor) R.color.lumen_error else R.color.lumen_muted))
             bar.max = 100
-            bar.progress = if (limitMinor == 0L) 0 else (minOf(categorySpent, limitMinor) * 100 / limitMinor).toInt()
+            bar.progress = pct.coerceIn(0, 100)
             bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(if (categorySpent > limitMinor) R.color.lumen_error else R.color.lumen_accent))
             return row
         }
@@ -246,11 +254,17 @@ class GoalsActivity : SectionActivity(3) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val g = goals[position]
             val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_goal_row, parent, false)
+            val iconView = row.findViewById<android.widget.ImageView>(R.id.goal_icon)
+            iconView?.setImageResource(R.drawable.ic_nav_goals)
+            iconView?.imageTintList = android.content.res.ColorStateList.valueOf(activity.getColor(R.color.on_primary))
+            iconView?.backgroundTintList = android.content.res.ColorStateList.valueOf(activity.getColor(R.color.lumen_accent))
             row.findViewById<TextView>(R.id.goal_name).text = g.name
             val target = Money(g.targetMinorUnits, g.currencyCode)
             val saved = Money(g.savedMinorUnits, g.currencyCode)
             row.findViewById<TextView>(R.id.goal_amount).text = activity.getString(R.string.progress_amount, saved.format(), target.format())
             val progress = if (target.minorUnits == 0L) 0L else minOf(saved.minorUnits, target.minorUnits) * 100 / target.minorUnits
+            val percentView = row.findViewById<TextView>(R.id.goal_percent)
+            percentView?.text = "${progress.coerceIn(0, 100)}%"
             val bar = row.findViewById<ProgressBar>(R.id.goal_progress)
             bar.max = 100
             bar.progress = progress.coerceIn(0, 100).toInt()
@@ -298,6 +312,7 @@ class AccountDetailActivity : Activity() {
         super.onCreate(state)
         setContentView(R.layout.activity_account_detail)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 0)
+        findViewById<android.view.View>(R.id.account_detail_back)?.setOnClickListener { finish() }
         scope.launch {
             val accounts = repo.allAccounts()
             val id = intent.getStringExtra("ACCOUNT_ID") ?: accounts.firstOrNull()?.id
@@ -336,6 +351,10 @@ class AccountDetailActivity : Activity() {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val t = items[position]
             val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_transaction_row, parent, false)
+            val iconView = row.findViewById<android.widget.ImageView>(R.id.transaction_category_icon)
+            iconView?.setImageResource(categoryIconDrawable(t.categoryId))
+            iconView?.imageTintList = android.content.res.ColorStateList.valueOf(categoryColor(t.categoryId))
+            iconView?.backgroundTintList = android.content.res.ColorStateList.valueOf(categoryBgColor(t.categoryId))
             row.findViewById<TextView>(R.id.transaction_category).text = TransactionCategories.expense.firstOrNull { it.id == t.categoryId }?.name
                 ?: TransactionCategories.income.firstOrNull { it.id == t.categoryId }?.name
                 ?: t.categoryId.replaceFirstChar { it.uppercase() }
@@ -416,13 +435,17 @@ class InsightsActivity : SectionActivity(4) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val (categoryId, spent) = entries[position]
             val row = convertView ?: LayoutInflater.from(activity).inflate(R.layout.item_insight_row, parent, false)
+            val iconView = row.findViewById<android.widget.ImageView>(R.id.insight_icon)
+            iconView?.setImageResource(categoryIconDrawable(categoryId))
+            iconView?.imageTintList = android.content.res.ColorStateList.valueOf(categoryColor(categoryId))
+            iconView?.backgroundTintList = android.content.res.ColorStateList.valueOf(categoryBgColor(categoryId))
             row.findViewById<TextView>(R.id.insight_category).text = TransactionCategories.expense.firstOrNull { it.id == categoryId }?.name
                 ?: categoryId.replaceFirstChar { it.uppercase() }
             row.findViewById<TextView>(R.id.insight_amount).text = Money(spent, currencyCode).format()
             val bar = row.findViewById<ProgressBar>(R.id.insight_progress)
             bar.max = 100
             bar.progress = if (maxSpent == 0L) 0 else (spent * 100 / maxSpent).coerceIn(0, 100).toInt()
-            bar.progressTintList = android.content.res.ColorStateList.valueOf(activity.getColor(R.color.lumen_accent))
+            bar.progressTintList = android.content.res.ColorStateList.valueOf(categoryColor(categoryId))
             return row
         }
     }

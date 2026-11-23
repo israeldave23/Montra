@@ -46,7 +46,7 @@ class ProfileActivity : Activity() {
         nameView = findViewById(R.id.profile_name)
         themeSpinner = findViewById(R.id.profile_theme)
         currencySpinner = findViewById(R.id.profile_currency)
-        findViewById<TextView>(R.id.profile_back).setOnClickListener { finish() }
+        findViewById<android.view.View>(R.id.profile_back).setOnClickListener { finish() }
         findViewById<android.widget.Button>(R.id.profile_edit).setOnClickListener { editName() }
         findViewById<TextView>(R.id.profile_export).setOnClickListener { exportTransactions() }
         findViewById<TextView>(R.id.profile_backup).setOnClickListener { backupDatabase() }

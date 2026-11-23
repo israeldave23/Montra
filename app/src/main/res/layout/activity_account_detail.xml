@@ -5,16 +5,33 @@
     android:background="@color/lumen_background"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
-    <TextView
-        android:id="@+id/account_name"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:paddingStart="@dimen/screen_h_padding"
         android:paddingEnd="@dimen/screen_h_padding"
-        android:paddingTop="@dimen/space_32"
-        android:textColor="@color/lumen_ink"
-        android:textSize="@dimen/text_24"
-        android:textStyle="bold" />
+        android:paddingTop="@dimen/space_24"
+        android:paddingBottom="@dimen/space_8">
+        <ImageView
+            android:id="@+id/account_detail_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/action_tile_background"
+            android:contentDescription="@string/back"
+            android:padding="@dimen/space_12"
+            android:src="@drawable/ic_arrow_back" />
+        <TextView
+            android:id="@+id/account_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/space_16"
+            android:textColor="@color/lumen_ink"
+            android:textSize="@dimen/text_24"
+            android:textStyle="bold" />
+    </LinearLayout>
     <TextView
         android:id="@+id/account_balance"
         android:layout_width="match_parent"

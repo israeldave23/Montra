@@ -42,7 +42,10 @@ class TransactionListAdapter(
         val date = Instant.ofEpochMilli(tx.timestampMillis).atZone(ZoneId.systemDefault()).toLocalDate()
         val today = LocalDate.now()
         holder.itemView.findViewById<TextView>(R.id.transaction_category).text = tx.categoryId.replaceFirstChar { it.uppercase() }
-        holder.itemView.findViewById<TextView>(R.id.transaction_category_icon).text = categoryIcon(tx.categoryId)
+        val iconView = holder.itemView.findViewById<android.widget.ImageView>(R.id.transaction_category_icon)
+        iconView.setImageResource(categoryIconDrawable(tx.categoryId))
+        iconView.imageTintList = android.content.res.ColorStateList.valueOf(categoryColor(tx.categoryId))
+        iconView.backgroundTintList = android.content.res.ColorStateList.valueOf(categoryBgColor(tx.categoryId))
         val previousDate = transactions.getOrNull(position - 1)?.let { Instant.ofEpochMilli(it.timestampMillis).atZone(ZoneId.systemDefault()).toLocalDate() }
         val header = (holder.itemView as android.widget.LinearLayout).getChildAt(0) as TextView
         header.visibility = if (previousDate == date) View.GONE else View.VISIBLE

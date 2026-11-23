@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lumen_background" android:fitsSystemWindows="true" android:orientation="vertical">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/screen_h_padding" android:paddingEnd="@dimen/screen_h_padding" android:paddingTop="@dimen/space_24" android:paddingBottom="@dimen/space_8">
-        <TextView android:id="@+id/profile_back" android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/action_tile_background" android:contentDescription="@string/back" android:gravity="center" android:text="‹" android:textSize="@dimen/text_30" android:textColor="@color/lumen_ink" />
+        <ImageView android:id="@+id/profile_back" android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/action_tile_background" android:contentDescription="@string/back" android:padding="@dimen/space_12" android:src="@drawable/ic_arrow_back" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/space_16" android:text="@string/profile_title" android:textColor="@color/lumen_ink" android:textSize="@dimen/text_24" android:textStyle="bold" />
     </LinearLayout>
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
