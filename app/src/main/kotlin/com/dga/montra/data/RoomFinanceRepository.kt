@@ -176,6 +176,19 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun prepareForObservation() = withContext(Dispatchers.IO) { migrateLegacyIfNeeded() }
 
+    fun observeAccountBalances(): Flow<List<Pair<Account, Money>>> = dao.observeLedger().map { ledger ->
+        ledger.map { row ->
+            val account = row.account.toDomain()
+            val opening = account.openingBalance
+            val current = row.transactions.fold(opening.minorUnits) { total, entity ->
+                val transaction = entity.toDomain()
+                check(transaction.amount.currencyCode == opening.currencyCode)
+                Math.addExact(total, transaction.signedMinorUnits())
+            }
+            account to Money(current, opening.currencyCode)
+        }
+    }.flowOn(Dispatchers.Default)
+
     fun observeDashboard(): Flow<DashboardState> = dao.observeLedger().map { ledger ->
         val totals = mutableMapOf<String, Long>()
         val transactions = ledger.flatMap { row ->

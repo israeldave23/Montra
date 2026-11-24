@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#087F6D</color>
-    <color name="on_primary">#FFFFFF</color>
-    <color name="on_balance">#FFFFFF</color>
-    <color name="lumen_background">#F4F1EA</color>
-    <color name="lumen_surface">#FFFDF8</color>
-    <color name="lumen_ink">#17211D</color>
-    <color name="lumen_muted">#596B60</color>
-    <color name="lumen_accent">#176B55</color>
-    <color name="lumen_accent_deep">#104E43</color>
-    <color name="lumen_positive">#237A58</color>
-    <color name="lumen_negative">#B94B45</color>
-    <color name="lumen_highlight">#C49A5A</color>
+    <color name="primary">#296449</color>
+    <color name="on_primary">#172B24</color>
+    <color name="on_balance">#FAFFF4</color>
+    <color name="lumen_background">#F5F6F1</color>
+    <color name="lumen_surface">#FFFFFF</color>
+    <color name="lumen_ink">#172B24</color>
+    <color name="lumen_muted">#54685D</color>
+    <color name="lumen_accent">#296449</color>
+    <color name="lumen_accent_deep">#18382C</color>
+    <color name="lumen_positive">#296449</color>
+    <color name="lumen_negative">#A83932</color>
+    <color name="lumen_highlight">#6B5B35</color>
     <color name="ic_launcher_background">#087F6D</color>
     <color name="lumen_success">#176B55</color>
     <color name="lumen_error">#B00020</color>
+    <color name="lumen_action">#DCF48D</color>
+    <color name="lumen_soft">#E7EFE2</color>
+    <color name="lumen_line">#DCE5D8</color>
+    <color name="on_balance_muted">#B9D3BE</color>
 </resources>

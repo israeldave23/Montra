@@ -49,6 +49,7 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    testOptions.unitTests.isIncludeAndroidResources = true
     testOptions.unitTests.all {
         it.useJUnitPlatform()
         it.dependsOn(prepareRobolectricSdks)

@@ -1,0 +1,5 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/space_12" android:minHeight="112dp" android:orientation="vertical" android:background="@drawable/action_tile_ripple" android:padding="@dimen/space_16" android:focusable="true" android:clickable="true">
+    <TextView android:id="@+id/account_card_name" style="@style/MontraSectionHeading" android:layout_width="match_parent" android:textSize="@dimen/text_16" android:drawableStart="@drawable/ic_montra_wallet" android:drawablePadding="@dimen/space_8" />
+    <TextView android:id="@+id/account_card_balance" style="@style/MontraSectionHeading" android:layout_width="match_parent" android:layout_marginTop="@dimen/space_8" android:textSize="@dimen/headline_size" android:fontFeatureSettings="tnum" />
+    <TextView android:id="@+id/account_card_detail" style="@style/MontraFormLabel" android:layout_marginTop="@dimen/space_8" />
+</LinearLayout>

@@ -1,6 +1,5 @@
 package com.dga.montra
 
-import android.app.Activity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -14,25 +13,20 @@ import android.widget.Spinner
 import android.widget.Toast
 import android.widget.TextView
 import android.widget.Button
-import android.widget.AdapterView
-import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionType
 import android.app.AlertDialog
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.catch
 
-class TransactionsActivity : Activity() {
-    private val scope = MainScope()
-    private lateinit var repository: RoomFinanceRepository
+class TransactionsActivity : FinanceFormsActivity() {
     private lateinit var list: RecyclerView
     private lateinit var emptyView: android.widget.TextView
     private var currentItems = listOf<Transaction>()
+    private var accountNames = emptyMap<String, String>()
     private var activeTouchHelper: ItemTouchHelper? = null
     private lateinit var query: EditText
     private var selectedFilter = com.dga.montra.domain.TransactionFilter.ALL
@@ -43,8 +37,7 @@ class TransactionsActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transactions)
         bindBottomNavigation(findViewById(R.id.bottom_navigation), 1)
-        repository = RoomFinanceRepository.get(this)
-        findViewById<android.view.View>(R.id.transactions_back).setOnClickListener { finish() }
+        findViewById<android.view.View>(R.id.transactions_add).setOnClickListener { showAddTransactionDialog() }
         list = findViewById(R.id.transaction_list)
         list.layoutManager = LinearLayoutManager(this)
         emptyView = findViewById(R.id.transaction_empty)
@@ -101,13 +94,22 @@ class TransactionsActivity : Activity() {
         val version = ++requestVersion
         val filter = selectedFilter
         scope.launch {
-            runCatching { repository.searchTransactions(text).filter { filter.matches(it.type) } }
-                .onSuccess { transactions ->
+            runCatching {
+                val names = repository.allAccounts().associate { it.id to it.name }
+                val term = text.trim()
+                val matches = repository.allTransactions().filter { tx ->
+                    filter.matches(tx.type) && (term.isEmpty() || listOf(tx.note, tx.categoryId,
+                        transactionCategoryLabel(tx.categoryId), names[tx.accountId].orEmpty()).any { it.contains(term, ignoreCase = true) })
+                }
+                names to matches
+            }
+                .onSuccess { (names, transactions) ->
                     if (version != requestVersion) return@onSuccess
+                    accountNames = names
                     currentItems = transactions
                     emptyView.visibility = if (transactions.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
                     list.visibility = if (transactions.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
-                    list.adapter = TransactionListAdapter(transactions, { tx ->
+                    list.adapter = TransactionListAdapter(transactions, accountNames, { tx ->
                         if (tx.type == TransactionType.TRANSFER_IN || tx.type == TransactionType.TRANSFER_OUT) showTransactionDetails(tx)
                         else showEditTransactionDialog(tx)
                     }, { tx -> confirmDelete(tx) })
@@ -116,23 +118,17 @@ class TransactionsActivity : Activity() {
         }
     }
 
-    private fun formattedLabel(tx: com.dga.montra.domain.Transaction): String {
-        val sign = if (tx.type == com.dga.montra.domain.TransactionType.EXPENSE ||
-            tx.type == com.dga.montra.domain.TransactionType.TRANSFER_OUT) "−" else "+"
-        return "$sign${Money(tx.amount.minorUnits, tx.amount.currencyCode).format()}  ·  ${tx.categoryId}\n${tx.note.ifBlank { tx.type.name }}\n${java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(tx.timestampMillis))}"
-    }
-
     private fun showTransactionDetails(tx: Transaction) {
         val catName = com.dga.montra.domain.TransactionCategories.expense.asSequence()
             .plus(com.dga.montra.domain.TransactionCategories.income.asSequence())
             .firstOrNull { it.id == tx.categoryId }?.name ?: tx.categoryId.replaceFirstChar { it.uppercase() }
         val lines = buildString {
             append("Date: ${java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT).format(java.util.Date(tx.timestampMillis))}\n")
-            append("Type: ${tx.type.name}\n")
+            append("Type: ${tx.type.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}\n")
             append("Amount: ${tx.amount.format()}\n")
             append("Category: ${catName}\n")
             if (tx.note.isNotBlank()) append("Note: ${tx.note}\n")
-            append("Account: ${tx.accountId}")
+            accountNames[tx.accountId]?.let { append("Account: $it") }
         }
         val builder = AlertDialog.Builder(this).setTitle(R.string.transaction_details).setMessage(lines)
             .setPositiveButton(android.R.string.ok, null)
@@ -215,10 +211,10 @@ class TransactionsActivity : Activity() {
                 cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show()
         }
 
-        val dialog = AlertDialog.Builder(this).setTitle(R.string.edit_transaction).setView(content)
-            .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
+        content.findViewById<TextView>(R.id.entry_currency).text = tx.amount.currencyCode
+        val dialog = entryDialog(R.string.edit_transaction, R.string.save, content)
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            dialog.findViewById<Button>(R.id.entry_save).setOnClickListener {
                 val newType = when (type.selectedItemPosition) {
                     1 -> com.dga.montra.domain.TransactionType.INCOME
                     2 -> com.dga.montra.domain.TransactionType.REFUND
@@ -231,22 +227,15 @@ class TransactionsActivity : Activity() {
                 val catId = (category.selectedItem as? String)?.let { name ->
                     newCats.firstOrNull { it.name == name }?.id
                 } ?: newCats.last().id
-                scope.launch {
-                    runCatching {
-                        repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)
-                    }.onSuccess {
-                        dialog.dismiss()
-                        Toast.makeText(this@TransactionsActivity, R.string.transaction_updated, Toast.LENGTH_SHORT).show()
-                        load(query.text.toString())
-                    }.onFailure { toast(R.string.transaction_error) }
+                val memo = note.text.toString().trim()
+                saveOnce(dialog, R.string.transaction_error) {
+                    repository.updateTransaction(tx.id, catId, memo, newType, cal.timeInMillis)
+                    Toast.makeText(this@TransactionsActivity, R.string.transaction_updated, Toast.LENGTH_SHORT).show()
+                    load(query.text.toString())
                 }
             }
         }
         dialog.show()
-    }
-
-    private fun toast(message: Int) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     private fun deleteWithUndo(tx: Transaction) {
@@ -281,8 +270,4 @@ class TransactionsActivity : Activity() {
             }.show()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
 }

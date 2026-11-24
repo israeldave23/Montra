@@ -3,7 +3,6 @@ package com.dga.montra
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -27,7 +26,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ProfileActivity : Activity() {
+class ProfileActivity : MontraActivity() {
     private val prefs by lazy { getSharedPreferences("lumen_profile", MODE_PRIVATE) }
     private val settings by lazy { getSharedPreferences("lumen_settings", MODE_PRIVATE) }
     private val scope = MainScope()
@@ -37,7 +36,6 @@ class ProfileActivity : Activity() {
     private lateinit var currencySpinner: Spinner
 
     override fun onCreate(state: Bundle?) {
-        applyTheme()
         super.onCreate(state)
         setContentView(R.layout.activity_profile)
         avatar = findViewById(R.id.profile_avatar)
@@ -77,21 +75,6 @@ class ProfileActivity : Activity() {
         }
     }
 
-    private fun applyTheme() {
-        val mode = settings.getInt("theme_mode", 0)
-        val cur = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val target = when (mode) {
-            1 -> Configuration.UI_MODE_NIGHT_NO
-            2 -> Configuration.UI_MODE_NIGHT_YES
-            else -> cur
-        }
-        if (target != cur) {
-            val config = Configuration(resources.configuration)
-            config.uiMode = target
-            resources.updateConfiguration(config, resources.displayMetrics)
-        }
-    }
-
     private fun bindThemeSpinner() {
         val entries = arrayOf(R.string.profile_theme_system, R.string.profile_theme_light, R.string.profile_theme_dark)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, entries.map { getString(it) }.toTypedArray())
@@ -103,7 +86,6 @@ class ProfileActivity : Activity() {
                 val current = settings.getInt("theme_mode", 0)
                 if (position != current) {
                     settings.edit().putInt("theme_mode", position).apply()
-                    applyTheme()
                     recreate()
                 }
             }

@@ -15,6 +15,7 @@ import com.dga.montra.domain.Transaction
 
 class TransactionListAdapter(
     val transactions: List<Transaction>,
+    private val accountNames: Map<String, String>,
     private val onClick: (Transaction) -> Unit,
     private val onDelete: (Transaction) -> Unit
 ) : RecyclerView.Adapter<TransactionListAdapter.Holder>() {
@@ -41,7 +42,8 @@ class TransactionListAdapter(
         val expense = tx.type == TransactionType.EXPENSE || tx.type == TransactionType.TRANSFER_OUT
         val date = Instant.ofEpochMilli(tx.timestampMillis).atZone(ZoneId.systemDefault()).toLocalDate()
         val today = LocalDate.now()
-        holder.itemView.findViewById<TextView>(R.id.transaction_category).text = tx.categoryId.replaceFirstChar { it.uppercase() }
+        val category = transactionCategoryLabel(tx.categoryId)
+        holder.itemView.findViewById<TextView>(R.id.transaction_category).text = tx.note.ifBlank { category }
         val iconView = holder.itemView.findViewById<android.widget.ImageView>(R.id.transaction_category_icon)
         iconView.setImageResource(categoryIconDrawable(tx.categoryId))
         iconView.imageTintList = android.content.res.ColorStateList.valueOf(categoryColor(tx.categoryId))
@@ -54,13 +56,15 @@ class TransactionListAdapter(
             today.minusDays(1) -> holder.itemView.context.getString(R.string.date_yesterday)
             else -> DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(tx.timestampMillis))
         }
-        holder.itemView.findViewById<TextView>(R.id.transaction_note).text = tx.note.ifBlank { tx.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() } }
+        holder.itemView.findViewById<TextView>(R.id.transaction_note).text = listOfNotNull(category, accountNames[tx.accountId]).joinToString(" · ")
         holder.itemView.findViewById<TextView>(R.id.transaction_date).visibility = View.GONE
         holder.itemView.findViewById<TextView>(R.id.transaction_amount).apply {
             text = (if (expense) "−" else "+") + Money(tx.amount.minorUnits, tx.amount.currencyCode).format()
             setTextColor(context.getColor(if (expense) R.color.lumen_negative else R.color.lumen_positive))
         }
-        holder.itemView.setOnClickListener { onClick(tx) }
-        holder.itemView.setOnLongClickListener { onDelete(tx); true }
+        holder.itemView.findViewById<View>(R.id.transaction_row).apply {
+            setOnClickListener { onClick(tx) }
+            setOnLongClickListener { onDelete(tx); true }
+        }
     }
 }
