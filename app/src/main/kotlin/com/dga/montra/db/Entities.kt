@@ -1,9 +1,17 @@
 package com.dga.montra.db
 
 import androidx.room.Entity
+import androidx.room.Embedded
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
+
+data class AccountWithTransactions(
+    @Embedded val account: AccountEntity,
+    @Relation(parentColumn = "id", entityColumn = "accountId")
+    val transactions: List<TransactionEntity>
+)
 
 @Entity(tableName = "accounts", indices = [Index("name")])
 data class AccountEntity(

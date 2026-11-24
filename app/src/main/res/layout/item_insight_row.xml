@@ -51,5 +51,6 @@
             android:progressDrawable="@drawable/progress_bar_rounded"
             android:max="100"
             android:progress="0" />
+        <TextView android:id="@+id/insight_share" style="@style/MontraFormLabel" android:layout_marginTop="@dimen/space_4" />
     </LinearLayout>
 </LinearLayout>

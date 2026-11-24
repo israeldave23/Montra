@@ -4,6 +4,8 @@
         <item name="android:windowIsTranslucent">false</item>
         <item name="android:windowBackground">@color/lumen_background</item>
         <item name="colorPrimary">@color/lumen_accent</item>
+        <item name="colorSecondaryContainer">@color/lumen_action</item>
+        <item name="colorOnSecondaryContainer">@color/on_primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorSurface">@color/lumen_surface</item>
         <item name="colorOnSurface">@color/lumen_ink</item>

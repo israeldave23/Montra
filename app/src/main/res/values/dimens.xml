@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="card_radius">16dp</dimen>
-    <dimen name="hero_radius">@dimen/card_radius</dimen>
+    <dimen name="card_radius">20dp</dimen>
+    <dimen name="hero_radius">24dp</dimen>
     <dimen name="control_radius">@dimen/card_radius</dimen>
-    <dimen name="screen_h_padding">24dp</dimen>
+    <dimen name="screen_h_padding">20dp</dimen>
     <dimen name="card_padding">24dp</dimen>
     <dimen name="touch_target">48dp</dimen>
     <dimen name="space_4">4dp</dimen>
@@ -24,4 +24,7 @@
     <dimen name="text_30">30sp</dimen>
     <dimen name="text_36">36sp</dimen>
     <dimen name="text_48">48sp</dimen>
+    <dimen name="headline_size">28sp</dimen>
+    <dimen name="balance_size">39sp</dimen>
+    <dimen name="entry_amount_size">44sp</dimen>
 </resources>

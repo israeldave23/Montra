@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/action_tile_background" android:orientation="vertical" android:padding="@dimen/space_24">
-    <EditText android:id="@+id/account_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/account_name_hint" android:inputType="text" android:singleLine="true" />
-    <EditText android:id="@+id/opening_balance" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/space_12" android:hint="@string/opening_balance_hint" android:inputType="numberDecimal|numberSigned" android:singleLine="true" />
-    <Spinner android:id="@+id/currency_picker" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="@dimen/space_16" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/screen_h_padding" android:paddingEnd="@dimen/screen_h_padding" android:paddingTop="@dimen/space_8">
+    <TextView style="@style/MontraFormLabel" android:text="@string/account_name_hint" android:labelFor="@id/account_name" />
+    <EditText android:id="@+id/account_name" style="@style/MontraFormField" android:layout_marginTop="@dimen/space_4" android:inputType="textCapWords" android:singleLine="true" />
+    <TextView style="@style/MontraFormLabel" android:layout_marginTop="@dimen/space_12" android:text="@string/opening_balance_hint" android:labelFor="@id/opening_balance" />
+    <EditText android:id="@+id/opening_balance" style="@style/MontraFormField" android:layout_marginTop="@dimen/space_4" android:hint="@string/montra_amount_placeholder" android:inputType="numberDecimal|numberSigned" android:singleLine="true" />
+    <TextView style="@style/MontraFormLabel" android:layout_marginTop="@dimen/space_12" android:text="@string/profile_default_currency" android:labelFor="@id/currency_picker" />
+    <Spinner android:id="@+id/currency_picker" style="@style/MontraFormField" android:layout_marginTop="@dimen/space_4" />
 </LinearLayout>

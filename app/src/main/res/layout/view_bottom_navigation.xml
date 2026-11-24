@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/bottom_navigation"
-    android:layout_width="match_parent" android:layout_height="76dp"
-    android:background="@drawable/balance_surface_background"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:minHeight="68dp"
+    android:background="@color/lumen_surface"
     android:elevation="0dp" android:gravity="center" android:orientation="horizontal"
     android:paddingStart="@dimen/space_16" android:paddingEnd="@dimen/space_16">
-    <TextView android:id="@+id/nav_home" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_nav_home" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_home_description" android:text="@string/home" />
-    <TextView android:id="@+id/nav_activity" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_nav_activity" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_activity_description" android:text="@string/activity" />
-    <TextView android:id="@+id/nav_budget" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_nav_budget" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_budget_description" android:text="@string/budget" />
-    <TextView android:id="@+id/nav_goals" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_nav_goals" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_goals_description" android:text="@string/goals" />
-    <TextView android:id="@+id/nav_insights" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_nav_insights" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_insights_description" android:text="@string/insights" />
+    <TextView android:id="@+id/nav_home" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_montra_home" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_home_description" android:text="@string/home" />
+    <TextView android:id="@+id/nav_activity" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_montra_activity" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_activity_description" android:text="@string/activity" />
+    <TextView android:id="@+id/nav_budget" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_montra_plan" android:background="@drawable/nav_item_background" android:contentDescription="@string/montra_plan" android:text="@string/montra_plan" />
+    <TextView android:id="@+id/nav_insights" style="@style/BottomNavigationItem" android:drawableTop="@drawable/ic_montra_insights" android:background="@drawable/nav_item_background" android:contentDescription="@string/nav_insights_description" android:text="@string/insights" />
 </LinearLayout>

@@ -1,0 +1,12 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:fitsSystemWindows="true" android:background="@color/lumen_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:paddingStart="@dimen/screen_h_padding" android:paddingEnd="@dimen/screen_h_padding" android:paddingTop="@dimen/space_12" android:paddingBottom="@dimen/space_8">
+        <TextView android:id="@+id/entry_title" style="@style/MontraSectionHeading" android:layout_width="0dp" android:layout_weight="1" android:textSize="@dimen/headline_size" />
+        <ImageButton android:id="@+id/entry_back" android:layout_width="@dimen/touch_target" android:layout_height="@dimen/touch_target" android:background="@drawable/montra_soft" android:src="@drawable/ic_montra_back" android:contentDescription="@string/back" />
+    </LinearLayout>
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="false">
+        <FrameLayout android:id="@+id/entry_content" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    </ScrollView>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@color/lumen_surface" android:padding="@dimen/space_16">
+        <Button android:id="@+id/entry_save" style="@style/MontraPrimaryAction" />
+    </LinearLayout>
+</LinearLayout>
