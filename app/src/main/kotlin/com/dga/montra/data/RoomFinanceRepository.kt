@@ -1,6 +1,7 @@
 package com.dga.montra.data
 
 import android.content.Context
+import android.net.Uri
 import androidx.room.Room
 import com.dga.montra.db.AccountEntity
 import com.dga.montra.db.FinanceDao
@@ -14,7 +15,9 @@ import com.dga.montra.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.map
 
 class RoomFinanceRepository private constructor(private val context: Context) {
@@ -26,9 +29,11 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     private val dao: FinanceDao = db.financeDao()
 
-    private suspend fun migrateLegacyIfNeeded() {
+    private val migrationMutex = Mutex()
+
+    private suspend fun migrateLegacyIfNeeded() = migrationMutex.withLock {
         if (context.getSharedPreferences("lumen_migration", Context.MODE_PRIVATE)
-                .getBoolean("room_v1_done", false)) return
+                .getBoolean("room_v1_done", false)) return@withLock
         if (dao.accounts().isEmpty()) {
             val legacy = AccountRepository(context)
             val legacyAccounts = legacy.all()
@@ -53,6 +58,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun addTransaction(tx: Transaction) = withContext(Dispatchers.IO) {
         migrateLegacyIfNeeded()
+        require(tx.type != TransactionType.TRANSFER_IN && tx.type != TransactionType.TRANSFER_OUT) { "Use transfer to create both entries" }
         val account = dao.account(tx.accountId) ?: throw IllegalArgumentException("Unknown account")
         require(account.currencyCode == tx.amount.currencyCode) { "Account currency mismatch" }
         dao.insertTransaction(tx.toEntity())
@@ -91,11 +97,12 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     }
 
     suspend fun updateTransaction(id: String, categoryId: String, note: String, type: TransactionType, ts: Long) = withContext(Dispatchers.IO) {
-        require(dao.updateTransaction(id, categoryId, note, type.name, ts) == 1) { "Transaction not found" }
+        require(type != TransactionType.TRANSFER_IN && type != TransactionType.TRANSFER_OUT)
+        require(dao.updateTransaction(id, categoryId, note, type.name, ts) == 1) { "Transaction not found or is part of a transfer" }
     }
 
     suspend fun deleteTransaction(id: String) = withContext(Dispatchers.IO) {
-        require(dao.deleteTransaction(id) == 1) { "Transaction not found" }
+        require(dao.deleteTransaction(id) == 1) { "Transaction not found or is part of a transfer" }
     }
 
     suspend fun renameAccount(id: String, name: String) = withContext(Dispatchers.IO) {
@@ -105,17 +112,14 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun deleteAccount(id: String) = withContext(Dispatchers.IO) { dao.deleteAccountSafely(id) }
 
-    suspend fun checkpoint() = withContext(Dispatchers.IO) {
-        db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(FULL)").use { cursor ->
-            cursor.moveToFirst()
-        }
+    suspend fun backupTo(uri: Uri) = withContext(Dispatchers.IO) {
+        migrateLegacyIfNeeded()
+        FinanceBackup(context, db).exportTo(uri)
     }
 
-    suspend fun closeDatabase() = withContext(Dispatchers.IO) {
-        INSTANCE = null
-        if (db.isOpen) {
-            db.close()
-        }
+    suspend fun restoreFrom(uri: Uri) = withContext(Dispatchers.IO) {
+        migrateLegacyIfNeeded()
+        FinanceBackup(context, db).importFrom(uri)
     }
 
     suspend fun createBudget(categoryId: String, limit: Money) = withContext(Dispatchers.IO) {
@@ -130,7 +134,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
     suspend fun spentForCategoryMonth(categoryId: String, currencyCode: String, month: String): Long = withContext(Dispatchers.IO) {
         val ym = java.time.YearMonth.parse(month)
         val start = ym.atDay(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val end = ym.atEndOfMonth().atTime(23,59,59).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val end = ym.plusMonths(1).atDay(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
         dao.spentForCategoryMonth(categoryId, currencyCode, start, end)
     }
 
@@ -172,48 +176,22 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
     suspend fun prepareForObservation() = withContext(Dispatchers.IO) { migrateLegacyIfNeeded() }
 
-    fun observeDashboard(): Flow<DashboardState> = combine(
-        dao.observeAccounts(), dao.observeAllTransactions()
-    ) { accountEntities, transactionEntities ->
-        val accounts = accountEntities.map { it.toDomain() }
+    fun observeDashboard(): Flow<DashboardState> = dao.observeLedger().map { ledger ->
         val totals = mutableMapOf<String, Long>()
-        accounts.forEach { account ->
-            val code = account.openingBalance.currencyCode
-            totals[code] = Math.addExact(totals[code] ?: 0L, account.openingBalance.minorUnits)
-        }
-        val byId = accounts.associateBy { it.id }
-        val transactions = transactionEntities.map { it.toDomain() }
-        transactions.forEach { tx ->
-            val account = byId[tx.accountId] ?: error("Transaction references missing account")
-            require(account.openingBalance.currencyCode == tx.amount.currencyCode)
-            val delta = if (tx.type in setOf(TransactionType.EXPENSE, TransactionType.TRANSFER_OUT)) -tx.amount.minorUnits else tx.amount.minorUnits
-            totals[tx.amount.currencyCode] = Math.addExact(totals[tx.amount.currencyCode] ?: 0L, delta)
-        }
-        DashboardState(totals, accounts.size, transactions.take(5), FinancialCalculations.monthlySummary(transactions, java.time.YearMonth.now(), java.time.ZoneId.systemDefault()))
-    }
-
-    suspend fun dashboard(): DashboardState = withContext(Dispatchers.IO) {
-        migrateLegacyIfNeeded()
-        val accounts = dao.accounts()
-        val totals = mutableMapOf<String, Long>()
-        accounts.forEach { account ->
+        val transactions = ledger.flatMap { row ->
+            val account = row.account
             val code = account.currencyCode
             totals[code] = Math.addExact(totals[code] ?: 0L, account.openingBalanceMinorUnits)
-        }
-        val accountById = accounts.associateBy { it.id }
-        dao.transactions().forEach { tx ->
-            val account = accountById[tx.accountId]
-                ?: throw IllegalStateException("Transaction references missing account")
-            require(account.currencyCode == tx.currencyCode) { "Transaction currency mismatch" }
-            val signed = when (tx.type) {
-                "INCOME", "REFUND", "TRANSFER_IN" -> tx.minorUnits
-                "EXPENSE", "TRANSFER_OUT" -> -tx.minorUnits
-                else -> tx.minorUnits
+            row.transactions.map { entity ->
+                val tx = entity.toDomain()
+                require(tx.amount.currencyCode == code) { "Transaction currency mismatch" }
+                totals[code] = Math.addExact(totals.getValue(code), tx.signedMinorUnits())
+                tx
             }
-            totals[tx.currencyCode] = Math.addExact(totals[tx.currencyCode] ?: 0L, signed)
-        }
-        DashboardState(totals, accounts.size, dao.transactions().take(5).map { it.toDomain() })
-    }
+        }.sortedWith(compareByDescending<Transaction> { it.timestampMillis }.thenBy { it.id })
+        DashboardState(totals, ledger.size, transactions.take(5),
+            FinancialCalculations.monthlySummary(transactions, java.time.YearMonth.now(), java.time.ZoneId.systemDefault()))
+    }.flowOn(Dispatchers.Default)
 
     companion object {
         @Volatile
@@ -221,7 +199,7 @@ class RoomFinanceRepository private constructor(private val context: Context) {
 
         fun get(context: Context): RoomFinanceRepository =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: RoomFinanceRepository(context).also { INSTANCE = it }
+                INSTANCE ?: RoomFinanceRepository(context.applicationContext).also { INSTANCE = it }
             }
     }
 }

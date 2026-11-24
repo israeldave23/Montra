@@ -17,6 +17,10 @@ interface FinanceDao {
     @Query("SELECT * FROM accounts ORDER BY name COLLATE NOCASE")
     suspend fun accounts(): List<AccountEntity>
 
+    @RoomTransaction
+    @Query("SELECT * FROM accounts ORDER BY name COLLATE NOCASE")
+    fun observeLedger(): Flow<List<AccountWithTransactions>>
+
     @Query("SELECT * FROM accounts WHERE id = :id LIMIT 1")
     suspend fun account(id: String): AccountEntity?
 
@@ -59,13 +63,13 @@ interface FinanceDao {
     @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
     suspend fun transaction(id: String): TransactionEntity?
 
-    @Query("UPDATE transactions SET categoryId = :categoryId, note = :note, type = :type, timestampMillis = :ts WHERE id = :id")
+    @Query("UPDATE transactions SET categoryId = :categoryId, note = :note, type = :type, timestampMillis = :ts WHERE id = :id AND type NOT IN ('TRANSFER_IN', 'TRANSFER_OUT')")
     suspend fun updateTransaction(id: String, categoryId: String, note: String, type: String, ts: Long): Int
 
     @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY timestampMillis DESC")
     suspend fun transactionsForCategory(categoryId: String): List<TransactionEntity>
 
-    @Query("DELETE FROM transactions WHERE id = :id")
+    @Query("DELETE FROM transactions WHERE id = :id AND type NOT IN ('TRANSFER_IN', 'TRANSFER_OUT')")
     suspend fun deleteTransaction(id: String): Int
 
     @Query("UPDATE accounts SET isArchived = :archived WHERE id = :id")
@@ -92,11 +96,23 @@ interface FinanceDao {
     @Query("UPDATE accounts SET name = :name WHERE id = :id")
     suspend fun renameAccount(id: String, name: String): Int
 
-    @Query("SELECT COALESCE(SUM(minorUnits),0) FROM transactions WHERE categoryId = :categoryId AND currencyCode = :currencyCode AND timestampMillis >= :startMillis AND timestampMillis <= :endMillis AND type = 'EXPENSE'")
+    @Query("SELECT COALESCE(SUM(minorUnits),0) FROM transactions WHERE categoryId = :categoryId AND currencyCode = :currencyCode AND timestampMillis >= :startMillis AND timestampMillis < :endMillis AND type = 'EXPENSE'")
     suspend fun spentForCategoryMonth(categoryId: String, currencyCode: String, startMillis: Long, endMillis: Long): Long
 
     @Query("SELECT COUNT(*) FROM transactions WHERE accountId = :id AND type IN ('TRANSFER_IN', 'TRANSFER_OUT')")
     suspend fun transferCount(id: String): Int
+
+    @Query("SELECT * FROM budgets")
+    suspend fun allBudgets(): List<BudgetEntity>
+
+    @Query("DELETE FROM accounts")
+    suspend fun clearAccounts()
+
+    @Query("DELETE FROM budgets")
+    suspend fun clearBudgets()
+
+    @Query("DELETE FROM goals")
+    suspend fun clearGoals()
 
     @RoomTransaction
     suspend fun deleteAccountSafely(id: String) {

@@ -42,6 +42,7 @@
   <string name="goals">Goals</string>
   <string name="insights">Insights</string>
   <string name="account_name_hint">Account name</string>
+  <string name="opening_balance_invalid">Enter a valid opening balance for this currency.</string>
   <string name="opening_balance_hint">Opening balance</string>
   <string name="account_added">Account added</string>
   <string name="cancel">Cancel</string>
@@ -145,7 +146,9 @@
   <string name="profile_backup_database">Backup database</string>
   <string name="profile_backup_success">Backup saved</string>
   <string name="profile_restore_database">Restore database</string>
-  <string name="profile_restore_success">Restored. Restart the app to apply.</string>
+  <string name="profile_restore_confirm">Restoring replaces your current accounts, transactions, budgets, and goals. Export a backup first if you want to keep them.</string>
+  <string name="profile_restore_error">Could not restore this file. Your current records were kept.</string>
+  <string name="profile_restore_success">Backup restored.</string>
   <string name="profile_error">Could not complete operation.</string>
   <string name="profile_export_success">Exported transactions to CSV</string>
     <string name="account_not_found">Account not found.</string>

@@ -116,18 +116,14 @@ class MainActivity : Activity() {
         val items = state.recentTransactions
         findViewById<TextView>(R.id.recent_empty).visibility = if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         recent.removeAllViews()
-        val adapter = TransactionAdapter(this, items)
+        val adapter = TransactionAdapter(this, items, hideAmounts = hidden)
         items.indices.forEach { index -> recent.addView(adapter.getView(index, null, recent)) }
         balanceView.text = when (state.balances.size) {
             0 -> "—"
             1 -> state.balances.entries.first().let { Money(it.value, it.key).format() }
             else -> state.balances.entries.joinToString("  •  ") { Money(it.value, it.key).format() }
         }
-        val balanceHidden = settings.getBoolean("balance_hidden", false)
-        if (hidden) {
-            balanceView.setText(R.string.masked_balance)
-            findViewById<TextView>(R.id.monthly_summary).setText(R.string.monthly_summary_hidden)
-        }
+        if (hidden) balanceView.setText(R.string.masked_balance)
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).setImageResource(if (hidden) R.drawable.ic_visibility_off else R.drawable.ic_visibility)
         findViewById<android.widget.ImageButton>(R.id.toggle_balance).contentDescription = getString(if (hidden) R.string.show_balance else R.string.hide_balance)
         findViewById<Button>(R.id.add_account_button).setText(if (state.accountCount == 0) R.string.add_first_account else R.string.add_account)
@@ -152,20 +148,16 @@ class MainActivity : Activity() {
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val trimmedName = name.text.toString().trim()
-                val parsed = runCatching { Money.parse(amount.text.toString(), currency.selectedItem.toString()) }.getOrNull()
+                val code = currency.selectedItem.toString()
+                val opening = amount.text.toString().trim().ifBlank { "0" }
+                val parsed = runCatching { Money.parse(opening, code) }.getOrNull()
                 when {
                     trimmedName.isEmpty() -> name.error = getString(R.string.account_name_hint)
-                    parsed == null || parsed.minorUnits <= 0L -> amount.error = getString(R.string.amount_required)
-                    else -> {
-                        try {
-                            scope.launch {
-                                runCatching { repository.addAccount(Account(UUID.randomUUID().toString(), trimmedName, parsed)).also { settings.edit().putString("last_currency", currency.selectedItem.toString()).apply() } }
-                                    .onSuccess { dialog.dismiss(); feedback(R.string.account_added) }
-                                    .onFailure { toast(R.string.save_error) }
-                            }
-                        } catch (_: Exception) {
-                            toast(R.string.save_error)
-                        }
+                    parsed == null -> amount.error = getString(R.string.opening_balance_invalid)
+                    else -> saveOnce(dialog, R.string.save_error) {
+                        repository.addAccount(Account(UUID.randomUUID().toString(), trimmedName, parsed))
+                        settings.edit().putString("last_currency", code).apply()
+                        feedback(R.string.account_added)
                     }
                 }
             }
@@ -217,10 +209,11 @@ class MainActivity : Activity() {
                     amount.error = getString(R.string.amount_required)
                     return@setOnClickListener
                 }
-                scope.launch {
-                    runCatching { repository.transfer(from.id, to.id, parsed, note.text.toString().trim()) }
-                        .onSuccess { settings.edit().putString("last_transfer_account", from.id).apply(); dialog.dismiss(); feedback(R.string.save_feedback_transfer) }
-                        .onFailure { toast(R.string.transfer_error) }
+                val memo = note.text.toString().trim()
+                saveOnce(dialog, R.string.transfer_error) {
+                    repository.transfer(from.id, to.id, parsed, memo)
+                    settings.edit().putString("last_transfer_account", from.id).apply()
+                    feedback(R.string.save_feedback_transfer)
                 }
             }
         }
@@ -322,22 +315,36 @@ class MainActivity : Activity() {
                 }
                 val transactionType = transactionFormState.type
                 val catId = transactionFormState.categoryId
-                scope.launch {
-                    runCatching {
-                        repository.addTransaction(Transaction(accountId = selected.id, amount = parsed,
-                            type = transactionType, categoryId = catId,
-                            note = note.text.toString().trim(),
-                            timestampMillis = selectedDate.timeInMillis))
-                    }.onSuccess {
-                        settings.edit().putString("last_account", selected.id).putString("last_category", catId).putString("last_type", transactionType.name).apply()
-                        transactionFormState.reset()
-                        dialog.dismiss()
-                        feedback(R.string.transaction_saved)
-                    }.onFailure { toast(R.string.transaction_error) }
+                val entry = Transaction(accountId = selected.id, amount = parsed, type = transactionType,
+                    categoryId = catId, note = note.text.toString().trim(), timestampMillis = selectedDate.timeInMillis)
+                saveOnce(dialog, R.string.transaction_error) {
+                    repository.addTransaction(entry)
+                    settings.edit().putString("last_account", selected.id).putString("last_category", catId)
+                        .putString("last_type", transactionType.name).apply()
+                    transactionFormState.reset()
+                    feedback(R.string.transaction_saved)
                 }
             }
         }
         dialog.show()
+    }
+
+    private fun saveOnce(dialog: AlertDialog, error: Int, save: suspend () -> Unit) {
+        val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        if (!button.isEnabled) return
+        button.isEnabled = false
+        scope.launch {
+            try {
+                save()
+                dialog.dismiss()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                toast(error)
+            } finally {
+                button.isEnabled = true
+            }
+        }
     }
 
     private fun feedback(message: Int) {

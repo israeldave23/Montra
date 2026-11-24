@@ -228,7 +228,9 @@ class TransactionsActivity : Activity() {
                     com.dga.montra.domain.TransactionType.INCOME -> com.dga.montra.domain.TransactionCategories.income
                     else -> com.dga.montra.domain.TransactionCategories.expense
                 }
-                val catId = newCats[category.selectedItemPosition].id
+                val catId = (category.selectedItem as? String)?.let { name ->
+                    newCats.firstOrNull { it.name == name }?.id
+                } ?: newCats.last().id
                 scope.launch {
                     runCatching {
                         repository.updateTransaction(tx.id, catId, note.text.toString().trim(), newType, cal.timeInMillis)

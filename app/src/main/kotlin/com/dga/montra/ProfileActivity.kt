@@ -18,16 +18,14 @@ import com.dga.montra.data.RoomFinanceRepository
 import com.dga.montra.domain.Money
 import com.dga.montra.domain.Transaction
 import com.dga.montra.domain.TransactionCategories
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.io.path.copyTo
 
 class ProfileActivity : Activity() {
     private val prefs by lazy { getSharedPreferences("lumen_profile", MODE_PRIVATE) }
@@ -71,8 +69,10 @@ class ProfileActivity : Activity() {
                     REQUEST_BACKUP -> backupToUri(uri)
                     REQUEST_RESTORE -> restoreFromUri(uri)
                 }
-            } catch (e: Exception) {
-                runOnUiThread { toast(R.string.profile_error) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                toast(if (requestCode == REQUEST_RESTORE) R.string.profile_restore_error else R.string.profile_error)
             }
         }
     }
@@ -214,36 +214,27 @@ class ProfileActivity : Activity() {
     }
 
     private fun restoreDatabase() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-        }
-        startActivityForResult(intent, REQUEST_RESTORE)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.profile_restore_database)
+            .setMessage(R.string.profile_restore_confirm)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.profile_restore_database) { _, _ ->
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "*/*"
+                }
+                startActivityForResult(intent, REQUEST_RESTORE)
+            }.show()
     }
 
     private suspend fun backupToUri(uri: Uri) {
-        RoomFinanceRepository.get(applicationContext).checkpoint()
-        val dbFile = getDatabasePath(DATABASE_NAME)
-        FileInputStream(dbFile).use { input ->
-            contentResolver.openOutputStream(uri, "w")?.use { output ->
-                input.copyTo(output)
-            } ?: throw IllegalStateException("Could not open backup destination")
-        }
-        runOnUiThread { toast(R.string.profile_backup_success) }
+        RoomFinanceRepository.get(applicationContext).backupTo(uri)
+        toast(R.string.profile_backup_success)
     }
 
     private suspend fun restoreFromUri(uri: Uri) {
-        val temp = File(cacheDir, "lumen_restore.db")
-        contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(temp).use { output -> input.copyTo(output) }
-        } ?: throw IllegalStateException("Could not open restore source")
-        RoomFinanceRepository.get(applicationContext).closeDatabase()
-        val dbFile = getDatabasePath(DATABASE_NAME)
-        temp.copyTo(dbFile, overwrite = true)
-        temp.delete()
-        File(dbFile.path + "-wal").delete()
-        File(dbFile.path + "-shm").delete()
-        runOnUiThread { toast(R.string.profile_restore_success) }
+        RoomFinanceRepository.get(applicationContext).restoreFrom(uri)
+        toast(R.string.profile_restore_success)
     }
 
     private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
